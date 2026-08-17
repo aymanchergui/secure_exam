@@ -5,7 +5,6 @@
 :host {
   display: block;
   min-height: 100vh;
-
   font-family: Inter, Arial, sans-serif;
   color: #111827;
 
@@ -23,19 +22,22 @@
   --isen-text-soft: #6b7280;
 }
 
-/* PAGE */
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 .page {
   min-height: 100vh;
-
   background:
     radial-gradient(circle at top left, rgba(17, 24, 39, 0.045), transparent 32%),
     radial-gradient(circle at top right, rgba(100, 116, 139, 0.08), transparent 28%),
     linear-gradient(135deg, #eef1f5 0%, #e2e7ee 100%);
-
   padding: 12px 16px 40px;
 }
-/* MESSAGES */
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
 
 .info,
 .error,
@@ -43,13 +45,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-
   border-radius: 14px;
   padding: 16px 18px;
   margin-bottom: 20px;
-
   font-weight: 600;
-
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
@@ -71,7 +70,9 @@
   border: 1px solid #a7f3d0;
 }
 
-/* STATS */
+/* =========================================================
+   STATS
+   ========================================================= */
 
 .stats {
   display: grid;
@@ -83,23 +84,18 @@
 .card {
   position: relative;
   overflow: hidden;
-
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--isen-border);
   border-radius: 22px;
-
   padding: 24px;
-
   box-shadow:
     0 14px 34px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
-
   transition: 0.22s ease;
 }
 
 .card:hover {
   transform: translateY(-3px);
-
   box-shadow:
     0 20px 44px rgba(15, 23, 42, 0.11),
     0 10px 24px rgba(196, 0, 36, 0.08);
@@ -110,10 +106,8 @@
   position: absolute;
   top: 0;
   left: 0;
-
   width: 5px;
   height: 100%;
-
   background: linear-gradient(180deg, var(--isen-red), var(--isen-black));
 }
 
@@ -126,72 +120,54 @@
 
 .card span {
   display: block;
-
   color: var(--isen-text-soft);
   margin-bottom: 16px;
-
   font-size: 14px;
   font-weight: 750;
 }
 
-/* NUMBER CIRCLE */
-
 .card strong {
   position: relative;
-
   width: 68px;
   height: 68px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 50%;
-
   background: rgba(196, 0, 36, 0.13);
   color: #111827;
-
   font-size: 34px;
   line-height: 1;
   font-weight: 950;
-
   border: none;
-
   box-shadow:
     0 14px 28px rgba(196, 0, 36, 0.13),
     inset 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
-/* ICON RIGHT */
-
 .card-icon {
   width: 38px;
   height: 38px;
-
   padding: 0;
   border-radius: 0;
-
   color: #111827;
   stroke: #111827;
-
   background: transparent;
   box-shadow: none;
-
   stroke-width: 2.3;
   flex-shrink: 0;
 }
 
-
-/* PANELS */
+/* =========================================================
+   PANELS
+   ========================================================= */
 
 .panel {
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--isen-border);
   border-radius: 22px;
-
   padding: 24px;
   margin-bottom: 24px;
-
   box-shadow:
     0 14px 34px rgba(15, 23, 42, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -201,15 +177,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin: 0 0 20px;
-
   font-size: 22px;
   font-weight: 850;
   color: var(--isen-black);
 }
 
-/* FORMS */
+/* =========================================================
+   FORMS
+   ========================================================= */
 
 .form-grid {
   display: grid;
@@ -221,7 +197,6 @@ label {
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   color: #374151;
   font-size: 14px;
   font-weight: 700;
@@ -230,17 +205,12 @@ label {
 input[type="text"],
 input[type="password"] {
   width: 100%;
-
   border: 1px solid #d1d5db;
   border-radius: 12px;
-
   padding: 12px 14px;
-
   background: #ffffff;
   color: var(--isen-black);
-
   font-size: 14px;
-
   outline: none;
   transition: 0.2s ease;
 }
@@ -253,13 +223,14 @@ input[type="password"]:hover {
 input[type="text"]:focus,
 input[type="password"]:focus {
   border-color: var(--isen-red);
-
   box-shadow:
     0 0 0 4px var(--isen-red-light),
     0 8px 18px rgba(15, 23, 42, 0.05);
 }
 
-/* OPTIONS */
+/* =========================================================
+   OPTIONS GÉNÉRALES
+   ========================================================= */
 
 .options {
   margin-top: 22px;
@@ -269,57 +240,39 @@ input[type="password"]:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin-bottom: 12px;
-
   font-size: 15px;
   color: var(--isen-black);
-}
-
-.packages {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
 }
 
 .options-row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-
   margin: 20px 0;
 }
 
-.packages label,
 .options-row label {
   flex-direction: row;
   align-items: center;
-
   background: rgba(249, 250, 251, 0.92);
   border: 1px solid var(--isen-border);
   border-radius: 999px;
-
   padding: 9px 13px;
-
   font-weight: 650;
   color: #374151;
-
   transition: 0.2s ease;
 }
 
-.packages label:hover,
 .options-row label:hover {
   transform: translateY(-1px);
-
   background: #ffffff;
   border-color: rgba(196, 0, 36, 0.22);
-
   box-shadow: 0 8px 18px rgba(196, 0, 36, 0.07);
 }
 
 input[type="checkbox"] {
   accent-color: var(--isen-red);
-
   width: 16px;
   height: 16px;
 }
@@ -328,35 +281,29 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
-/* BUTTONS */
+/* =========================================================
+   BUTTONS
+   ========================================================= */
 
 button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   border: none;
   border-radius: 12px;
-
   padding: 11px 16px;
-
   cursor: pointer;
-
   background: var(--isen-black);
   color: white;
-
   font-size: 14px;
   font-weight: 800;
-
   transition: 0.2s ease;
 }
 
 button:hover {
   background: var(--isen-black-soft);
-
   transform: translateY(-1px);
-
   box-shadow: 0 10px 20px rgba(17, 24, 39, 0.16);
 }
 
@@ -379,14 +326,15 @@ button.danger:hover {
   gap: 12px;
 }
 
-/* DETAILS */
+/* =========================================================
+   DETAILS
+   ========================================================= */
 
 .details-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 18px;
-
   margin-bottom: 18px;
 }
 
@@ -403,16 +351,15 @@ button.danger:hover {
   color: var(--isen-black);
 }
 
-/* TABLES */
+/* =========================================================
+   TABLES
+   ========================================================= */
 
 table {
   width: 100%;
-
   border-collapse: separate;
   border-spacing: 0;
-
   overflow: hidden;
-
   background: #ffffff;
   border: 1px solid var(--isen-border);
   border-radius: 16px;
@@ -424,26 +371,19 @@ thead {
 
 th {
   text-align: left;
-
   color: var(--isen-text-soft);
-
   font-size: 13px;
   font-weight: 800;
-
   text-transform: uppercase;
   letter-spacing: 0.04em;
-
   padding: 14px 16px;
-
   border-bottom: 1px solid var(--isen-border);
 }
 
 td {
   padding: 14px 16px;
-
   color: #374151;
   font-size: 14px;
-
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -459,56 +399,51 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* BADGES */
+/* =========================================================
+   BADGES
+   ========================================================= */
 
 .badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-
   padding: 6px 11px;
   border-radius: 999px;
-
   background: #ecfdf5;
   color: #047857;
-
   font-size: 12px;
   font-weight: 850;
 }
 
-/* NIX CONTENT */
+/* =========================================================
+   NIX CONTENT
+   ========================================================= */
 
 .nix-content {
   background: #0f172a;
   color: #e5e7eb;
-
   border-radius: 16px;
   border: 1px solid #1e293b;
-
   padding: 20px;
-
   overflow-x: auto;
   white-space: pre-wrap;
-
   font-family: Consolas, Monaco, monospace;
   font-size: 13px;
   line-height: 1.6;
-
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
-/* LOGIN PAGE */
+/* =========================================================
+   LOGIN PAGE
+   ========================================================= */
 
 .login-page {
   min-height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   padding: 32px;
-
   background:
     radial-gradient(circle at top left, rgba(196, 0, 36, 0.12), transparent 34%),
     radial-gradient(circle at bottom right, rgba(122, 0, 21, 0.08), transparent 30%),
@@ -518,19 +453,15 @@ tbody tr:last-child td {
 .login-card {
   width: 100%;
   max-width: 430px;
-
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--isen-border);
   border-radius: 24px;
-
   padding: 34px;
-
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
 }
 
 .login-card h1 {
   margin: 0;
-
   font-size: 30px;
   font-weight: 900;
   color: var(--isen-black);
@@ -538,7 +469,6 @@ tbody tr:last-child td {
 
 .login-card p {
   margin: 8px 0 28px;
-
   color: var(--isen-text-soft);
   font-weight: 600;
 }
@@ -551,7 +481,6 @@ tbody tr:last-child td {
 .login-card button {
   width: 100%;
   margin-top: 8px;
-
   background: linear-gradient(135deg, var(--isen-black), var(--isen-red));
 }
 
@@ -559,7 +488,9 @@ tbody tr:last-child td {
   background: linear-gradient(135deg, var(--isen-black-soft), var(--isen-red-dark));
 }
 
-/* ICONS */
+/* =========================================================
+   ICONS
+   ========================================================= */
 
 .btn-icon,
 .title-icon,
@@ -570,7 +501,6 @@ tbody tr:last-child td {
 .login-icon i {
   width: 18px;
   height: 18px;
-
   stroke-width: 2.2;
   flex-shrink: 0;
 }
@@ -578,16 +508,12 @@ tbody tr:last-child td {
 .login-icon {
   width: 52px;
   height: 52px;
-
   border-radius: 16px;
-
   background: var(--isen-red-light);
   color: var(--isen-red);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   margin-bottom: 18px;
 }
 
@@ -601,14 +527,302 @@ tbody tr:last-child td {
   height: 14px;
 }
 
-/* SMOOTH SCROLL */
+/* =========================================================
+   SMOOTH SCROLL
+   ========================================================= */
 
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 120px;
 }
 
-/* RESPONSIVE */
+/* =========================================================
+   GESTION DES PAQUETS LOGICIELS
+   ========================================================= */
+
+.package-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.package-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.package-manager-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.package-manager-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Bouton rouge "Créer un paquet" */
+.package-manager-actions .package-create-toggle {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-red) !important;
+}
+
+.package-manager-actions .package-create-toggle:hover {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border-color: var(--isen-red) !important;
+  transform: none;
+  box-shadow: none;
+}
+
+.package-manager-actions .package-create-toggle .btn-icon {
+  color: #ffffff !important;
+}
+
+/* Filtres Tous / Actifs / Désactivés */
+.package-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #d8dee8;
+  background: #f8fafc;
+  border-radius: 999px;
+}
+
+.filter-pill {
+  border: 0;
+  background: transparent;
+  color: #475569;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  transform: none;
+  box-shadow: none;
+}
+
+.filter-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+/* Formulaire de création de paquet */
+.package-create-card {
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 22px;
+  padding: 22px;
+  animation: slideDown 0.18s ease-out;
+}
+
+.package-create-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.package-create-header p {
+  margin: 8px 0 18px;
+  color: #64748b;
+}
+
+.package-create-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Grille des paquets en 3 colonnes */
+.packages-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Carte d’un paquet */
+.package-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 120px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: #ffffff;
+  padding: 18px;
+  transition: 0.2s ease;
+}
+
+.package-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+/* Carte grisée si le paquet est désactivé */
+.package-card.inactive {
+  background: #f1f5f9;
+  opacity: 0.55;
+  filter: grayscale(0.85);
+}
+
+.package-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.package-identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.package-identity-icon {
+  width: 20px;
+  height: 20px;
+  color: #0f172a;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.package-title {
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.package-code {
+  color: #64748b;
+  font-weight: 800;
+  margin-left: 4px;
+}
+
+.package-card.inactive .package-identity-icon,
+.package-card.inactive .package-title,
+.package-card.inactive .package-code {
+  color: #94a3b8;
+}
+
+/* Badge actif / désactivé */
+.package-status {
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.package-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.package-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Switch d’activation du paquet */
+.package-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.package-power-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  transition: none;
+}
+
+.package-power-switch:hover {
+  transform: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.package-power-switch:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.package-power-track {
+  width: 52px;
+  height: 30px;
+  border-radius: 999px;
+  background: #94a3b8;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: 0.2s ease;
+}
+
+.package-power-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.24);
+  transition: 0.2s ease;
+}
+
+.package-power-switch.on .package-power-track {
+  background: #22c55e;
+}
+
+.package-power-switch.on .package-power-thumb {
+  transform: translateX(22px);
+}
+
+.package-power-switch.off .package-power-track {
+  background: #94a3b8;
+}
+
+/* Animation ouverture formulaire */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .packages-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 
 @media (max-width: 1000px) {
   .stats {
@@ -627,6 +841,21 @@ html {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .package-manager-header {
+    flex-direction: column;
+  }
+
+  .package-manager-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .packages-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -655,6 +884,10 @@ html {
 
   button {
     width: 100%;
+  }
+
+  .package-power-switch {
+    width: 58px;
   }
 
   .login-card {

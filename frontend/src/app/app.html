@@ -101,21 +101,162 @@
           </label>
         </div>
 
-        <div class="options">
-          <strong>
-            <i data-lucide="package-check" class="inline-icon"></i>
-            Paquets autorisés
-          </strong>
+        <div class="options package-manager">
+          <div class="package-manager-header">
+            <div>
+              <strong>
+                <i data-lucide="package-check" class="inline-icon"></i>
+                Paquets autorisés
+              </strong>
 
-          <div class="packages">
-            <label *ngFor="let packageName of availablePackages">
-              <input
-                type="checkbox"
-                [checked]="isPackageSelected(packageName)"
-                (change)="togglePackage(packageName)"
-              >
-              {{ packageName }}
-            </label>
+              <p class="package-manager-subtitle">
+                Sélectionnez les logiciels disponibles pour l'environnement d'examen.
+              </p>
+            </div>
+
+            <div class="package-manager-actions">
+              <button
+                type="button"
+                class="secondary"
+                (click)="togglePackageCreationForm()">
+                <i data-lucide="package-plus" class="btn-icon"></i>
+                {{ showPackageCreationForm ? 'Fermer' : 'Créer un paquet' }}
+              </button>
+
+              <div class="package-filter">
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'all'"
+                  (click)="setPackageFilter('all')">
+                  Tous
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'active'"
+                  (click)="setPackageFilter('active')">
+                  Actifs
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'inactive'"
+                  (click)="setPackageFilter('inactive')">
+                  Désactivés
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="showPackageCreationForm" class="package-create-card">
+            <div class="package-create-header">
+              <div>
+                <h3>
+                  <i data-lucide="plus-circle" class="inline-icon"></i>
+                  Nouveau paquet logiciel
+                </h3>
+
+                <p>
+                  Ajoutez un paquet autorisé dans le catalogue SQLite.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                Nom technique
+                <input
+                  [(ngModel)]="newPackage.name"
+                  type="text"
+                  placeholder="exemple : git"
+                >
+              </label>
+
+              <label>
+                Nom affiché
+                <input
+                  [(ngModel)]="newPackage.displayName"
+                  type="text"
+                  placeholder="exemple : Git"
+                >
+              </label>
+
+              <label class="full">
+                Description
+                <input
+                  [(ngModel)]="newPackage.description"
+                  type="text"
+                  placeholder="exemple : Gestionnaire de versions utilisé pour les projets."
+                >
+              </label>
+            </div>
+
+            <div class="package-create-actions">
+              <button
+                type="button"
+                (click)="createPackage()"
+                [disabled]="packageCreating">
+                <i data-lucide="plus" class="btn-icon"></i>
+                {{ packageCreating ? 'Ajout en cours...' : 'Ajouter le paquet' }}
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="packagesLoading" class="info">
+            <i data-lucide="loader-circle" class="message-icon"></i>
+            Chargement du catalogue logiciel...
+          </div>
+
+          <div *ngIf="!packagesLoading && displayedPackages.length === 0" class="error">
+            <i data-lucide="circle-alert" class="message-icon"></i>
+            Aucun paquet logiciel pour ce filtre.
+          </div>
+
+          <div class="packages-grid" *ngIf="!packagesLoading && displayedPackages.length > 0">
+            <div
+              class="package-card"
+              *ngFor="let packageItem of displayedPackages"
+              [class.inactive]="!packageItem.isActive"
+              [title]="packageItem.description">
+
+              <div class="package-card-top">
+                <div class="package-identity">
+                  <i data-lucide="package" class="package-identity-icon"></i>
+
+                  <span class="package-title">
+                    {{ packageItem.displayName }}
+                    <span class="package-code">({{ packageItem.name }})</span>
+                  </span>
+                </div>
+
+                <span class="package-status active" *ngIf="packageItem.isActive">
+                  Actif
+                </span>
+
+                <span class="package-status inactive" *ngIf="!packageItem.isActive">
+                  Désactivé
+                </span>
+              </div>
+
+              <div class="package-card-actions">
+                <button
+                  type="button"
+                  class="package-power-switch"
+                  [class.on]="packageItem.isActive"
+                  [class.off]="!packageItem.isActive"
+                  [disabled]="packageActionLoadingId === packageItem.id"
+                  [attr.aria-label]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
+                  [title]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
+                  (click)="togglePackageActivation(packageItem)">
+                  <span class="package-power-track">
+                    <span class="package-power-thumb"></span>
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

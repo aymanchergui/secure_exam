@@ -47,6 +47,26 @@ interface NixosConfig {
   content: string;
 }
 
+interface PackageCatalogItem {
+  id: number;
+  name: string;
+  displayName: string;
+  description: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PackageCatalogResponse {
+  count: number;
+  packages: PackageCatalogItem[];
+}
+
+interface PackageCreateResponse {
+  message: string;
+  package: PackageCatalogItem;
+}
+
 interface Dashboard {
   configs_count: number;
   submissions_count: number;
@@ -55,6 +75,8 @@ interface Dashboard {
   submissions: Submission[];
   machine_statuses: MachineStatus[];
 }
+
+type PackageFilter = 'all' | 'active' | 'inactive';
 
 type LucideWindow = Window & {
   lucide?: {
@@ -88,6 +110,10 @@ export class App implements OnInit, AfterViewInit {
   nixosConfig?: NixosConfig;
 
   loading = false;
+  packagesLoading = false;
+  packageCreating = false;
+  packageActionLoadingId = 0;
+
   error = '';
   success = '';
 
@@ -103,13 +129,21 @@ export class App implements OnInit, AfterViewInit {
 
   private apiUrl = 'http://127.0.0.1:8000';
 
-  availablePackages = ['python3', 'gcc', 'gdb', 'make', 'vim', 'nano'];
+  availablePackages: PackageCatalogItem[] = [];
+  packageFilter: PackageFilter = 'all';
+  showPackageCreationForm = false;
+
+  newPackage = {
+    name: '',
+    displayName: '',
+    description: ''
+  };
 
   newConfig = {
     exam_id: 'EXAM-PYTHON-2026',
     student_id: 'etu001',
     machine_id: 'PC01',
-    packages: ['python3', 'gcc', 'make'],
+    packages: [] as string[],
     sudo: false,
     internet: false,
     educ_access: true,
@@ -132,6 +166,7 @@ export class App implements OnInit, AfterViewInit {
       this.authenticatedPage = 'dashboard';
 
       setTimeout(() => {
+        this.loadActivePackages();
         this.loadDashboard();
       }, 100);
     } else {
@@ -245,6 +280,7 @@ export class App implements OnInit, AfterViewInit {
 
         localStorage.setItem('accessToken', data.access_token);
 
+        this.loadActivePackages();
         this.loadDashboard();
         this.refreshView();
       },
@@ -273,6 +309,18 @@ export class App implements OnInit, AfterViewInit {
     this.statusHistoryTitle = '';
 
     this.nixosConfig = undefined;
+    this.availablePackages = [];
+
+    this.newPackage = {
+      name: '',
+      displayName: '',
+      description: ''
+    };
+
+    this.newConfig.packages = [];
+
+    this.packageFilter = 'all';
+    this.showPackageCreationForm = false;
 
     this.loginPassword = '';
     this.loginError = '';
@@ -280,6 +328,9 @@ export class App implements OnInit, AfterViewInit {
     this.error = '';
     this.success = '';
     this.loading = false;
+    this.packagesLoading = false;
+    this.packageCreating = false;
+    this.packageActionLoadingId = 0;
 
     localStorage.removeItem('accessToken');
 
@@ -311,23 +362,181 @@ export class App implements OnInit, AfterViewInit {
       });
   }
 
-  togglePackage(packageName: string): void {
-    if (this.newConfig.packages.includes(packageName)) {
-      this.newConfig.packages = this.newConfig.packages.filter(pkg => pkg !== packageName);
-    } else {
-      this.newConfig.packages.push(packageName);
-    }
+  loadActivePackages(): void {
+    this.packagesLoading = true;
 
-    this.refreshLucideIcons();
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<PackageCatalogResponse>(
+      `${this.apiUrl}/packages`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.availablePackages = data.packages;
+        this.newConfig.packages = this.getActivePackageNames();
+
+        this.packagesLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = 'Impossible de charger le catalogue logiciel.';
+        this.packagesLoading = false;
+
+        this.refreshView();
+      }
+    });
   }
 
-  isPackageSelected(packageName: string): boolean {
-    return this.newConfig.packages.includes(packageName);
+  getActivePackageNames(): string[] {
+    return this.availablePackages
+      .filter(packageItem => packageItem.isActive)
+      .map(packageItem => packageItem.name);
+  }
+
+  get displayedPackages(): PackageCatalogItem[] {
+    if (this.packageFilter === 'active') {
+      return this.availablePackages.filter(packageItem => packageItem.isActive);
+    }
+
+    if (this.packageFilter === 'inactive') {
+      return this.availablePackages.filter(packageItem => !packageItem.isActive);
+    }
+
+    return this.availablePackages;
+  }
+
+  setPackageFilter(filter: PackageFilter): void {
+    this.packageFilter = filter;
+    this.refreshView();
+  }
+
+  togglePackageCreationForm(): void {
+    this.showPackageCreationForm = !this.showPackageCreationForm;
+    this.refreshView();
+  }
+
+  createPackage(): void {
+    this.error = '';
+    this.success = '';
+
+    const packageName = this.newPackage.name.trim().toLowerCase();
+    const displayName = this.newPackage.displayName.trim();
+    const description = this.newPackage.description.trim();
+
+    if (!packageName) {
+      this.error = 'Le nom technique du paquet est obligatoire.';
+      this.refreshView();
+      return;
+    }
+
+    if (!displayName) {
+      this.error = 'Le nom affiché du paquet est obligatoire.';
+      this.refreshView();
+      return;
+    }
+
+    if (!description) {
+      this.error = 'La description du paquet est obligatoire.';
+      this.refreshView();
+      return;
+    }
+
+    const payload = {
+      name: packageName,
+      displayName: displayName,
+      description: description
+    };
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageCreating = true;
+
+    this.http.post<PackageCreateResponse>(
+      `${this.apiUrl}/packages`,
+      payload,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+
+        this.newPackage = {
+          name: '',
+          displayName: '',
+          description: ''
+        };
+
+        this.packageCreating = false;
+        this.showPackageCreationForm = false;
+        this.packageFilter = 'all';
+
+        this.loadActivePackages();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (err.status === 409) {
+          this.error = 'Ce paquet existe déjà dans le catalogue.';
+        } else if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else {
+          this.error = "Erreur lors de l'ajout du paquet logiciel.";
+        }
+
+        this.packageCreating = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  togglePackageActivation(packageItem: PackageCatalogItem): void {
+    this.error = '';
+    this.success = '';
+    this.packageActionLoadingId = packageItem.id;
+
+    const headers = this.getTeacherHeaders();
+    const action = packageItem.isActive ? 'disable' : 'enable';
+
+    this.http.patch<PackageCreateResponse>(
+      `${this.apiUrl}/packages/${packageItem.id}/${action}`,
+      {},
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.packageActionLoadingId = 0;
+
+        this.loadActivePackages();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else {
+          this.error = "Erreur lors du changement d'état du paquet logiciel.";
+        }
+
+        this.packageActionLoadingId = 0;
+        this.refreshView();
+      }
+    });
   }
 
   createConfig(): void {
     this.error = '';
     this.success = '';
+
+    const activePackageNames = this.getActivePackageNames();
+
+    if (activePackageNames.length === 0) {
+      this.error = 'Aucun paquet logiciel actif disponible.';
+      this.refreshView();
+      return;
+    }
 
     const headers = this.getTeacherHeaders();
 
@@ -335,7 +544,7 @@ export class App implements OnInit, AfterViewInit {
       exam_id: this.newConfig.exam_id,
       student_id: this.newConfig.student_id,
       machine_id: this.newConfig.machine_id,
-      packages: this.newConfig.packages,
+      packages: activePackageNames,
       sudo: this.newConfig.sudo,
       internet: this.newConfig.internet,
       educ_access: this.newConfig.educ_access,
@@ -356,7 +565,13 @@ export class App implements OnInit, AfterViewInit {
         error: (err) => {
           console.error(err);
 
-          this.error = 'Erreur lors de la création de la configuration.';
+          if (err.error?.detail?.message === 'Paquets non autorisés') {
+            const invalidPackages = err.error.detail.invalid_packages?.join(', ') || '';
+            this.error = `Paquets non autorisés : ${invalidPackages}`;
+          } else {
+            this.error = 'Erreur lors de la création de la configuration.';
+          }
+
           this.refreshView();
         }
       });

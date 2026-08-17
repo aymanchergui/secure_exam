@@ -49,16 +49,6 @@ PROFILE_DIR.mkdir(exist_ok=True)
 NIXOS_CONFIG_FILE = PROJECT_DIR / "exam-client" / "generated" / "exam-configuration.nix"
 
 
-ALLOWED_PACKAGES = {
-    "python3",
-    "gcc",
-    "gdb",
-    "make",
-    "vim",
-    "nano"
-}
-
-
 def get_required_env(name: str) -> str:
     value = os.getenv(name)
 
@@ -130,6 +120,12 @@ class TeacherProfile(BaseModel):
     school: str
 
 
+class PackageCreate(BaseModel):
+    name: str
+    displayName: str
+    description: str
+
+
 def now_text() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -172,6 +168,48 @@ def get_teacher_by_username(username: str):
     connection.close()
 
     return teacher
+
+
+def teacher_row_to_public_dict(row):
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "role": row["role"],
+        "isActive": bool(row["is_active"]),
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"]
+    }
+
+
+def package_row_to_public_dict(row):
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "displayName": row["display_name"],
+        "description": row["description"],
+        "isActive": bool(row["is_active"]),
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"]
+    }
+
+
+def get_active_package_names() -> set[str]:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT name
+        FROM package_catalog
+        WHERE is_active = 1
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    return {
+        row["name"]
+        for row in rows
+    }
 
 
 def seed_default_teacher_account():
@@ -633,6 +671,422 @@ def auth_me(current_teacher: dict = Depends(get_current_teacher)):
     return current_teacher
 
 
+@app.get("/teachers")
+def list_teachers(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            username,
+            role,
+            is_active,
+            created_at,
+            updated_at
+        FROM teachers
+        ORDER BY id ASC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    teachers = []
+
+    for row in rows:
+        teachers.append(teacher_row_to_public_dict(row))
+
+    return {
+        "count": len(teachers),
+        "teachers": teachers
+    }
+
+
+@app.get("/teachers/{teacher_id}")
+def get_teacher(
+    teacher_id: int,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            username,
+            role,
+            is_active,
+            created_at,
+            updated_at
+        FROM teachers
+        WHERE id = ?
+    """, (
+        teacher_id,
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Enseignant introuvable."
+        )
+
+    return teacher_row_to_public_dict(row)
+
+
+@app.get("/packages")
+def list_packages(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        ORDER BY name ASC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    packages = []
+
+    for row in rows:
+        packages.append(package_row_to_public_dict(row))
+
+    return {
+        "count": len(packages),
+        "packages": packages
+    }
+
+
+@app.get("/packages/active")
+def list_active_packages(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE is_active = 1
+        ORDER BY name ASC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    packages = []
+
+    for row in rows:
+        packages.append(package_row_to_public_dict(row))
+
+    return {
+        "count": len(packages),
+        "packages": packages
+    }
+
+
+@app.post("/packages")
+def create_package(
+    package: PackageCreate,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    name = package.name.strip().lower()
+    display_name = package.displayName.strip()
+    description = package.description.strip()
+
+    if not name:
+        raise HTTPException(
+            status_code=400,
+            detail="Le nom technique du paquet est obligatoire."
+        )
+
+    if not display_name:
+        raise HTTPException(
+            status_code=400,
+            detail="Le nom affiché du paquet est obligatoire."
+        )
+
+    if not description:
+        raise HTTPException(
+            status_code=400,
+            detail="La description du paquet est obligatoire."
+        )
+
+    if not name.replace("-", "").replace("_", "").isalnum():
+        raise HTTPException(
+            status_code=400,
+            detail="Le nom technique doit contenir seulement des lettres, chiffres, tirets ou underscores."
+        )
+
+    current_time = now_iso()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id
+        FROM package_catalog
+        WHERE name = ?
+    """, (
+        name,
+    ))
+
+    existing_package = cursor.fetchone()
+
+    if existing_package is not None:
+        connection.close()
+        raise HTTPException(
+            status_code=409,
+            detail="Ce paquet existe déjà dans le catalogue."
+        )
+
+    cursor.execute("""
+        INSERT INTO package_catalog (
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        name,
+        display_name,
+        description,
+        1,
+        current_time,
+        current_time
+    ))
+
+    package_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Paquet ajouté au catalogue avec succès.",
+        "package": {
+            "id": package_id,
+            "name": name,
+            "displayName": display_name,
+            "description": description,
+            "isActive": True,
+            "createdAt": current_time,
+            "updatedAt": current_time
+        }
+    }
+
+
+@app.patch("/packages/{package_id}/disable")
+def disable_package(
+    package_id: int,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    package = cursor.fetchone()
+
+    if package is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Paquet logiciel introuvable."
+        )
+
+    if not bool(package["is_active"]):
+        connection.close()
+        return {
+            "message": "Ce paquet logiciel est déjà désactivé.",
+            "package": package_row_to_public_dict(package)
+        }
+
+    current_time = now_iso()
+
+    cursor.execute("""
+        UPDATE package_catalog
+        SET
+            is_active = 0,
+            updated_at = ?
+        WHERE id = ?
+    """, (
+        current_time,
+        package_id
+    ))
+
+    connection.commit()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    updated_package = cursor.fetchone()
+    connection.close()
+
+    return {
+        "message": "Paquet logiciel désactivé avec succès.",
+        "package": package_row_to_public_dict(updated_package)
+    }
+
+
+@app.patch("/packages/{package_id}/enable")
+def enable_package(
+    package_id: int,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    package = cursor.fetchone()
+
+    if package is None:
+        connection.close()
+        raise HTTPException(
+            status_code=404,
+            detail="Paquet logiciel introuvable."
+        )
+
+    if bool(package["is_active"]):
+        connection.close()
+        return {
+            "message": "Ce paquet logiciel est déjà actif.",
+            "package": package_row_to_public_dict(package)
+        }
+
+    current_time = now_iso()
+
+    cursor.execute("""
+        UPDATE package_catalog
+        SET
+            is_active = 1,
+            updated_at = ?
+        WHERE id = ?
+    """, (
+        current_time,
+        package_id
+    ))
+
+    connection.commit()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    updated_package = cursor.fetchone()
+    connection.close()
+
+    return {
+        "message": "Paquet logiciel réactivé avec succès.",
+        "package": package_row_to_public_dict(updated_package)
+    }
+
+
+@app.get("/database/stats")
+def get_database_stats(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    tables = {
+        "teachers": "Enseignants",
+        "teacher_profile": "Profil professeur",
+        "package_catalog": "Catalogue logiciels",
+        "support_requests": "Demandes support",
+        "exam_configs": "Configurations d'examen",
+        "submissions": "Soumissions",
+        "machine_status": "Statuts machines",
+        "machine_status_history": "Historique statuts machines"
+    }
+
+    stats = []
+
+    for table_name, label in tables.items():
+        cursor.execute(f"SELECT COUNT(*) AS total FROM {table_name}")
+        row = cursor.fetchone()
+
+        stats.append({
+            "table": table_name,
+            "label": label,
+            "count": row["total"]
+        })
+
+    connection.close()
+
+    return {
+        "database": "SQLite",
+        "status": "ok",
+        "tables": stats
+    }
+
+
 @app.get("/teacher-profile")
 def get_teacher_profile(current_teacher: dict = Depends(get_current_teacher)):
     profile = load_teacher_profile()
@@ -833,14 +1287,15 @@ def create_config(
     current_teacher: dict = Depends(get_current_teacher)
 ):
     requested_packages = set(config.packages)
-    invalid_packages = requested_packages - ALLOWED_PACKAGES
+    allowed_packages = get_active_package_names()
+    invalid_packages = requested_packages - allowed_packages
 
     if invalid_packages:
         raise HTTPException(
             status_code=400,
             detail={
                 "message": "Paquets non autorisés",
-                "invalid_packages": list(invalid_packages)
+                "invalid_packages": sorted(list(invalid_packages))
             }
         )
 
