@@ -21,6 +21,18 @@ def init_database():
     cursor = connection.cursor()
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS teachers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'teacher',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS teacher_profile (
             id INTEGER PRIMARY KEY CHECK (id = 1),
             full_name TEXT NOT NULL,
@@ -101,6 +113,11 @@ def init_database():
             message TEXT NOT NULL,
             created_at TEXT NOT NULL
         )
+    """)
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_teachers_username
+        ON teachers(username)
     """)
 
     cursor.execute("""

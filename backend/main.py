@@ -81,9 +81,6 @@ TEACHER_PASSWORD = get_required_env("TEACHER_PASSWORD")
 
 
 password_hash = PasswordHash.recommended()
-TEACHER_PASSWORD_HASH = password_hash.hash(TEACHER_PASSWORD)
-
-
 security = HTTPBearer()
 
 
@@ -154,6 +151,95 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
+def get_teacher_by_username(username: str):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            username,
+            password_hash,
+            role,
+            is_active
+        FROM teachers
+        WHERE username = ?
+    """, (
+        username,
+    ))
+
+    teacher = cursor.fetchone()
+    connection.close()
+
+    return teacher
+
+
+def seed_default_teacher_account():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            password_hash
+        FROM teachers
+        WHERE username = ?
+    """, (
+        TEACHER_USERNAME,
+    ))
+
+    existing_teacher = cursor.fetchone()
+    current_time = now_iso()
+
+    if existing_teacher is None:
+        cursor.execute("""
+            INSERT INTO teachers (
+                username,
+                password_hash,
+                role,
+                is_active,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            TEACHER_USERNAME,
+            password_hash.hash(TEACHER_PASSWORD),
+            "teacher",
+            1,
+            current_time,
+            current_time
+        ))
+    else:
+        try:
+            password_is_current = verify_password(
+                TEACHER_PASSWORD,
+                existing_teacher["password_hash"]
+            )
+        except Exception:
+            password_is_current = False
+
+        if not password_is_current:
+            cursor.execute("""
+                UPDATE teachers
+                SET
+                    password_hash = ?,
+                    role = ?,
+                    is_active = ?,
+                    updated_at = ?
+                WHERE id = ?
+            """, (
+                password_hash.hash(TEACHER_PASSWORD),
+                "teacher",
+                1,
+                current_time,
+                existing_teacher["id"]
+            ))
+
+    connection.commit()
+    connection.close()
+
+
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
 
@@ -189,15 +275,36 @@ def get_current_teacher(
         username = payload.get("sub")
         role = payload.get("role")
 
-        if username != TEACHER_USERNAME or role != "teacher":
+        if username is None or role is None:
             raise HTTPException(
                 status_code=401,
                 detail="Token invalide"
             )
 
+        teacher = get_teacher_by_username(username)
+
+        if teacher is None:
+            raise HTTPException(
+                status_code=401,
+                detail="Utilisateur introuvable"
+            )
+
+        if not bool(teacher["is_active"]):
+            raise HTTPException(
+                status_code=401,
+                detail="Compte désactivé"
+            )
+
+        if teacher["role"] != role:
+            raise HTTPException(
+                status_code=401,
+                detail="Rôle invalide"
+            )
+
         return {
-            "username": username,
-            "role": role
+            "id": teacher["id"],
+            "username": teacher["username"],
+            "role": teacher["role"]
         }
 
     except InvalidTokenError:
@@ -463,6 +570,9 @@ def update_support_email_status(request_id: int, email_sent: int):
     connection.close()
 
 
+seed_default_teacher_account()
+
+
 @app.get("/")
 def root():
     return {
@@ -482,15 +592,23 @@ def health():
 
 @app.post("/auth/login", response_model=TokenResponse)
 def login(login_request: LoginRequest):
-    if login_request.username != TEACHER_USERNAME:
+    teacher = get_teacher_by_username(login_request.username)
+
+    if teacher is None:
         raise HTTPException(
             status_code=401,
             detail="Identifiants incorrects"
         )
 
+    if not bool(teacher["is_active"]):
+        raise HTTPException(
+            status_code=401,
+            detail="Compte désactivé"
+        )
+
     if not verify_password(
         login_request.password,
-        TEACHER_PASSWORD_HASH
+        teacher["password_hash"]
     ):
         raise HTTPException(
             status_code=401,
@@ -499,8 +617,8 @@ def login(login_request: LoginRequest):
 
     access_token = create_access_token(
         data={
-            "sub": TEACHER_USERNAME,
-            "role": "teacher"
+            "sub": teacher["username"],
+            "role": teacher["role"]
         }
     )
 
