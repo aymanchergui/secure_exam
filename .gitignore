@@ -24,6 +24,15 @@ backend/database/*.db-wal
 backend/database/*.db-shm
 backend/database/*backup*.db
 
+
+# Exam client generated data
+exam-client/archives/
+exam-client/downloaded/
+exam-client/generated/
+exam-client/logs/
+exam-client/runtime/
+exam-client/submitted/
+
 # Angular
 frontend/node_modules/
 frontend/.angular/
