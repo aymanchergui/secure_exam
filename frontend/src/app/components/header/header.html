@@ -1,0 +1,94 @@
+<header class="app-header">
+  <div class="header-left">
+    <img
+      src="/assets/secure_exam_logo.png"
+      alt="ISEN SecureExam"
+      class="header-logo"
+    >
+  </div>
+
+  <nav class="header-nav">
+<a
+  href="#dashboard"
+  [class.active]="activeSection === 'dashboard'"
+  (click)="goToSection('dashboard', $event)"
+>
+  <i data-lucide="layout-dashboard" class="nav-icon"></i>
+  Dashboard
+    </a>
+
+    <a
+      href="#configs"
+      [class.active]="activeSection === 'configs'"
+      (click)="goToSection('configs', $event)"
+    >
+      <i data-lucide="settings" class="nav-icon"></i>
+      Configurations
+    </a>
+
+    <a
+      href="#nixos"
+      [class.active]="activeSection === 'nixos'"
+      (click)="goToSection('nixos', $event)"
+    >
+      <i data-lucide="terminal" class="nav-icon"></i>
+      NixOS
+    </a>
+
+    <a
+      href="#machines"
+      [class.active]="activeSection === 'machines'"
+      (click)="goToSection('machines', $event)"
+    >
+      <i data-lucide="monitor" class="nav-icon"></i>
+      Machines
+    </a>
+
+    <a
+      href="#submissions"
+      [class.active]="activeSection === 'submissions'"
+      (click)="goToSection('submissions', $event)"
+    >
+      <i data-lucide="archive" class="nav-icon"></i>
+      Rendus
+    </a>
+  </nav>
+
+  <div class="header-actions">
+      <button
+    class="refresh-icon-button"
+    type="button"
+    (click)="refresh()"
+    title="Actualiser"
+    aria-label="Actualiser"
+  >
+    <i data-lucide="refresh-cw"></i>
+  </button>
+
+    <button
+      class="profile-button"
+      type="button"
+      title="Voir le profil"
+      (click)="openProfile()"
+    >
+      <span class="profile-avatar">
+        <i data-lucide="user-round"></i>
+      </span>
+
+      <span class="profile-info">
+        <span class="profile-name">Professeur</span>
+        <span class="profile-role">Profil</span>
+      </span>
+    </button>
+
+    <button
+      class="logout-icon-button"
+      type="button"
+      (click)="logout()"
+      title="Se déconnecter"
+      aria-label="Se déconnecter"
+    >
+      <i data-lucide="log-out"></i>
+    </button>
+  </div>
+</header>

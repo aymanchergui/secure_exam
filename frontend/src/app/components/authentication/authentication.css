@@ -1,0 +1,283 @@
+.authentication-page {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 32px;
+
+  background: #f8edf0;
+}
+
+.authentication-card {
+  width: 100%;
+  max-width: 430px;
+
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+
+  padding: 34px;
+
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+}
+
+.authentication-icon {
+  width: 52px;
+  height: 52px;
+
+  border-radius: 16px;
+
+  background: rgba(196, 0, 36, 0.11);
+  color: #c40024;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+}
+
+.authentication-icon i,
+.authentication-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.3;
+}
+
+.authentication-card h1 {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.authentication-card p {
+  margin: 8px 0 28px;
+
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.authentication-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-bottom: 18px;
+
+  color: #374151;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.authentication-card input {
+  width: 100%;
+  height: 52px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+
+  padding: 0 15px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 15px;
+
+  outline: none;
+  transition: 0.22s ease;
+}
+
+.authentication-card input:hover {
+  border-color: #c4cad4;
+}
+
+.authentication-card input:focus {
+  border-color: #c40024;
+
+  box-shadow:
+    0 0 0 4px rgba(196, 0, 36, 0.11),
+    0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.authentication-card button {
+  width: 100%;
+  height: 52px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  border: none;
+  border-radius: 14px;
+
+  margin-top: 8px;
+
+  background: linear-gradient(135deg, #111827 0%, #c40024 100%);
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 900;
+
+  cursor: pointer;
+  transition: 0.22s ease;
+
+  box-shadow:
+    0 14px 28px rgba(196, 0, 36, 0.22),
+    0 8px 18px rgba(17, 24, 39, 0.14);
+}
+
+.authentication-card button:hover {
+  transform: translateY(-2px);
+
+  background: linear-gradient(135deg, #111827 0%, #7a0015 100%);
+
+  box-shadow:
+    0 18px 34px rgba(122, 0, 21, 0.26),
+    0 10px 20px rgba(17, 24, 39, 0.16);
+}
+
+.authentication-card button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-icon,
+.message-icon {
+  width: 18px;
+  height: 18px;
+
+  stroke-width: 2.3;
+  flex-shrink: 0;
+}
+
+.authentication-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 16px;
+  padding: 13px 15px;
+
+  border-radius: 14px;
+
+  background: #fff1f2;
+  color: #7a0015;
+  border: 1px solid rgba(196, 0, 36, 0.18);
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* SUPPORT LINK */
+
+.authentication-support {
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px solid #eef0f3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.authentication-support span {
+  color: #6b7280;
+}
+
+.support-link {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #7a0015;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  text-decoration: none;
+
+  transition: 0.22s ease;
+}
+
+.support-link::after {
+  content: "";
+  position: absolute;
+
+  left: 24px;
+  right: 0;
+  bottom: -4px;
+
+  height: 2px;
+
+  border-radius: 999px;
+
+  background: linear-gradient(90deg, #111827 0%, #c40024 100%);
+
+  transform: scaleX(0);
+  transform-origin: left;
+
+  transition: 0.22s ease;
+}
+
+.support-link:hover {
+  color: #111827;
+  transform: translateY(-1px);
+}
+
+.support-link:hover::after {
+  transform: scaleX(1);
+}
+
+.support-link i,
+.support-link svg {
+  width: 15px;
+  height: 15px;
+
+  stroke-width: 2.5;
+
+  color: #c40024;
+
+  transition: 0.22s ease;
+}
+
+.support-link:hover i,
+.support-link:hover svg {
+  color: #111827;
+}
+
+@media (max-width: 600px) {
+  .authentication-page {
+    padding: 20px;
+  }
+
+  .authentication-card {
+    padding: 28px;
+    border-radius: 22px;
+  }
+
+  .authentication-card h1 {
+    font-size: 26px;
+  }
+
+  .authentication-support {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .support-link::after {
+    left: 22px;
+  }
+}

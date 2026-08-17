@@ -1,0 +1,169 @@
+<section class="profile-page">
+  <div class="profile-header">
+    <button
+      type="button"
+      class="back-button"
+      (click)="goBack()"
+    >
+      <i data-lucide="arrow-left"></i>
+      Retour dashboard
+    </button>
+
+    <div>
+      <h1>Profil professeur</h1>
+      <p>Gérez vos informations, votre photo et les demandes de support reçues.</p>
+    </div>
+  </div>
+
+  <div class="profile-grid">
+    <section class="profile-card">
+      <div class="profile-card-header">
+        <div class="profile-photo">
+          <img
+            *ngIf="photoUrl && !photoLoadError"
+            [src]="photoUrl"
+            alt="Photo de profil"
+            (error)="photoLoadError = true"
+          >
+
+          <div
+            *ngIf="!photoUrl || photoLoadError"
+            class="profile-photo-placeholder"
+          >
+            <i data-lucide="user-round"></i>
+          </div>
+        </div>
+
+        <div>
+          <h2>{{ profile.fullName || 'Professeur' }}</h2>
+          <p>{{ profile.email || 'prof@isen.fr' }}</p>
+
+          <label class="photo-button">
+            <i data-lucide="camera"></i>
+            {{ uploadingPhoto ? 'Import...' : 'Changer la photo' }}
+
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              (change)="onPhotoSelected($event)"
+              hidden
+            >
+          </label>
+        </div>
+      </div>
+
+      <form class="profile-form" (ngSubmit)="saveProfile()">
+        <label>
+          Nom complet
+          <input
+            type="text"
+            name="fullName"
+            [(ngModel)]="profile.fullName"
+            placeholder="Nom du professeur"
+          >
+        </label>
+
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="profile.email"
+            placeholder="prof@isen.fr"
+          >
+        </label>
+
+        <label>
+          Rôle
+          <input
+            type="text"
+            name="role"
+            [(ngModel)]="profile.role"
+            placeholder="Enseignant"
+          >
+        </label>
+
+        <label>
+          Département
+          <input
+            type="text"
+            name="department"
+            [(ngModel)]="profile.department"
+            placeholder="Informatique"
+          >
+        </label>
+
+        <label>
+          Établissement
+          <input
+            type="text"
+            name="school"
+            [(ngModel)]="profile.school"
+            placeholder="ISEN"
+          >
+        </label>
+
+        <button
+          type="submit"
+          class="save-button"
+          [disabled]="saving"
+        >
+          <i [attr.data-lucide]="saving ? 'loader-circle' : 'save'"></i>
+          {{ saving ? 'Enregistrement...' : 'Enregistrer le profil' }}
+        </button>
+      </form>
+
+      <div *ngIf="successMessage" class="success-message">
+        <i data-lucide="circle-check"></i>
+        {{ successMessage }}
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        <i data-lucide="circle-alert"></i>
+        {{ errorMessage }}
+      </div>
+    </section>
+
+    <section class="support-card">
+      <div class="support-card-title">
+        <div>
+          <h2>Demandes support</h2>
+          <p>Historique des demandes envoyées depuis la page support.</p>
+        </div>
+
+        <button
+          type="button"
+          class="refresh-button"
+          (click)="loadSupportRequests()"
+        >
+          <i data-lucide="refresh-cw"></i>
+        </button>
+      </div>
+
+      <div *ngIf="supportRequests.length === 0" class="empty-support">
+        <i data-lucide="inbox"></i>
+        Aucune demande support pour le moment.
+      </div>
+
+      <div class="support-list">
+        <article
+          *ngFor="let request of supportRequests"
+          class="support-item"
+        >
+          <div class="support-item-top">
+            <div>
+              <h3>{{ request.subject }}</h3>
+              <p>{{ request.fullName }} — {{ request.email }}</p>
+            </div>
+
+            <span>{{ request.created_at }}</span>
+          </div>
+
+          <p class="support-message">
+            {{ request.message }}
+          </p>
+        </article>
+      </div>
+    </section>
+  </div>
+</section>

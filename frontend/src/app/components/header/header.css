@@ -1,0 +1,527 @@
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 12px 18px 12px 12px;
+  margin-bottom: 26px;
+
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+
+  border: 1px solid #e5e8eb;
+  border-radius: 0 0 20px 20px;
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+
+  overflow: visible;
+}
+
+/* LEFT LOGO */
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0;
+
+  min-width: 235px;
+  height: 54px;
+
+  overflow: visible;
+}
+
+.header-logo {
+  height: 54px;
+  width: auto;
+  object-fit: contain;
+
+  transform: translateX(-8px) scale(2.55);
+  transform-origin: left center;
+
+  position: relative;
+  z-index: 2;
+}
+
+/* OPTIONAL TITLE */
+
+.header-title h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.header-title p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* NAVIGATION */
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0;
+  flex: 1;
+
+  min-width: 0;
+}
+
+.header-nav a {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  margin: 0 9px;
+  padding: 9px 12px;
+
+  border-radius: 13px;
+
+  text-decoration: none;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  transition: 0.22s ease;
+}
+
+.header-nav a:hover {
+  background: #f3f4f6;
+  color: #d90429;
+  transform: translateY(-1px);
+}
+
+/* SEPARATOR BETWEEN NAV BUTTONS */
+
+.header-nav a + a::before {
+  content: "";
+  position: absolute;
+
+  left: -9px;
+  top: 50%;
+
+  width: 1px;
+  height: 15px;
+
+  transform: translateY(-50%);
+
+  border-radius: 999px;
+
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(17, 24, 39, 0.22) 35%,
+    rgba(139, 0, 24, 0.38) 65%,
+    transparent 100%
+  );
+}
+
+/* ACTIVE NAV BUTTON */
+
+.header-nav a.active {
+  background: linear-gradient(135deg, #d90429 0%, #9f001c 100%);
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 22px rgba(217, 4, 41, 0.25),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+
+  transform: translateY(-1px);
+}
+
+.header-nav a.active:hover {
+  background: linear-gradient(135deg, #e3062d 0%, #8b0018 100%);
+  color: #ffffff;
+}
+
+/* ACTIVE ICON WHITE */
+
+.header-nav a.active .nav-icon,
+.header-nav a.active svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+/* ACTIVE SMALL LINE DOWN */
+
+.header-nav a.active::after {
+  content: "";
+  position: absolute;
+
+  bottom: -9px;
+  left: 50%;
+
+  width: 30px;
+  height: 4px;
+
+  transform: translateX(-50%);
+
+  border-radius: 999px;
+
+  background: linear-gradient(90deg, #111827 0%, #8b0018 100%);
+
+  box-shadow:
+    0 5px 12px rgba(139, 0, 24, 0.28),
+    0 3px 8px rgba(17, 24, 39, 0.2);
+}
+
+/* ACTIONS */
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  border: none;
+  border-radius: 12px;
+
+  padding: 10px 13px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.22s ease;
+
+  white-space: nowrap;
+}
+
+/* REFRESH ICON BUTTON */
+
+.header-actions .refresh-icon-button {
+  width: 44px;
+  height: 44px;
+
+  padding: 0;
+
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 14px;
+
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px rgba(17, 24, 39, 0.18),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.header-actions .refresh-icon-button:hover {
+  transform: translateY(-2px);
+
+  background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
+
+  box-shadow:
+    0 14px 30px rgba(139, 0, 24, 0.28),
+    0 8px 18px rgba(17, 24, 39, 0.18);
+}
+
+.header-actions .refresh-icon-button:active {
+  transform: translateY(0) scale(0.96);
+}
+
+.refresh-icon-button svg,
+.refresh-icon-button i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.4;
+}
+
+.refresh-icon-button:hover svg,
+.refresh-icon-button:hover i {
+  transform: rotate(90deg);
+  transition: transform 0.28s ease;
+}
+
+/* PROFILE BUTTON */
+
+.profile-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border-radius: 999px;
+
+  padding: 7px 12px 7px 7px;
+
+  background: #ffffff;
+  color: #111827;
+
+  border: 1px solid rgba(17, 24, 39, 0.1);
+
+  box-shadow:
+    0 8px 22px rgba(17, 24, 39, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+
+  cursor: pointer;
+  transition: 0.22s ease;
+
+  white-space: nowrap;
+}
+
+.profile-button:hover {
+  transform: translateY(-1px);
+
+  background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
+  color: #ffffff;
+
+  box-shadow:
+    0 12px 28px rgba(139, 0, 24, 0.22),
+    0 8px 18px rgba(17, 24, 39, 0.16);
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #d90429 0%, #8b0018 100%);
+  color: #ffffff;
+
+  box-shadow: 0 8px 16px rgba(217, 4, 41, 0.25);
+}
+
+.profile-avatar svg,
+.profile-avatar i {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.4;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-role {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.profile-button:hover .profile-role {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* LOGOUT ICON BUTTON */
+
+.header-actions .logout-icon-button {
+  width: 42px;
+  height: 42px;
+
+  padding: 0;
+
+  border: 1px solid rgba(139, 0, 24, 0.18);
+  border-radius: 50%;
+
+  background: rgba(217, 4, 41, 0.08);
+  color: #8b0018;
+
+  box-shadow:
+    0 8px 18px rgba(17, 24, 39, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.header-actions .logout-icon-button:hover {
+  transform: translateY(-1px);
+
+  background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
+  color: #ffffff;
+
+  border-color: transparent;
+
+  box-shadow:
+    0 12px 26px rgba(139, 0, 24, 0.28),
+    0 6px 14px rgba(17, 24, 39, 0.16);
+}
+
+.logout-icon-button i,
+.logout-icon-button svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.4;
+}
+
+.logout-icon-button:hover i,
+.logout-icon-button:hover svg {
+  color: #ffffff;
+  stroke: #ffffff;
+}
+
+/* ICONS */
+
+.nav-icon,
+.action-icon {
+  width: 17px;
+  height: 17px;
+
+  stroke-width: 2.2;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1200px) {
+  .app-header {
+    gap: 12px;
+    padding: 12px 16px 12px 10px;
+  }
+
+  .header-left {
+    min-width: 215px;
+  }
+
+  .header-logo {
+    transform: translateX(-6px) scale(2.25);
+  }
+
+  .header-nav a {
+    margin: 0 7px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+  }
+
+  .header-nav a + a::before {
+    left: -7px;
+  }
+
+  .header-actions {
+    gap: 7px;
+  }
+
+  .header-actions .refresh-icon-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .header-actions .logout-icon-button {
+    width: 40px;
+    height: 40px;
+  }
+
+  .profile-button {
+    padding: 6px 10px 6px 6px;
+  }
+
+  .profile-avatar {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .app-header {
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    min-width: 260px;
+  }
+
+  .header-logo {
+    transform: translateX(-6px) scale(2.15);
+  }
+
+  .header-nav {
+    order: 3;
+    width: 100%;
+
+    justify-content: flex-start;
+
+    overflow-x: auto;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .header-nav a {
+    margin: 0 10px;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  .header-nav a + a::before {
+    left: -10px;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-header {
+    padding: 14px 18px;
+  }
+
+  .header-left {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+    gap: 22px;
+  }
+
+  .header-logo {
+    height: 48px;
+    transform: translateX(-4px) scale(1.45);
+  }
+
+  .header-title h1 {
+    font-size: 20px;
+  }
+
+  .header-title p {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .header-nav a {
+    margin: 0 10px;
+    padding: 9px 13px;
+    font-size: 13px;
+  }
+
+  .header-nav a + a::before {
+    left: -10px;
+    height: 14px;
+  }
+
+  .header-nav a.active::after {
+    bottom: -8px;
+    width: 28px;
+    height: 3px;
+  }
+}

@@ -1,0 +1,403 @@
+<app-authentication
+  *ngIf="!isAuthenticated && publicPage === 'authentication'"
+  [authenticationError]="loginError"
+  (authenticationRequested)="onAuthenticationRequested($event)"
+  (supportRequested)="openSupportPage()">
+</app-authentication>
+
+<div *ngIf="!isAuthenticated && publicPage === 'support'">
+  <app-support
+    (backRequested)="openAuthenticationPage()">
+  </app-support>
+</div>
+
+<div class="page" *ngIf="isAuthenticated">
+  <app-header
+    (refreshRequested)="loadDashboard()"
+    (logoutRequested)="logout()"
+    (profileRequested)="openProfilePage()"
+    (sectionRequested)="openDashboardSection($event)">
+  </app-header>
+
+  <app-profile
+    *ngIf="authenticatedPage === 'profile'"
+    [accessToken]="accessToken"
+    (backRequested)="openDashboardPage()">
+  </app-profile>
+
+  <div *ngIf="authenticatedPage === 'dashboard'">
+    <div *ngIf="loading && !dashboard" class="info">
+      <i data-lucide="loader-circle" class="message-icon"></i>
+      Chargement du tableau de bord...
+    </div>
+
+    <div *ngIf="loading && dashboard" class="info">
+      <i data-lucide="refresh-cw" class="message-icon"></i>
+      Actualisation en cours...
+    </div>
+
+    <div *ngIf="error" class="error">
+      <i data-lucide="circle-alert" class="message-icon"></i>
+      {{ error }}
+    </div>
+
+    <div *ngIf="success" class="success">
+      <i data-lucide="circle-check" class="message-icon"></i>
+      {{ success }}
+    </div>
+
+    <main *ngIf="dashboard">
+      <section id="dashboard" class="stats">
+        <div class="card">
+          <div class="card-top">
+            <span>Configurations</span>
+            <i data-lucide="file-json" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.configs_count }}</strong>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span>Rendus reçus</span>
+            <i data-lucide="archive" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.submissions_count }}</strong>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span>Machines suivies</span>
+            <i data-lucide="monitor-check" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.machines_count }}</strong>
+        </div>
+      </section>
+
+      <section id="configs" class="panel">
+        <h2>
+          <i data-lucide="settings" class="title-icon"></i>
+          Créer une configuration d'examen
+        </h2>
+
+        <div class="form-grid">
+          <label>
+            Examen
+            <input [(ngModel)]="newConfig.exam_id" type="text">
+          </label>
+
+          <label>
+            Étudiant
+            <input [(ngModel)]="newConfig.student_id" type="text">
+          </label>
+
+          <label>
+            Machine
+            <input [(ngModel)]="newConfig.machine_id" type="text">
+          </label>
+
+          <label>
+            Workspace
+            <input [(ngModel)]="newConfig.workspace" type="text">
+          </label>
+        </div>
+
+        <div class="options">
+          <strong>
+            <i data-lucide="package-check" class="inline-icon"></i>
+            Paquets autorisés
+          </strong>
+
+          <div class="packages">
+            <label *ngFor="let packageName of availablePackages">
+              <input
+                type="checkbox"
+                [checked]="isPackageSelected(packageName)"
+                (change)="togglePackage(packageName)"
+              >
+              {{ packageName }}
+            </label>
+          </div>
+        </div>
+
+        <div class="options-row">
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.sudo">
+            Sudo autorisé
+          </label>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.internet">
+            Internet autorisé
+          </label>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.educ_access">
+            Accès Educ autorisé
+          </label>
+        </div>
+
+        <label class="full">
+          Domaines autorisés
+          <input [(ngModel)]="newConfig.allowed_domains_text" type="text">
+        </label>
+
+        <button type="button" (click)="createConfig()">
+          <i data-lucide="plus" class="btn-icon"></i>
+          Créer la configuration
+        </button>
+      </section>
+
+      <section class="panel">
+        <h2>
+          <i data-lucide="files" class="title-icon"></i>
+          Configurations générées
+        </h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Fichier de configuration</th>
+              <th>Détail</th>
+              <th>Téléchargement</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let config of dashboard.configs">
+              <td>{{ config.filename }}</td>
+
+              <td>
+                <button type="button" (click)="viewConfig(config)">
+                  <i data-lucide="eye" class="btn-icon"></i>
+                  Voir détail
+                </button>
+              </td>
+
+              <td>
+                <button type="button" (click)="downloadConfig(config)">
+                  <i data-lucide="download" class="btn-icon"></i>
+                  Télécharger
+                </button>
+              </td>
+
+              <td>
+                <button type="button" class="danger" (click)="deleteConfig(config)">
+                  <i data-lucide="trash-2" class="btn-icon"></i>
+                  Supprimer
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" *ngIf="selectedConfig">
+        <div class="details-header">
+          <h2>
+            <i data-lucide="file-search" class="title-icon"></i>
+            Détail de la configuration
+          </h2>
+
+          <button type="button" (click)="closeConfigDetails()">
+            <i data-lucide="x" class="btn-icon"></i>
+            Fermer
+          </button>
+        </div>
+
+        <p><strong>Fichier :</strong> {{ selectedConfigFilename }}</p>
+        <p><strong>Examen :</strong> {{ selectedConfig.exam_id }}</p>
+        <p><strong>Étudiant :</strong> {{ selectedConfig.student_id }}</p>
+        <p><strong>Machine :</strong> {{ selectedConfig.machine_id }}</p>
+        <p><strong>Workspace :</strong> {{ selectedConfig.workspace }}</p>
+
+        <p>
+          <strong>Paquets :</strong>
+          {{ selectedConfig.packages.join(', ') }}
+        </p>
+
+        <p>
+          <strong>Sudo :</strong>
+          {{ selectedConfig.sudo ? 'autorisé' : 'désactivé' }}
+        </p>
+
+        <p>
+          <strong>Internet :</strong>
+          {{ selectedConfig.internet ? 'autorisé' : 'bloqué' }}
+        </p>
+
+        <p>
+          <strong>Educ :</strong>
+          {{ selectedConfig.educ_access ? 'autorisé' : 'bloqué' }}
+        </p>
+
+        <p>
+          <strong>Domaines autorisés :</strong>
+          {{ selectedConfig.allowed_domains.join(', ') }}
+        </p>
+      </section>
+
+      <section id="nixos" class="panel">
+        <div class="details-header">
+          <h2>
+            <i data-lucide="terminal" class="title-icon"></i>
+            Configuration NixOS générée
+          </h2>
+
+          <div class="actions">
+            <button type="button" (click)="viewNixosConfig()">
+              <i data-lucide="eye" class="btn-icon"></i>
+              Voir configuration NixOS
+            </button>
+
+            <button type="button" (click)="downloadNixosConfig()">
+              <i data-lucide="download" class="btn-icon"></i>
+              Télécharger .nix
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="nixosConfig">
+          <p><strong>Fichier :</strong> {{ nixosConfig.filename }}</p>
+
+          <pre class="nix-content"><code>{{ nixosConfig.content }}</code></pre>
+
+          <button type="button" (click)="closeNixosConfig()">
+            <i data-lucide="x" class="btn-icon"></i>
+            Fermer
+          </button>
+        </div>
+      </section>
+
+      <section id="machines" class="panel">
+        <h2>
+          <i data-lucide="monitor-cog" class="title-icon"></i>
+          État des machines
+        </h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Examen</th>
+              <th>Étudiant</th>
+              <th>Machine</th>
+              <th>Étape</th>
+              <th>Statut</th>
+              <th>Message</th>
+              <th>Historique</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let machine of dashboard.machine_statuses">
+              <td>{{ machine.exam_id }}</td>
+              <td>{{ machine.student_id }}</td>
+              <td>{{ machine.machine_id }}</td>
+              <td>{{ machine.step }}</td>
+
+              <td>
+                <span class="badge">
+                  <i data-lucide="circle-check" class="badge-icon"></i>
+                  {{ machine.status }}
+                </span>
+              </td>
+
+              <td>{{ machine.message }}</td>
+
+              <td>
+                <button type="button" (click)="viewStatusHistory(machine)">
+                  <i data-lucide="history" class="btn-icon"></i>
+                  Voir historique
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" *ngIf="statusHistory.length > 0">
+        <div class="details-header">
+          <h2>
+            <i data-lucide="history" class="title-icon"></i>
+            Historique machine
+          </h2>
+
+          <button type="button" (click)="closeStatusHistory()">
+            <i data-lucide="x" class="btn-icon"></i>
+            Fermer
+          </button>
+        </div>
+
+        <p><strong>Machine :</strong> {{ statusHistoryTitle }}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Étape</th>
+              <th>Statut</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of statusHistory">
+              <td>{{ item.created_at }}</td>
+              <td>{{ item.step }}</td>
+
+              <td>
+                <span class="badge">
+                  <i data-lucide="circle-check" class="badge-icon"></i>
+                  {{ item.status }}
+                </span>
+              </td>
+
+              <td>{{ item.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="submissions" class="panel">
+        <h2>
+          <i data-lucide="archive" class="title-icon"></i>
+          Rendus étudiants
+        </h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Archive</th>
+              <th>Taille</th>
+              <th>Date</th>
+              <th>Téléchargement</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let submission of dashboard.submissions">
+              <td>{{ submission.filename }}</td>
+              <td>{{ submission.size_kb }} KB</td>
+              <td>{{ submission.created_at }}</td>
+
+              <td>
+                <button type="button" (click)="downloadSubmission(submission)">
+                  <i data-lucide="download" class="btn-icon"></i>
+                  Télécharger
+                </button>
+              </td>
+
+              <td>
+                <button type="button" class="danger" (click)="deleteSubmission(submission)">
+                  <i data-lucide="trash-2" class="btn-icon"></i>
+                  Supprimer
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+</div>

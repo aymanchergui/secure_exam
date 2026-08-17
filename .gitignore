@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+
+# Backend generated data
+backend/configs/
+backend/submissions/
+backend/status/
+backend/status_history/
+backend/support_requests/
+backend/profile/
+backend/database/
+backend/uploads/
+
+# Angular
+frontend/node_modules/
+frontend/.angular/
+frontend/dist/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
