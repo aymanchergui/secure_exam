@@ -59,15 +59,30 @@ ALLOWED_PACKAGES = {
 }
 
 
-SECRET_KEY = "change-this-secret-key-in-production"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 120
+def get_required_env(name: str) -> str:
+    value = os.getenv(name)
 
-TEACHER_USERNAME = "prof"
-TEACHER_PASSWORD = "isen-prof"
+    if value is None or not value.strip():
+        raise RuntimeError(
+            f"Variable d'environnement manquante : {name}"
+        )
+
+    return value
+
+
+SECRET_KEY = get_required_env("JWT_SECRET_KEY")
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(
+    os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120")
+)
+
+TEACHER_USERNAME = get_required_env("TEACHER_USERNAME")
+TEACHER_PASSWORD = get_required_env("TEACHER_PASSWORD")
+
 
 password_hash = PasswordHash.recommended()
 TEACHER_PASSWORD_HASH = password_hash.hash(TEACHER_PASSWORD)
+
 
 security = HTTPBearer()
 
