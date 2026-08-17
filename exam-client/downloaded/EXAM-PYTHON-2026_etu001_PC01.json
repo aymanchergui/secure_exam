@@ -1,0 +1,17 @@
+{
+  "exam_id": "EXAM-PYTHON-2026",
+  "student_id": "etu001",
+  "machine_id": "PC01",
+  "packages": [
+    "python3",
+    "gcc",
+    "make"
+  ],
+  "sudo": false,
+  "internet": false,
+  "educ_access": true,
+  "allowed_domains": [
+    "educ.isen.fr"
+  ],
+  "workspace": "/home/exam/etu001/workspace"
+}

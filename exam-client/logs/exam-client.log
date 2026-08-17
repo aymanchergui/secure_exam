@@ -1,0 +1,340 @@
+[2026-08-11 10:11:34] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_101134.zip
+[2026-08-11 10:11:37] [RESET] Remise à zéro terminée avec succès
+[2026-08-11 10:19:25] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_101134.zip
+[2026-08-11 10:22:35] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_102235.zip
+[2026-08-11 10:22:35] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_102235.zip
+[2026-08-11 10:22:37] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 10:26:07] [FLOW] Début étape : FETCH
+[2026-08-11 10:26:07] [FLOW] Fin étape : FETCH
+[2026-08-11 10:26:07] [FLOW] Début étape : APPLY
+[2026-08-11 10:26:07] [FLOW] Fin étape : APPLY
+[2026-08-11 10:26:07] [FLOW] Début étape : BACKUP
+[2026-08-11 10:26:08] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_102608.zip
+[2026-08-11 10:26:08] [FLOW] Fin étape : BACKUP
+[2026-08-11 10:26:08] [FLOW] Début étape : SUBMIT
+[2026-08-11 10:26:08] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_102608.zip
+[2026-08-11 10:26:08] [FLOW] Fin étape : SUBMIT
+[2026-08-11 10:26:08] [FLOW] Début étape : RESET
+[2026-08-11 10:26:08] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 10:26:08] [FLOW] Fin étape : RESET
+[2026-08-11 10:26:08] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 10:32:33] [FLOW] Début étape : FETCH
+[2026-08-11 10:32:33] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 10:32:33] [FLOW] Fin étape : FETCH
+[2026-08-11 10:32:33] [FLOW] Début étape : APPLY
+[2026-08-11 10:32:33] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 10:32:33] [FLOW] Fin étape : APPLY
+[2026-08-11 10:32:33] [FLOW] Début étape : BACKUP
+[2026-08-11 10:32:33] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_103233.zip
+[2026-08-11 10:32:33] [FLOW] Fin étape : BACKUP
+[2026-08-11 10:32:33] [FLOW] Début étape : SUBMIT
+[2026-08-11 10:32:33] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_103233.zip
+[2026-08-11 10:32:33] [FLOW] Fin étape : SUBMIT
+[2026-08-11 10:32:33] [FLOW] Début étape : RESET
+[2026-08-11 10:32:33] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 10:32:33] [FLOW] Fin étape : RESET
+[2026-08-11 10:32:33] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:10:43] [FLOW] Début étape : FETCH
+[2026-08-11 11:10:43] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:10:43] [FLOW] Fin étape : FETCH
+[2026-08-11 11:10:43] [FLOW] Début étape : APPLY
+[2026-08-11 11:10:43] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:10:43] [FLOW] Fin étape : APPLY
+[2026-08-11 11:10:43] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 11:10:43] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 11:10:43] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 11:10:43] [FLOW] Début étape : BACKUP
+[2026-08-11 11:10:44] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111044.zip
+[2026-08-11 11:10:44] [FLOW] Fin étape : BACKUP
+[2026-08-11 11:10:44] [FLOW] Début étape : SUBMIT
+[2026-08-11 11:10:44] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111044.zip
+[2026-08-11 11:10:44] [FLOW] Fin étape : SUBMIT
+[2026-08-11 11:10:44] [FLOW] Début étape : RESET
+[2026-08-11 11:10:44] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:10:44] [FLOW] Fin étape : RESET
+[2026-08-11 11:10:44] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:14:48] [FLOW] Début étape : FETCH
+[2026-08-11 11:14:48] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:14:48] [FLOW] Fin étape : FETCH
+[2026-08-11 11:14:48] [FLOW] Début étape : APPLY
+[2026-08-11 11:14:48] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:14:48] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 11:14:48] [FLOW] Fin étape : APPLY
+[2026-08-11 11:14:48] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 11:14:48] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 11:14:48] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 11:14:48] [FLOW] Début étape : BACKUP
+[2026-08-11 11:14:48] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111448.zip
+[2026-08-11 11:14:48] [FLOW] Fin étape : BACKUP
+[2026-08-11 11:14:48] [FLOW] Début étape : SUBMIT
+[2026-08-11 11:14:48] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111448.zip
+[2026-08-11 11:14:48] [FLOW] Fin étape : SUBMIT
+[2026-08-11 11:14:48] [FLOW] Début étape : RESET
+[2026-08-11 11:14:48] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:14:48] [FLOW] Fin étape : RESET
+[2026-08-11 11:14:48] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:16:47] [FLOW] Début étape : FETCH
+[2026-08-11 11:16:47] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:16:47] [FLOW] Fin étape : FETCH
+[2026-08-11 11:16:47] [FLOW] Début étape : APPLY
+[2026-08-11 11:16:47] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:16:47] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 11:16:47] [FLOW] Fin étape : APPLY
+[2026-08-11 11:16:47] [FLOW] Début étape : GENERATE_NIX
+[2026-08-11 11:16:47] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 11:16:47] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 11:16:47] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 11:16:47] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 11:16:47] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 11:16:47] [FLOW] Début étape : BACKUP
+[2026-08-11 11:16:47] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111647.zip
+[2026-08-11 11:16:47] [FLOW] Fin étape : BACKUP
+[2026-08-11 11:16:47] [FLOW] Début étape : SUBMIT
+[2026-08-11 11:16:47] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_111647.zip
+[2026-08-11 11:16:47] [FLOW] Fin étape : SUBMIT
+[2026-08-11 11:16:47] [FLOW] Début étape : RESET
+[2026-08-11 11:16:48] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:16:48] [FLOW] Fin étape : RESET
+[2026-08-11 11:16:48] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:22:26] [FLOW] Début étape : FETCH
+[2026-08-11 11:22:26] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 11:22:26] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:22:26] [FLOW] Fin étape : FETCH
+[2026-08-11 11:22:26] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 11:22:26] [FLOW] Début étape : APPLY
+[2026-08-11 11:22:26] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 11:22:26] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:22:26] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 11:22:26] [FLOW] Fin étape : APPLY
+[2026-08-11 11:22:26] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 11:22:26] [FLOW] Début étape : GENERATE_NIX
+[2026-08-11 11:22:26] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 11:22:26] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 11:22:26] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 11:22:26] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 11:22:26] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 11:22:26] [STATUS] STUDENT_WORK - RUNNING - Début étape : STUDENT_WORK
+[2026-08-11 11:22:26] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 11:22:26] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 11:22:26] [STATUS] STUDENT_WORK - SUCCESS - Fin étape : STUDENT_WORK
+[2026-08-11 11:22:26] [FLOW] Début étape : BACKUP
+[2026-08-11 11:22:26] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-11 11:22:26] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_112226.zip
+[2026-08-11 11:22:26] [FLOW] Fin étape : BACKUP
+[2026-08-11 11:22:26] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-11 11:22:26] [FLOW] Début étape : SUBMIT
+[2026-08-11 11:22:26] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-11 11:22:26] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_112226.zip
+[2026-08-11 11:22:26] [FLOW] Fin étape : SUBMIT
+[2026-08-11 11:22:26] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-11 11:22:26] [FLOW] Début étape : RESET
+[2026-08-11 11:22:26] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-11 11:22:26] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:22:26] [FLOW] Fin étape : RESET
+[2026-08-11 11:22:26] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-11 11:22:26] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:22:26] [STATUS] FLOW - SUCCESS - Chaîne complète exécutée avec succès
+[2026-08-11 11:24:53] [START_FLOW] Début étape : FETCH
+[2026-08-11 11:24:53] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 11:24:53] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:24:53] [START_FLOW] Fin étape : FETCH
+[2026-08-11 11:24:53] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 11:24:53] [START_FLOW] Début étape : APPLY
+[2026-08-11 11:24:53] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 11:24:53] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:24:53] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 11:24:53] [START_FLOW] Fin étape : APPLY
+[2026-08-11 11:24:53] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 11:24:53] [START_FLOW] Début étape : GENERATE_NIX
+[2026-08-11 11:24:53] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 11:24:53] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 11:24:53] [START_FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 11:24:53] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 11:24:53] [START_FLOW] Environnement d'examen prêt
+[2026-08-11 11:24:53] [STATUS] EXAM_READY - SUCCESS - Environnement d'examen prêt
+[2026-08-11 11:25:00] [FINISH_FLOW] Début étape : BACKUP
+[2026-08-11 11:25:00] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-11 11:25:00] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_112500.zip
+[2026-08-11 11:25:00] [FINISH_FLOW] Fin étape : BACKUP
+[2026-08-11 11:25:00] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-11 11:25:00] [FINISH_FLOW] Début étape : SUBMIT
+[2026-08-11 11:25:00] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-11 11:25:00] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_112500.zip
+[2026-08-11 11:25:00] [FINISH_FLOW] Fin étape : SUBMIT
+[2026-08-11 11:25:00] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-11 11:25:00] [FINISH_FLOW] Début étape : RESET
+[2026-08-11 11:25:00] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-11 11:25:00] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:25:00] [FINISH_FLOW] Fin étape : RESET
+[2026-08-11 11:25:00] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-11 11:25:00] [FINISH_FLOW] Fin d'examen traitée avec succès
+[2026-08-11 11:25:00] [STATUS] EXAM_FINISHED - SUCCESS - Fin d'examen traitée avec succès
+[2026-08-11 11:55:10] [FLOW] Début étape : FETCH
+[2026-08-11 11:55:10] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 11:55:10] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 11:55:10] [FLOW] Fin étape : FETCH
+[2026-08-11 11:55:10] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 11:55:10] [FLOW] Début étape : APPLY
+[2026-08-11 11:55:10] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 11:55:10] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 11:55:10] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 11:55:10] [FLOW] Fin étape : APPLY
+[2026-08-11 11:55:10] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 11:55:10] [FLOW] Début étape : GENERATE_NIX
+[2026-08-11 11:55:10] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 11:55:10] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 11:55:10] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 11:55:10] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 11:55:10] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 11:55:10] [STATUS] STUDENT_WORK - RUNNING - Début étape : STUDENT_WORK
+[2026-08-11 11:55:10] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 11:55:10] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 11:55:10] [STATUS] STUDENT_WORK - SUCCESS - Fin étape : STUDENT_WORK
+[2026-08-11 11:55:10] [FLOW] Début étape : BACKUP
+[2026-08-11 11:55:10] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-11 11:55:10] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_115510.zip
+[2026-08-11 11:55:10] [FLOW] Fin étape : BACKUP
+[2026-08-11 11:55:10] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-11 11:55:10] [FLOW] Début étape : SUBMIT
+[2026-08-11 11:55:10] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-11 11:55:11] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_115510.zip
+[2026-08-11 11:55:11] [FLOW] Fin étape : SUBMIT
+[2026-08-11 11:55:11] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-11 11:55:11] [FLOW] Début étape : RESET
+[2026-08-11 11:55:11] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-11 11:55:11] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 11:55:11] [FLOW] Fin étape : RESET
+[2026-08-11 11:55:11] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-11 11:55:11] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 11:55:11] [STATUS] FLOW - SUCCESS - Chaîne complète exécutée avec succès
+[2026-08-11 12:04:12] [FLOW] Début étape : FETCH
+[2026-08-11 12:04:12] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 12:04:12] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 12:04:12] [FLOW] Fin étape : FETCH
+[2026-08-11 12:04:12] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 12:04:12] [FLOW] Début étape : APPLY
+[2026-08-11 12:04:12] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 12:04:12] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 12:04:12] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 12:04:12] [FLOW] Fin étape : APPLY
+[2026-08-11 12:04:12] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 12:04:12] [FLOW] Début étape : GENERATE_NIX
+[2026-08-11 12:04:12] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 12:04:12] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 12:04:12] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 12:04:13] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 12:04:13] [FLOW] Début étape : STUDENT_WORK
+[2026-08-11 12:04:13] [STATUS] STUDENT_WORK - RUNNING - Début étape : STUDENT_WORK
+[2026-08-11 12:04:13] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 12:04:13] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-11 12:04:13] [STATUS] STUDENT_WORK - SUCCESS - Fin étape : STUDENT_WORK
+[2026-08-11 12:04:13] [FLOW] Début étape : BACKUP
+[2026-08-11 12:04:13] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-11 12:04:13] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_120413.zip
+[2026-08-11 12:04:13] [FLOW] Fin étape : BACKUP
+[2026-08-11 12:04:13] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-11 12:04:13] [FLOW] Début étape : SUBMIT
+[2026-08-11 12:04:13] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-11 12:04:13] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_120413.zip
+[2026-08-11 12:04:13] [FLOW] Fin étape : SUBMIT
+[2026-08-11 12:04:13] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-11 12:04:13] [FLOW] Début étape : RESET
+[2026-08-11 12:04:13] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-11 12:04:13] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 12:04:13] [FLOW] Fin étape : RESET
+[2026-08-11 12:04:13] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-11 12:04:13] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-11 12:04:13] [STATUS] FLOW - SUCCESS - Chaîne complète exécutée avec succès
+[2026-08-11 13:40:29] [START_FLOW] Début étape : FETCH
+[2026-08-11 13:40:29] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 13:40:29] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 13:40:29] [START_FLOW] Fin étape : FETCH
+[2026-08-11 13:40:29] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 13:40:29] [START_FLOW] Début étape : APPLY
+[2026-08-11 13:40:29] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 13:40:29] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 13:40:29] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 13:40:29] [START_FLOW] Fin étape : APPLY
+[2026-08-11 13:40:29] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 13:40:29] [START_FLOW] Début étape : GENERATE_NIX
+[2026-08-11 13:40:29] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 13:40:29] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 13:40:29] [START_FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 13:40:29] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 13:40:29] [START_FLOW] Environnement d'examen prêt
+[2026-08-11 13:40:29] [STATUS] EXAM_READY - SUCCESS - Environnement d'examen prêt
+[2026-08-11 13:40:29] [STUDENT_WORK] Fichier étudiant créé : runtime\home\exam\etu001\workspace\main.py
+[2026-08-11 13:40:29] [FINISH_FLOW] Début étape : BACKUP
+[2026-08-11 13:40:29] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-11 13:40:29] [BACKUP] Archive créée : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_134029.zip
+[2026-08-11 13:40:29] [FINISH_FLOW] Fin étape : BACKUP
+[2026-08-11 13:40:29] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-11 13:40:29] [FINISH_FLOW] Début étape : SUBMIT
+[2026-08-11 13:40:29] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-11 13:40:29] [SUBMIT] Archive envoyée au serveur : archives\EXAM-PYTHON-2026_etu001_PC01_20260811_134029.zip
+[2026-08-11 13:40:29] [FINISH_FLOW] Fin étape : SUBMIT
+[2026-08-11 13:40:29] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-11 13:40:29] [FINISH_FLOW] Début étape : RESET
+[2026-08-11 13:40:29] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-11 13:40:29] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-11 13:40:29] [FINISH_FLOW] Fin étape : RESET
+[2026-08-11 13:40:29] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-11 13:40:29] [FINISH_FLOW] Fin d'examen traitée avec succès
+[2026-08-11 13:40:29] [STATUS] EXAM_FINISHED - SUCCESS - Fin d'examen traitée avec succès
+[2026-08-11 13:59:17] [START_FLOW] Début étape : FETCH
+[2026-08-11 13:59:17] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 13:59:17] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 13:59:17] [START_FLOW] Fin étape : FETCH
+[2026-08-11 13:59:17] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 13:59:17] [START_FLOW] Début étape : APPLY
+[2026-08-11 13:59:17] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 13:59:17] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 13:59:17] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 13:59:17] [START_FLOW] Fin étape : APPLY
+[2026-08-11 13:59:17] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 13:59:17] [START_FLOW] Début étape : GENERATE_NIX
+[2026-08-11 13:59:17] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 13:59:17] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 13:59:17] [START_FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 13:59:17] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 13:59:17] [START_FLOW] Environnement d'examen prêt
+[2026-08-11 13:59:17] [STATUS] EXAM_READY - SUCCESS - Environnement d'examen prêt
+[2026-08-11 13:59:39] [START_FLOW] Début étape : FETCH
+[2026-08-11 13:59:39] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 13:59:39] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 13:59:39] [START_FLOW] Fin étape : FETCH
+[2026-08-11 13:59:39] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 13:59:39] [START_FLOW] Début étape : APPLY
+[2026-08-11 13:59:39] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 13:59:39] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 13:59:39] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 13:59:40] [START_FLOW] Fin étape : APPLY
+[2026-08-11 13:59:40] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 13:59:40] [START_FLOW] Début étape : GENERATE_NIX
+[2026-08-11 13:59:40] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 13:59:40] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 13:59:40] [START_FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 13:59:40] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 13:59:40] [START_FLOW] Environnement d'examen prêt
+[2026-08-11 13:59:40] [STATUS] EXAM_READY - SUCCESS - Environnement d'examen prêt
+[2026-08-11 13:59:52] [START_FLOW] Début étape : FETCH
+[2026-08-11 13:59:52] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-11 13:59:52] [FETCH] Configuration récupérée : downloaded\EXAM-PYTHON-2026_etu001_PC01.json
+[2026-08-11 13:59:52] [START_FLOW] Fin étape : FETCH
+[2026-08-11 13:59:52] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-11 13:59:52] [START_FLOW] Début étape : APPLY
+[2026-08-11 13:59:52] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-11 13:59:52] [APPLY] Configuration appliquée pour EXAM-PYTHON-2026 - etu001 - PC01
+[2026-08-11 13:59:52] [NETWORK] Politique réseau simulée créée : runtime\system\network_policy.txt
+[2026-08-11 13:59:52] [START_FLOW] Fin étape : APPLY
+[2026-08-11 13:59:52] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-11 13:59:52] [START_FLOW] Début étape : GENERATE_NIX
+[2026-08-11 13:59:52] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-11 13:59:52] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 13:59:52] [START_FLOW] Fin étape : GENERATE_NIX
+[2026-08-11 13:59:52] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-11 13:59:52] [START_FLOW] Environnement d'examen prêt
+[2026-08-11 13:59:52] [STATUS] EXAM_READY - SUCCESS - Environnement d'examen prêt
+[2026-08-11 14:39:23] [NIX] Configuration NixOS générée : generated\exam-configuration.nix
+[2026-08-11 14:39:23] [NIX] Métadonnées générées : generated\exam-metadata.json
+[2026-08-11 14:39:23] [NIX] Politique réseau générée : generated\network-policy.json

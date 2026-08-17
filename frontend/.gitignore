@@ -42,3 +42,11 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Exam client generated data
+exam-client/archives/
+exam-client/downloaded/
+exam-client/generated/
+exam-client/logs/
+exam-client/runtime/
+exam-client/submitted/

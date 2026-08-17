@@ -1,0 +1,8 @@
+{
+  "internet": "blocked",
+  "educ_access": "allowed",
+  "allowed_domains": [
+    "educ.isen.fr"
+  ],
+  "note": "Le filtrage par domaine doit être appliqué via DNS contrôlé, proxy, ou conversion domaine vers IP par l'infrastructure réseau."
+}

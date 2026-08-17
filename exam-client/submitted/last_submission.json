@@ -1,0 +1,10 @@
+{
+  "exam_id": "EXAM-PYTHON-2026",
+  "student_id": "etu001",
+  "machine_id": "PC01",
+  "archive": "EXAM-PYTHON-2026_etu001_PC01_20260811_134029.zip",
+  "server_response": {
+    "message": "Archive reçue avec succès",
+    "file": "EXAM-PYTHON-2026_etu001_PC01_20260811_134029.zip"
+  }
+}
