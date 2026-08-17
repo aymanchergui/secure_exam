@@ -13,8 +13,16 @@ backend/status/
 backend/status_history/
 backend/support_requests/
 backend/profile/
-backend/database/
 backend/uploads/
+
+# SQLite database files
+backend/database/*.db
+backend/database/*.sqlite
+backend/database/*.sqlite3
+backend/database/*.db-journal
+backend/database/*.db-wal
+backend/database/*.db-shm
+backend/database/*backup*.db
 
 # Angular
 frontend/node_modules/

@@ -10,9 +10,10 @@ from typing import List
 
 import jwt
 from dotenv import load_dotenv
+from database.database import init_database, get_connection
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jwt.exceptions import InvalidTokenError
 from pwdlib import PasswordHash
@@ -22,6 +23,7 @@ from pydantic import BaseModel
 load_dotenv()
 
 app = FastAPI(title="Plateforme Linux d'examen")
+init_database()
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,25 +40,11 @@ app.add_middleware(
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
 
-CONFIG_DIR = BASE_DIR / "configs"
-CONFIG_DIR.mkdir(exist_ok=True)
-
 SUBMISSION_DIR = BASE_DIR / "submissions"
 SUBMISSION_DIR.mkdir(exist_ok=True)
 
-STATUS_DIR = BASE_DIR / "status"
-STATUS_DIR.mkdir(exist_ok=True)
-
-STATUS_HISTORY_DIR = BASE_DIR / "status_history"
-STATUS_HISTORY_DIR.mkdir(exist_ok=True)
-
-SUPPORT_REQUESTS_DIR = BASE_DIR / "support_requests"
-SUPPORT_REQUESTS_DIR.mkdir(exist_ok=True)
-
 PROFILE_DIR = BASE_DIR / "profile"
 PROFILE_DIR.mkdir(exist_ok=True)
-
-TEACHER_PROFILE_FILE = PROFILE_DIR / "teacher_profile.json"
 
 NIXOS_CONFIG_FILE = PROJECT_DIR / "exam-client" / "generated" / "exam-configuration.nix"
 
@@ -128,6 +116,23 @@ class TeacherProfile(BaseModel):
     role: str
     department: str
     school: str
+
+
+def now_text() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def now_iso() -> str:
+    return datetime.now().isoformat(timespec="seconds")
+
+
+def resolve_backend_file_path(file_path: str) -> Path:
+    path = Path(file_path)
+
+    if path.is_absolute():
+        return path
+
+    return BASE_DIR / path
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -227,7 +232,7 @@ Message :
 {request.message}
 
 Date :
-{datetime.now().isoformat(timespec="seconds")}
+{now_iso()}
 """
     )
 
@@ -239,37 +244,208 @@ Date :
         server.send_message(email_message)
 
 
-def get_default_teacher_profile():
+def load_teacher_profile():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            full_name,
+            email,
+            role,
+            department,
+            school,
+            photo_path
+        FROM teacher_profile
+        WHERE id = 1
+    """)
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Profil professeur introuvable."
+        )
+
     return {
-        "fullName": "Professeur ISEN",
-        "email": "prof@isen.fr",
-        "role": "Enseignant",
-        "department": "Informatique / Systèmes Linux",
-        "school": "ISEN SecureExam"
+        "fullName": row["full_name"],
+        "email": row["email"],
+        "role": row["role"],
+        "department": row["department"],
+        "school": row["school"],
+        "photoPath": row["photo_path"]
     }
 
 
-def load_teacher_profile():
-    if not TEACHER_PROFILE_FILE.exists():
-        default_profile = get_default_teacher_profile()
+def save_teacher_profile(profile: TeacherProfile):
+    connection = get_connection()
+    cursor = connection.cursor()
 
-        TEACHER_PROFILE_FILE.write_text(
-            json.dumps(default_profile, indent=2, ensure_ascii=False),
-            encoding="utf-8"
+    cursor.execute("""
+        UPDATE teacher_profile
+        SET
+            full_name = ?,
+            email = ?,
+            role = ?,
+            department = ?,
+            school = ?,
+            updated_at = ?
+        WHERE id = 1
+    """, (
+        profile.fullName,
+        profile.email,
+        profile.role,
+        profile.department,
+        profile.school,
+        now_iso()
+    ))
+
+    connection.commit()
+    connection.close()
+
+
+def update_teacher_photo_path(photo_path: str):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE teacher_profile
+        SET
+            photo_path = ?,
+            updated_at = ?
+        WHERE id = 1
+    """, (
+        photo_path,
+        now_iso()
+    ))
+
+    connection.commit()
+    connection.close()
+
+
+def config_filename(exam_id: str, student_id: str, machine_id: str) -> str:
+    return f"{exam_id}_{student_id}_{machine_id}.json"
+
+
+def parse_config_filename(filename: str):
+    safe_filename = Path(filename).name
+
+    if not safe_filename.endswith(".json"):
+        raise HTTPException(
+            status_code=400,
+            detail="Nom de fichier de configuration invalide."
         )
 
-        return default_profile
+    stem = safe_filename[:-5]
+    parts = stem.split("_")
 
-    return json.loads(
-        TEACHER_PROFILE_FILE.read_text(encoding="utf-8")
-    )
+    if len(parts) < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="Nom de fichier de configuration invalide."
+        )
+
+    exam_id = "_".join(parts[:-2])
+    student_id = parts[-2]
+    machine_id = parts[-1]
+
+    return exam_id, student_id, machine_id, safe_filename
 
 
-def save_teacher_profile(profile: TeacherProfile):
-    TEACHER_PROFILE_FILE.write_text(
-        json.dumps(profile.model_dump(), indent=2, ensure_ascii=False),
-        encoding="utf-8"
-    )
+def row_to_config(row):
+    return {
+        "exam_id": row["exam_id"],
+        "student_id": row["student_id"],
+        "machine_id": row["machine_id"],
+        "packages": json.loads(row["packages"]),
+        "sudo": bool(row["sudo"]),
+        "internet": bool(row["internet"]),
+        "educ_access": bool(row["educ_access"]),
+        "allowed_domains": json.loads(row["allowed_domains"]),
+        "workspace": row["workspace"]
+    }
+
+
+def get_config_row_or_404(exam_id: str, student_id: str, machine_id: str):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM exam_configs
+        WHERE exam_id = ?
+        AND student_id = ?
+        AND machine_id = ?
+    """, (
+        exam_id,
+        student_id,
+        machine_id
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Configuration introuvable"
+        )
+
+    return row
+
+
+def save_support_request_to_database(
+    request: SupportRequest,
+    created_at: str,
+    email_sent: int
+) -> int:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO support_requests (
+            full_name,
+            email,
+            subject,
+            message,
+            created_at,
+            email_sent
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        request.fullName,
+        request.email,
+        request.subject,
+        request.message,
+        created_at,
+        email_sent
+    ))
+
+    request_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return int(request_id)
+
+
+def update_support_email_status(request_id: int, email_sent: int):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE support_requests
+        SET email_sent = ?
+        WHERE id = ?
+    """, (
+        email_sent,
+        request_id
+    ))
+
+    connection.commit()
+    connection.close()
 
 
 @app.get("/")
@@ -327,12 +503,21 @@ def auth_me(current_teacher: dict = Depends(get_current_teacher)):
 @app.get("/teacher-profile")
 def get_teacher_profile(current_teacher: dict = Depends(get_current_teacher)):
     profile = load_teacher_profile()
-    photo_files = list(PROFILE_DIR.glob("profile_photo.*"))
+    photo_path = profile.get("photoPath")
+
+    has_photo = False
+
+    if photo_path:
+        has_photo = resolve_backend_file_path(photo_path).exists()
 
     return {
-        **profile,
-        "hasPhoto": len(photo_files) > 0,
-        "photoUrl": "/teacher-profile/photo" if photo_files else ""
+        "fullName": profile["fullName"],
+        "email": profile["email"],
+        "role": profile["role"],
+        "department": profile["department"],
+        "school": profile["school"],
+        "hasPhoto": has_photo,
+        "photoUrl": "/teacher-profile/photo" if has_photo else ""
     }
 
 
@@ -379,9 +564,12 @@ async def upload_teacher_profile_photo(
         old_photo.unlink()
 
     photo_path = PROFILE_DIR / f"profile_photo{extension}"
+    relative_photo_path = f"profile/{photo_path.name}"
 
     with open(photo_path, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
+
+    update_teacher_photo_path(relative_photo_path)
 
     return {
         "message": "Photo de profil mise à jour avec succès.",
@@ -391,17 +579,24 @@ async def upload_teacher_profile_photo(
 
 @app.get("/teacher-profile/photo")
 def get_teacher_profile_photo():
-    photo_files = list(PROFILE_DIR.glob("profile_photo.*"))
+    profile = load_teacher_profile()
+    photo_path = profile.get("photoPath")
 
-    if not photo_files:
+    if not photo_path:
         raise HTTPException(
             status_code=404,
             detail="Photo de profil introuvable."
         )
 
-    photo_path = photo_files[0]
-    extension = photo_path.suffix.lower()
+    photo_file = resolve_backend_file_path(photo_path)
 
+    if not photo_file.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Photo de profil introuvable."
+        )
+
+    extension = photo_file.suffix.lower()
     media_type = "image/png"
 
     if extension in [".jpg", ".jpeg"]:
@@ -411,7 +606,7 @@ def get_teacher_profile_photo():
         media_type = "image/webp"
 
     return FileResponse(
-        path=photo_path,
+        path=photo_file,
         media_type=media_type
     )
 
@@ -436,30 +631,21 @@ def create_support_request(request: SupportRequest):
             detail="Le message est obligatoire."
         )
 
-    created_at = datetime.now().isoformat(timespec="seconds")
+    created_at = now_iso()
 
-    saved_request = {
-        "created_at": created_at,
-        "fullName": request.fullName,
-        "email": request.email,
-        "subject": request.subject,
-        "message": request.message
-    }
-
-    filename = f"support_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    file_path = SUPPORT_REQUESTS_DIR / filename
-
-    file_path.write_text(
-        json.dumps(saved_request, indent=2, ensure_ascii=False),
-        encoding="utf-8"
+    request_id = save_support_request_to_database(
+        request=request,
+        created_at=created_at,
+        email_sent=0
     )
 
     try:
         send_support_email(request)
+        update_support_email_status(request_id, 1)
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Demande enregistrée, mais email non envoyé : {exc}"
+            detail=f"Demande enregistrée en base, mais email non envoyé : {exc}"
         )
 
     return {
@@ -469,29 +655,38 @@ def create_support_request(request: SupportRequest):
 
 @app.get("/support-requests-list")
 def list_support_requests(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            full_name,
+            email,
+            subject,
+            message,
+            created_at,
+            email_sent
+        FROM support_requests
+        ORDER BY id DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
     requests = []
 
-    support_files = sorted(
-        SUPPORT_REQUESTS_DIR.glob("*.json"),
-        key=lambda file: file.stat().st_mtime,
-        reverse=True
-    )
-
-    for file in support_files:
-        try:
-            data = json.loads(file.read_text(encoding="utf-8"))
-
-            requests.append({
-                "filename": file.name,
-                "created_at": data.get("created_at", ""),
-                "fullName": data.get("fullName", ""),
-                "email": data.get("email", ""),
-                "subject": data.get("subject", ""),
-                "message": data.get("message", "")
-            })
-
-        except json.JSONDecodeError:
-            continue
+    for row in rows:
+        requests.append({
+            "id": row["id"],
+            "filename": f"database-request-{row['id']}",
+            "created_at": row["created_at"],
+            "fullName": row["full_name"],
+            "email": row["email"],
+            "subject": row["subject"],
+            "message": row["message"],
+            "emailSent": bool(row["email_sent"])
+        })
 
     return {
         "count": len(requests),
@@ -516,36 +711,98 @@ def create_config(
             }
         )
 
-    filename = f"{config.exam_id}_{config.student_id}_{config.machine_id}.json"
-    file_path = CONFIG_DIR / filename
+    created_at = now_iso()
+    updated_at = created_at
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(config.model_dump(), f, indent=2, ensure_ascii=False)
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO exam_configs (
+            exam_id,
+            student_id,
+            machine_id,
+            packages,
+            sudo,
+            internet,
+            educ_access,
+            allowed_domains,
+            workspace,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(exam_id, student_id, machine_id)
+        DO UPDATE SET
+            packages = excluded.packages,
+            sudo = excluded.sudo,
+            internet = excluded.internet,
+            educ_access = excluded.educ_access,
+            allowed_domains = excluded.allowed_domains,
+            workspace = excluded.workspace,
+            updated_at = excluded.updated_at
+    """, (
+        config.exam_id,
+        config.student_id,
+        config.machine_id,
+        json.dumps(config.packages, ensure_ascii=False),
+        int(config.sudo),
+        int(config.internet),
+        int(config.educ_access),
+        json.dumps(config.allowed_domains, ensure_ascii=False),
+        config.workspace,
+        created_at,
+        updated_at
+    ))
+
+    connection.commit()
+    connection.close()
+
+    filename = config_filename(
+        config.exam_id,
+        config.student_id,
+        config.machine_id
+    )
 
     return {
-        "message": "Configuration générée avec succès",
+        "message": "Configuration enregistrée en base avec succès",
         "file": filename
     }
 
 
 @app.get("/configs/{exam_id}/{student_id}/{machine_id}")
 def get_config(exam_id: str, student_id: str, machine_id: str):
-    filename = f"{exam_id}_{student_id}_{machine_id}.json"
-    file_path = CONFIG_DIR / filename
+    row = get_config_row_or_404(
+        exam_id=exam_id,
+        student_id=student_id,
+        machine_id=machine_id
+    )
 
-    if not file_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Configuration introuvable"
-        )
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return row_to_config(row)
 
 
 @app.get("/configs-list")
 def list_configs(current_teacher: dict = Depends(get_current_teacher)):
-    files = [file.name for file in CONFIG_DIR.glob("*.json")]
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT exam_id, student_id, machine_id
+        FROM exam_configs
+        ORDER BY updated_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    files = [
+        config_filename(
+            row["exam_id"],
+            row["student_id"],
+            row["machine_id"]
+        )
+        for row in rows
+    ]
 
     return {
         "count": len(files),
@@ -558,19 +815,28 @@ def download_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    safe_filename = Path(filename).name
-    file_path = CONFIG_DIR / safe_filename
+    exam_id, student_id, machine_id, safe_filename = parse_config_filename(filename)
 
-    if not file_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Configuration introuvable"
-        )
+    row = get_config_row_or_404(
+        exam_id=exam_id,
+        student_id=student_id,
+        machine_id=machine_id
+    )
 
-    return FileResponse(
-        path=file_path,
-        filename=safe_filename,
-        media_type="application/json"
+    config_data = row_to_config(row)
+
+    content = json.dumps(
+        config_data,
+        indent=2,
+        ensure_ascii=False
+    )
+
+    return Response(
+        content=content,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_filename}"'
+        }
     )
 
 
@@ -579,17 +845,15 @@ def get_config_by_filename(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    safe_filename = Path(filename).name
-    file_path = CONFIG_DIR / safe_filename
+    exam_id, student_id, machine_id, _ = parse_config_filename(filename)
 
-    if not file_path.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Configuration introuvable"
-        )
+    row = get_config_row_or_404(
+        exam_id=exam_id,
+        student_id=student_id,
+        machine_id=machine_id
+    )
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return row_to_config(row)
 
 
 @app.delete("/configs/{filename}")
@@ -597,16 +861,32 @@ def delete_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    safe_filename = Path(filename).name
-    file_path = CONFIG_DIR / safe_filename
+    exam_id, student_id, machine_id, safe_filename = parse_config_filename(filename)
 
-    if not file_path.exists():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        DELETE FROM exam_configs
+        WHERE exam_id = ?
+        AND student_id = ?
+        AND machine_id = ?
+    """, (
+        exam_id,
+        student_id,
+        machine_id
+    ))
+
+    deleted_count = cursor.rowcount
+
+    connection.commit()
+    connection.close()
+
+    if deleted_count == 0:
         raise HTTPException(
             status_code=404,
             detail="Configuration introuvable"
         )
-
-    file_path.unlink()
 
     return {
         "message": "Configuration supprimée avec succès",
@@ -621,7 +901,7 @@ async def upload_submission(
     machine_id: str = Form(...),
     archive: UploadFile = File(...)
 ):
-    if archive.filename is None or not archive.filename.endswith(".zip"):
+    if archive.filename is None or not archive.filename.lower().endswith(".zip"):
         raise HTTPException(
             status_code=400,
             detail="Seules les archives ZIP sont acceptées"
@@ -629,19 +909,73 @@ async def upload_submission(
 
     safe_filename = Path(archive.filename).name
     file_path = SUBMISSION_DIR / safe_filename
+    relative_file_path = f"submissions/{safe_filename}"
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(archive.file, buffer)
 
+    size_kb = round(file_path.stat().st_size / 1024, 2)
+    created_at = now_text()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO submissions (
+            exam_id,
+            student_id,
+            machine_id,
+            filename,
+            file_path,
+            size_kb,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(filename)
+        DO UPDATE SET
+            exam_id = excluded.exam_id,
+            student_id = excluded.student_id,
+            machine_id = excluded.machine_id,
+            file_path = excluded.file_path,
+            size_kb = excluded.size_kb,
+            created_at = excluded.created_at
+    """, (
+        exam_id,
+        student_id,
+        machine_id,
+        safe_filename,
+        relative_file_path,
+        size_kb,
+        created_at
+    ))
+
+    connection.commit()
+    connection.close()
+
     return {
-        "message": "Archive reçue avec succès",
+        "message": "Archive reçue et enregistrée en base avec succès",
         "file": safe_filename
     }
 
 
 @app.get("/submissions-list")
 def list_submissions(current_teacher: dict = Depends(get_current_teacher)):
-    files = [file.name for file in SUBMISSION_DIR.glob("*.zip")]
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT filename
+        FROM submissions
+        ORDER BY created_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    files = [
+        row["filename"]
+        for row in rows
+    ]
 
     return {
         "count": len(files),
@@ -655,12 +989,33 @@ def download_submission(
     current_teacher: dict = Depends(get_current_teacher)
 ):
     safe_filename = Path(filename).name
-    file_path = SUBMISSION_DIR / safe_filename
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT file_path
+        FROM submissions
+        WHERE filename = ?
+    """, (
+        safe_filename,
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Archive introuvable"
+        )
+
+    file_path = resolve_backend_file_path(row["file_path"])
 
     if not file_path.exists():
         raise HTTPException(
             status_code=404,
-            detail="Archive introuvable"
+            detail="Fichier archive absent du disque"
         )
 
     return FileResponse(
@@ -676,15 +1031,41 @@ def delete_submission(
     current_teacher: dict = Depends(get_current_teacher)
 ):
     safe_filename = Path(filename).name
-    file_path = SUBMISSION_DIR / safe_filename
 
-    if not file_path.exists():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT file_path
+        FROM submissions
+        WHERE filename = ?
+    """, (
+        safe_filename,
+    ))
+
+    row = cursor.fetchone()
+
+    if row is None:
+        connection.close()
         raise HTTPException(
             status_code=404,
             detail="Archive introuvable"
         )
 
-    file_path.unlink()
+    file_path = resolve_backend_file_path(row["file_path"])
+
+    if file_path.exists():
+        file_path.unlink()
+
+    cursor.execute("""
+        DELETE FROM submissions
+        WHERE filename = ?
+    """, (
+        safe_filename,
+    ))
+
+    connection.commit()
+    connection.close()
 
     return {
         "message": "Archive supprimée avec succès",
@@ -694,52 +1075,130 @@ def delete_submission(
 
 @app.post("/machine-status")
 def update_machine_status(status: MachineStatus):
-    filename = f"{status.exam_id}_{status.student_id}_{status.machine_id}.json"
+    created_at = now_text()
 
-    latest_file_path = STATUS_DIR / filename
-    history_file_path = STATUS_HISTORY_DIR / filename
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO machine_status (
+            exam_id,
+            student_id,
+            machine_id,
+            step,
+            status,
+            message,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(exam_id, student_id, machine_id)
+        DO UPDATE SET
+            step = excluded.step,
+            status = excluded.status,
+            message = excluded.message,
+            created_at = excluded.created_at
+    """, (
+        status.exam_id,
+        status.student_id,
+        status.machine_id,
+        status.step,
+        status.status,
+        status.message,
+        created_at
+    ))
+
+    cursor.execute("""
+        INSERT INTO machine_status_history (
+            exam_id,
+            student_id,
+            machine_id,
+            step,
+            status,
+            message,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        status.exam_id,
+        status.student_id,
+        status.machine_id,
+        status.step,
+        status.status,
+        status.message,
+        created_at
+    ))
+
+    connection.commit()
+    connection.close()
 
     status_data = status.model_dump()
-    status_data["created_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    with open(latest_file_path, "w", encoding="utf-8") as f:
-        json.dump(status_data, f, indent=2, ensure_ascii=False)
-
-    if history_file_path.exists():
-        with open(history_file_path, "r", encoding="utf-8") as f:
-            history = json.load(f)
-    else:
-        history = []
-
-    history.append(status_data)
-
-    with open(history_file_path, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2, ensure_ascii=False)
+    status_data["created_at"] = created_at
 
     return {
-        "message": "Statut machine mis à jour",
+        "message": "Statut machine mis à jour en base",
         "status": status_data
     }
 
 
 @app.get("/machine-status/{exam_id}/{student_id}/{machine_id}")
 def get_machine_status(exam_id: str, student_id: str, machine_id: str):
-    filename = f"{exam_id}_{student_id}_{machine_id}.json"
-    file_path = STATUS_DIR / filename
+    connection = get_connection()
+    cursor = connection.cursor()
 
-    if not file_path.exists():
+    cursor.execute("""
+        SELECT *
+        FROM machine_status
+        WHERE exam_id = ?
+        AND student_id = ?
+        AND machine_id = ?
+    """, (
+        exam_id,
+        student_id,
+        machine_id
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
         raise HTTPException(
             status_code=404,
             detail="Statut introuvable"
         )
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return {
+        "exam_id": row["exam_id"],
+        "student_id": row["student_id"],
+        "machine_id": row["machine_id"],
+        "step": row["step"],
+        "status": row["status"],
+        "message": row["message"],
+        "created_at": row["created_at"]
+    }
 
 
 @app.get("/machine-status-list")
 def list_machine_status(current_teacher: dict = Depends(get_current_teacher)):
-    files = [file.name for file in STATUS_DIR.glob("*.json")]
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT exam_id, student_id, machine_id
+        FROM machine_status
+        ORDER BY created_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    files = [
+        config_filename(
+            row["exam_id"],
+            row["student_id"],
+            row["machine_id"]
+        )
+        for row in rows
+    ]
 
     return {
         "count": len(files),
@@ -754,52 +1213,130 @@ def get_machine_status_history(
     machine_id: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    filename = f"{exam_id}_{student_id}_{machine_id}.json"
-    file_path = STATUS_HISTORY_DIR / filename
+    connection = get_connection()
+    cursor = connection.cursor()
 
-    if not file_path.exists():
+    cursor.execute("""
+        SELECT
+            exam_id,
+            student_id,
+            machine_id,
+            step,
+            status,
+            message,
+            created_at
+        FROM machine_status_history
+        WHERE exam_id = ?
+        AND student_id = ?
+        AND machine_id = ?
+        ORDER BY id ASC
+    """, (
+        exam_id,
+        student_id,
+        machine_id
+    ))
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    if not rows:
         raise HTTPException(
             status_code=404,
             detail="Historique introuvable"
         )
 
-    with open(file_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    history = []
+
+    for row in rows:
+        history.append({
+            "exam_id": row["exam_id"],
+            "student_id": row["student_id"],
+            "machine_id": row["machine_id"],
+            "step": row["step"],
+            "status": row["status"],
+            "message": row["message"],
+            "created_at": row["created_at"]
+        })
+
+    return history
 
 
 @app.get("/dashboard")
 def dashboard(current_teacher: dict = Depends(get_current_teacher)):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT exam_id, student_id, machine_id
+        FROM exam_configs
+        ORDER BY updated_at DESC
+    """)
+
+    config_rows = cursor.fetchall()
+
     configs = []
 
-    for file in CONFIG_DIR.glob("*.json"):
+    for row in config_rows:
+        filename = config_filename(
+            row["exam_id"],
+            row["student_id"],
+            row["machine_id"]
+        )
+
         configs.append({
-            "filename": file.name,
-            "download_url": f"/configs/{file.name}/download"
+            "filename": filename,
+            "download_url": f"/configs/{filename}/download"
         })
 
-    submission_files = sorted(
-        SUBMISSION_DIR.glob("*.zip"),
-        key=lambda file: file.stat().st_mtime,
-        reverse=True
-    )
+    cursor.execute("""
+        SELECT
+            filename,
+            size_kb,
+            created_at
+        FROM submissions
+        ORDER BY created_at DESC
+    """)
+
+    submission_rows = cursor.fetchall()
 
     submissions = []
 
-    for file in submission_files:
+    for row in submission_rows:
         submissions.append({
-            "filename": file.name,
-            "size_kb": round(file.stat().st_size / 1024, 2),
-            "created_at": datetime.fromtimestamp(
-                file.stat().st_mtime
-            ).strftime("%Y-%m-%d %H:%M:%S"),
-            "download_url": f"/submissions/{file.name}/download"
+            "filename": row["filename"],
+            "size_kb": row["size_kb"],
+            "created_at": row["created_at"],
+            "download_url": f"/submissions/{row['filename']}/download"
         })
+
+    cursor.execute("""
+        SELECT
+            exam_id,
+            student_id,
+            machine_id,
+            step,
+            status,
+            message,
+            created_at
+        FROM machine_status
+        ORDER BY created_at DESC
+    """)
+
+    machine_rows = cursor.fetchall()
+    connection.close()
 
     machine_statuses = []
 
-    for file in STATUS_DIR.glob("*.json"):
-        with open(file, "r", encoding="utf-8") as f:
-            machine_statuses.append(json.load(f))
+    for row in machine_rows:
+        machine_statuses.append({
+            "exam_id": row["exam_id"],
+            "student_id": row["student_id"],
+            "machine_id": row["machine_id"],
+            "step": row["step"],
+            "status": row["status"],
+            "message": row["message"],
+            "created_at": row["created_at"]
+        })
 
     return {
         "configs_count": len(configs),
