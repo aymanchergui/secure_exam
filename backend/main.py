@@ -489,8 +489,14 @@ def config_filename(exam_id: str, student_id: str, machine_id: str) -> str:
     return f"{exam_id}_{student_id}_{machine_id}.json"
 
 
-def parse_config_filename(filename: str):
+def validate_config_filename(filename: str) -> str:
     safe_filename = Path(filename).name
+
+    if safe_filename != filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Nom de fichier de configuration invalide."
+        )
 
     if not safe_filename.endswith(".json"):
         raise HTTPException(
@@ -498,20 +504,40 @@ def parse_config_filename(filename: str):
             detail="Nom de fichier de configuration invalide."
         )
 
-    stem = safe_filename[:-5]
-    parts = stem.split("_")
+    return safe_filename
 
-    if len(parts) < 3:
+
+def get_config_row_by_filename_or_404(filename: str):
+    safe_filename = validate_config_filename(filename)
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM exam_configs
+        WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
+        ORDER BY updated_at DESC
+    """, (
+        safe_filename,
+    ))
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    if not rows:
         raise HTTPException(
-            status_code=400,
-            detail="Nom de fichier de configuration invalide."
+            status_code=404,
+            detail="Configuration introuvable"
         )
 
-    exam_id = "_".join(parts[:-2])
-    student_id = parts[-2]
-    machine_id = parts[-1]
+    if len(rows) > 1:
+        raise HTTPException(
+            status_code=409,
+            detail="Nom de fichier ambigu. Utilisez des identifiants sans collision."
+        )
 
-    return exam_id, student_id, machine_id, safe_filename
+    return rows[0], safe_filename
 
 
 def row_to_config(row):
@@ -1403,13 +1429,7 @@ def download_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    exam_id, student_id, machine_id, safe_filename = parse_config_filename(filename)
-
-    row = get_config_row_or_404(
-        exam_id=exam_id,
-        student_id=student_id,
-        machine_id=machine_id
-    )
+    row, safe_filename = get_config_row_by_filename_or_404(filename)
 
     config_data = row_to_config(row)
 
@@ -1433,13 +1453,7 @@ def get_config_by_filename(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    exam_id, student_id, machine_id, _ = parse_config_filename(filename)
-
-    row = get_config_row_or_404(
-        exam_id=exam_id,
-        student_id=student_id,
-        machine_id=machine_id
-    )
+    row, _ = get_config_row_by_filename_or_404(filename)
 
     return row_to_config(row)
 
@@ -1449,7 +1463,7 @@ def delete_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    exam_id, student_id, machine_id, safe_filename = parse_config_filename(filename)
+    row, safe_filename = get_config_row_by_filename_or_404(filename)
 
     connection = get_connection()
     cursor = connection.cursor()
@@ -1460,9 +1474,9 @@ def delete_config(
         AND student_id = ?
         AND machine_id = ?
     """, (
-        exam_id,
-        student_id,
-        machine_id
+        row["exam_id"],
+        row["student_id"],
+        row["machine_id"]
     ))
 
     deleted_count = cursor.rowcount
