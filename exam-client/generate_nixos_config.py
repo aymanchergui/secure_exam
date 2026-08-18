@@ -15,37 +15,84 @@ ALLOWED_PACKAGE_MAP = {
     "gdb": "gdb",
     "make": "gnumake",
     "vim": "vim",
-    "nano": "nano"
+    "nano": "nano",
+    "git": "git",
+    "curl": "curl",
+    "wget": "wget",
+    "zip": "zip",
+    "unzip": "unzip",
+    "node": "nodejs_22",
+    "nodejs": "nodejs_22"
 }
 
 
-def nix_bool(value: bool) -> str:
-    return "true" if value else "false"
+def nix_string(value: str) -> str:
+    return json.dumps(value, ensure_ascii=False)
 
 
-def nix_list(values: list[str]) -> str:
+def nix_attr_block(values: list[str]) -> str:
     if not values:
-        return "[ ]"
+        return ""
 
-    lines = "\n".join([f'    "{value}"' for value in values])
-    return f"[\n{lines}\n  ]"
+    return "\n    ".join(values)
+
+
+def nix_string_list_block(values: list[str], indent: str = "    ") -> str:
+    if not values:
+        return ""
+
+    return "\n".join([
+        f"{indent}{nix_string(value)}"
+        for value in values
+    ])
 
 
 def build_workspace_tmpfiles_rules(workspace: str) -> list[str]:
     path = Path(workspace)
     parts = path.parts
-
     rules = []
+
+    if not parts:
+        return rules
 
     current = Path(parts[0])
 
     for part in parts[1:]:
         current = current / part
+        current_text = current.as_posix()
 
-        if str(current).startswith("/home/exam"):
-            rules.append(f'd {current.as_posix()} 0750 exam exam -')
+        if current_text.startswith("/home/exam"):
+            rules.append(f"d {current_text} 0750 exam exam -")
 
     return rules
+
+
+def build_sudo_block(sudo_enabled_for_exam: bool) -> str:
+    if not sudo_enabled_for_exam:
+        return """
+  # Sudo reste actif globalement pour l'administrateur de la machine.
+  # L'utilisateur exam n'est pas dans le groupe wheel, donc il n'a pas sudo.
+  security.sudo.enable = true;
+"""
+
+    return """
+  # Sudo reste actif globalement.
+  # L'utilisateur exam est autorisé à utiliser sudo sans mot de passe
+  # uniquement lorsque l'enseignant a activé l'option sudo.
+  security.sudo.enable = true;
+
+  security.sudo.extraRules = [
+    {
+      users = [ "exam" ];
+      commands = [
+        {
+          command = "ALL";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
+"""
 
 
 if not CONFIG_FILE.exists():
@@ -58,12 +105,14 @@ config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 requested_packages = config.get("packages", [])
 invalid_packages = [
-    package for package in requested_packages
+    package
+    for package in requested_packages
     if package not in ALLOWED_PACKAGE_MAP
 ]
 
 if invalid_packages:
     print("Paquets non autorisés détectés :")
+
     for package in invalid_packages:
         print(f" - {package}")
 
@@ -85,19 +134,17 @@ nix_packages = [
     for package in requested_packages
 ]
 
-packages_block = "\n    ".join(nix_packages)
+packages_block = nix_attr_block(nix_packages)
 
-sudo_extra_groups = '[ "wheel" ]' if config["sudo"] else "[ ]"
-sudo_enable = nix_bool(config["sudo"])
-sudo_wheel_needs_password = "false" if config["sudo"] else "true"
+sudo_enabled_for_exam = bool(config["sudo"])
+sudo_extra_groups = '[ "wheel" ]' if sudo_enabled_for_exam else "[ ]"
+sudo_block = build_sudo_block(sudo_enabled_for_exam)
 
 workspace = config["workspace"]
 tmpfiles_rules = build_workspace_tmpfiles_rules(workspace)
+tmpfiles_block = nix_string_list_block(tmpfiles_rules)
 
-tmpfiles_block = "\n".join([
-    f'    "{rule}"'
-    for rule in tmpfiles_rules
-])
+allowed_domains_text = ", ".join(config["allowed_domains"])
 
 metadata = {
     "exam_id": config["exam_id"],
@@ -158,10 +205,10 @@ nix_content = f"""{{ config, pkgs, lib, ... }}:
 # ---------------------------------------------------------------------------
 
 let
-  examId = "{config["exam_id"]}";
-  studentId = "{config["student_id"]}";
-  machineId = "{config["machine_id"]}";
-  examWorkspace = "{workspace}";
+  examId = {nix_string(config["exam_id"])};
+  studentId = {nix_string(config["student_id"])};
+  machineId = {nix_string(config["machine_id"])};
+  examWorkspace = {nix_string(workspace)};
 in
 {{
   # -------------------------------------------------------------------------
@@ -169,7 +216,7 @@ in
   # -------------------------------------------------------------------------
   #
   # L'utilisateur "exam" représente le compte utilisé pendant l'épreuve.
-  # Les droits sudo dépendent directement du choix effectué par l'enseignant.
+  # Les droits sudo dépendent uniquement du choix effectué par l'enseignant.
 
   users.groups.exam = {{}};
 
@@ -186,14 +233,13 @@ in
   # 2. Droits administrateur
   # -------------------------------------------------------------------------
   #
-  # sudo = {config["sudo"]}
+  # sudo demandé pour l'étudiant : {config["sudo"]}
   #
-  # Si sudo est désactivé, l'étudiant ne possède pas de droits administrateur.
-  # Si sudo est activé, l'utilisateur exam appartient au groupe wheel.
-
-  security.sudo.enable = {sudo_enable};
-  security.sudo.wheelNeedsPassword = {sudo_wheel_needs_password};
-
+  # Important :
+  # sudo n'est jamais désactivé globalement.
+  # Cela évite de bloquer l'administrateur de la machine.
+  # Le contrôle se fait uniquement via les droits de l'utilisateur exam.
+{sudo_block}
   # -------------------------------------------------------------------------
   # 3. Paquets autorisés pour l'examen
   # -------------------------------------------------------------------------
@@ -222,7 +268,7 @@ in
   #
   # Internet autorisé : {config["internet"]}
   # Accès Educ autorisé : {config["educ_access"]}
-  # Domaines autorisés : {", ".join(config["allowed_domains"])}
+  # Domaines autorisés : {allowed_domains_text}
   #
   # Remarque importante :
   # NixOS/nftables filtre principalement par IP, port et interface.
