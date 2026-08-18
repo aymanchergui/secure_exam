@@ -42,4 +42,4 @@ frontend/dist/
 .DS_Store
 Thumbs.db
 .vscode/
-.idea/
+.idea/exam-client/client_settings.json
