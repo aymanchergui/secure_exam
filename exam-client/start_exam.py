@@ -10,6 +10,7 @@ from status_reporter import report_status
 STEPS = [
     ("FETCH", "fetch_config.py"),
     ("GENERATE_NIX", "generate_nixos_config.py"),
+    ("GENERATE_NETWORK_RULES", "generate_network_rules.py"),
     ("APPLY", "apply_config.py"),
 ]
 
