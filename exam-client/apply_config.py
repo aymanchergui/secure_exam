@@ -1,8 +1,6 @@
 from pathlib import Path
-import grp
 import json
 import os
-import pwd
 import sys
 
 from client_settings import (
@@ -38,7 +36,20 @@ def is_root() -> bool:
 
 
 def check_exam_user_exists() -> tuple[int, int]:
+    """
+    Vérifie que l'utilisateur Linux/NixOS exam existe.
+    Cette fonction est appelée uniquement en mode réel.
+    """
+    if os.name == "nt":
+        print("Mode réel indisponible sous Windows.")
+        print("Le mode réel nécessite une machine Linux/NixOS avec l'utilisateur exam.")
+        write_log("APPLY_ERROR", "Mode réel demandé sous Windows")
+        sys.exit(1)
+
     try:
+        import pwd
+        import grp
+
         exam_uid = pwd.getpwnam("exam").pw_uid
         exam_gid = grp.getgrnam("exam").gr_gid
         return exam_uid, exam_gid
@@ -48,6 +59,35 @@ def check_exam_user_exists() -> tuple[int, int]:
         print("sudo cp generated/exam-configuration.nix /etc/nixos/exam-configuration.nix")
         print("sudo nixos-rebuild test")
         write_log("APPLY_ERROR", "Utilisateur ou groupe exam introuvable en mode réel")
+        sys.exit(1)
+
+
+def load_config() -> dict:
+    if not CONFIG_FILE.exists():
+        print(f"Configuration introuvable : {CONFIG_FILE}")
+        write_log("APPLY_ERROR", f"Configuration introuvable : {CONFIG_FILE}")
+        sys.exit(1)
+
+    try:
+        return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as error:
+        print(f"Configuration JSON invalide : {CONFIG_FILE}")
+        print(error)
+        write_log("APPLY_ERROR", f"Configuration JSON invalide : {error}")
+        sys.exit(1)
+
+
+def validate_packages(config: dict) -> None:
+    requested_packages = set(config["packages"])
+    invalid_packages = requested_packages - ALLOWED_PACKAGES
+
+    if invalid_packages:
+        print("Paquets non autorisés détectés :")
+
+        for package in invalid_packages:
+            print(f" - {package}")
+
+        write_log("APPLY_ERROR", f"Paquets non autorisés : {list(invalid_packages)}")
         sys.exit(1)
 
 
@@ -68,6 +108,28 @@ def write_network_policy_simulation(config: dict) -> Path:
     )
 
     return network_policy_file
+
+
+def prepare_workspace(config: dict, execution_mode: str) -> Path:
+    workspace = get_workspace_path(config)
+
+    if execution_mode == "real":
+        if not is_root():
+            print("Mode réel détecté.")
+            print("La préparation du workspace réel nécessite les droits root.")
+            print("Relance avec :")
+            print('sudo -E env "PYTHONPATH=$PYTHONPATH" "$(which python3)" start_exam.py')
+            write_log("APPLY_ERROR", "Mode réel lancé sans droits root")
+            sys.exit(1)
+
+        exam_uid, exam_gid = check_exam_user_exists()
+        workspace.mkdir(parents=True, exist_ok=True)
+        os.chown(workspace, exam_uid, exam_gid)
+        os.chmod(workspace, 0o750)
+        return workspace
+
+    workspace.mkdir(parents=True, exist_ok=True)
+    return workspace
 
 
 def write_workspace_files(config: dict, workspace: Path, execution_mode: str) -> None:
@@ -105,52 +167,15 @@ def write_workspace_files(config: dict, workspace: Path, execution_mode: str) ->
     print(f"Politique réseau créée : {network_policy_file}")
 
 
-def prepare_workspace(config: dict, execution_mode: str) -> Path:
-    workspace = get_workspace_path(config)
-
-    if execution_mode == "real":
-        if not is_root():
-            print("Mode réel détecté.")
-            print("La préparation du workspace réel nécessite les droits root.")
-            print("Relance avec :")
-            print('sudo -E env "PYTHONPATH=$PYTHONPATH" "$(which python3)" start_exam.py')
-            write_log("APPLY_ERROR", "Mode réel lancé sans droits root")
-            sys.exit(1)
-
-        exam_uid, exam_gid = check_exam_user_exists()
-        workspace.mkdir(parents=True, exist_ok=True)
-        os.chown(workspace, exam_uid, exam_gid)
-        os.chmod(workspace, 0o750)
-        return workspace
-
-    workspace.mkdir(parents=True, exist_ok=True)
-    return workspace
-
-
 def main() -> None:
-    if not CONFIG_FILE.exists():
-        print(f"Configuration introuvable : {CONFIG_FILE}")
-        write_log("APPLY_ERROR", f"Configuration introuvable : {CONFIG_FILE}")
-        sys.exit(1)
-
-    config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+    config = load_config()
     execution_mode = get_execution_mode()
 
     print("Application de la configuration d'examen")
     print("---------------------------------------")
     print(f"Mode d'exécution : {execution_mode}")
 
-    requested_packages = set(config["packages"])
-    invalid_packages = requested_packages - ALLOWED_PACKAGES
-
-    if invalid_packages:
-        print("Paquets non autorisés détectés :")
-
-        for package in invalid_packages:
-            print(f" - {package}")
-
-        write_log("APPLY_ERROR", f"Paquets non autorisés : {list(invalid_packages)}")
-        sys.exit(1)
+    validate_packages(config)
 
     print("Paquets autorisés :")
 
