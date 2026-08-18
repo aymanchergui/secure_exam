@@ -1,25 +1,116 @@
 # ISEN SecureExam
 
-Plateforme web de configuration et de supervision d'environnements Linux d'examen.
+Plateforme web de configuration, de supervision et de validation d'environnements Linux d'examen.
+
+---
 
 ## Présentation
 
-**ISEN SecureExam** est un prototype de plateforme permettant à un enseignant de préparer, contrôler et superviser un environnement Linux d'examen de manière reproductible et sécurisée.
+**ISEN SecureExam** est un prototype fonctionnel permettant à un enseignant de préparer, contrôler et superviser un environnement Linux d'examen de manière sécurisée et reproductible.
 
-L'objectif est de fournir une interface simple permettant de :
+Le projet répond au besoin suivant :
+
+> permettre à un enseignant de configurer rapidement un environnement Linux d'examen contrôlé, sans intervention manuelle sur chaque machine, tout en garantissant la récupération des rendus étudiants et la remise à zéro de l'environnement après l'épreuve.
+
+La plateforme permet notamment de :
 
 - créer une configuration d'examen ;
-- sélectionner les paquets logiciels autorisés ;
+- sélectionner les logiciels autorisés ;
 - définir les droits administrateur de l'étudiant ;
-- contrôler l'accès réseau ;
-- générer une configuration exploitable par une machine Linux/NixOS ;
-- suivre l'état des machines d'examen ;
+- définir une politique réseau ;
+- générer une configuration NixOS ;
+- préparer un workspace étudiant ;
+- suivre l'état des machines ;
 - récupérer les rendus étudiants ;
+- archiver les fichiers de travail ;
+- envoyer les archives au serveur ;
+- réinitialiser le workspace après confirmation d'envoi ;
 - gérer un profil enseignant ;
-- envoyer et consulter des demandes de support ;
-- remettre l'environnement d'examen dans un état propre après l'épreuve.
+- envoyer et consulter des demandes de support.
 
-Ce projet a été développé comme prototype fonctionnel dans le cadre d'un projet académique autour de la sécurisation et de la reproductibilité d'environnements Linux d'examen.
+Le projet a été développé comme prototype académique dans le cadre d'un travail autour de la sécurisation et de la reproductibilité d'environnements Linux d'examen.
+
+---
+
+## État actuel du projet
+
+Le prototype dispose aujourd'hui d'une chaîne fonctionnelle complète :
+
+```text
+Interface enseignant
+→ création de configuration
+→ récupération par la machine d'examen
+→ génération NixOS
+→ préparation du workspace réel
+→ travail étudiant
+→ archive ZIP
+→ envoi au backend
+→ confirmation de dépôt
+→ reset sécurisé
+```
+
+Le projet prend en charge deux modes d'exécution côté client :
+
+```text
+simulation → workspace local simulé dans exam-client/runtime/
+real       → workspace réel NixOS dans /home/exam/<student_id>/workspace
+```
+
+Le mode réel NixOS a été validé avec :
+
+- création de l'utilisateur système `exam` ;
+- création d'un workspace réel ;
+- application des permissions Linux ;
+- disponibilité des paquets autorisés ;
+- désactivation de `sudo` pour l'utilisateur étudiant ;
+- génération de fichiers de suivi ;
+- sauvegarde réelle du workspace ;
+- envoi de l'archive au backend ;
+- reset réel après confirmation de dépôt.
+
+---
+
+## Technologies utilisées
+
+### Backend
+
+- Python
+- FastAPI
+- Uvicorn
+- SQLite
+- JWT
+- PyJWT
+- Argon2 / pwdlib pour le hash des mots de passe
+- python-dotenv
+- SMTP pour les demandes de support
+
+### Frontend
+
+- Angular
+- TypeScript
+- HTML
+- CSS
+- Angular HttpClient
+- Lucide Icons en local
+
+### Client machine d'examen
+
+- Python
+- Scripts client
+- Génération de configuration NixOS
+- Sauvegarde ZIP
+- Upload HTTP vers le backend
+- Reset sécurisé du workspace
+- Mode simulation
+- Mode réel NixOS
+
+### Système cible
+
+- Linux
+- NixOS
+- nftables / firewall
+- Workspace système dédié
+- Environnement reproductible
 
 ---
 
@@ -32,13 +123,13 @@ Frontend Angular
 → interface enseignant
 
 Backend FastAPI
-→ API REST, authentification, base de données, envoi mail, supervision
+→ API REST, authentification, base de données, supervision, support
 
 Exam-client Python
-→ récupération de configuration, génération NixOS, sauvegarde, rendu, reset
+→ récupération de configuration, génération NixOS, application, archive, dépôt, reset
 ```
 
-Structure principale du projet :
+Structure principale :
 
 ```text
 secure_exam/
@@ -49,9 +140,9 @@ secure_exam/
 │   ├── database/
 │   │   ├── __init__.py
 │   │   ├── database.py
-│   │   └── secure_exam.db        # généré localement, non versionné
-│   ├── profile/                  # photo de profil locale, non versionnée
-│   └── submissions/              # archives ZIP reçues, non versionnées
+│   │   └── secure_exam.db          # généré localement, non versionné
+│   ├── profile/                    # photos de profil locales, non versionnées
+│   └── submissions/                # archives ZIP reçues, non versionnées
 │
 ├── frontend/
 │   ├── angular.json
@@ -69,78 +160,37 @@ secure_exam/
 │               ├── profile/
 │               └── support/
 │
-└── exam-client/
-    ├── client_settings.json
-    ├── fetch_config.py
-    ├── apply_config.py
-    ├── generate_nixos_config.py
-    ├── backup_workspace.py
-    ├── submit_archive.py
-    ├── reset_exam.py
-    ├── start_exam.py
-    ├── finish_exam.py
-    └── simulate_student_work.py
+├── exam-client/
+│   ├── client_settings.json
+│   ├── client_settings.py
+│   ├── fetch_config.py
+│   ├── apply_config.py
+│   ├── generate_nixos_config.py
+│   ├── start_exam.py
+│   ├── backup_workspace.py
+│   ├── submit_archive.py
+│   ├── reset_exam.py
+│   ├── finish_exam.py
+│   ├── status_reporter.py
+│   ├── logger.py
+│   ├── simulate_student_work.py
+│   └── demo_full.sh
+│
+└── docs/
+    └── demo_nixos_reel.md
 ```
 
-Les dossiers contenant des fichiers générés, des données locales ou des informations sensibles sont exclus du dépôt Git.
-
----
-
-## Technologies utilisées
-
-### Backend
-
-- Python
-- FastAPI
-- Uvicorn
-- SQLite
-- JWT pour l'authentification
-- PyJWT
-- pwdlib / Argon2 pour le hash du mot de passe
-- python-dotenv pour charger les variables d'environnement
-- SMTP pour l'envoi automatique des demandes de support
-
-### Frontend
-
-- Angular
-- TypeScript
-- HTML
-- CSS
-- Angular HttpClient
-- Lucide Icons en local
-
-### Client machine d'examen
-
-- Python
-- Scripts de simulation machine
-- Génération de configuration NixOS
-- Sauvegarde ZIP
-- Upload HTTP vers le backend
-- Reset logique du workspace
-
-### Système cible
-
-- Linux
-- NixOS
-- nftables / firewall
-- Politique réseau contrôlée
-- Environnement reproductible
+Les fichiers générés, les données locales et les secrets sont exclus du dépôt Git.
 
 ---
 
 ## Fonctionnalités principales
 
-### Authentification enseignant
+### 1. Authentification enseignant
 
 L'enseignant peut se connecter à une interface protégée par JWT.
 
-Les identifiants ne sont pas écrits directement dans le code source. Ils sont chargés depuis le fichier local :
-
-```text
-backend/.env
-```
-
-Après connexion, le frontend stocke le token JWT et l'utilise dans les requêtes protégées avec l'en-tête HTTP suivant :
+Après connexion, le frontend stocke le token JWT et l'utilise dans les requêtes protégées avec l'en-tête suivant :
 
 ```text
 Authorization: Bearer <token>
@@ -148,32 +198,35 @@ Authorization: Bearer <token>
 
 Les routes sensibles du backend nécessitent ce token.
 
+Les identifiants de test sont chargés depuis :
+
+```text
+backend/.env
+```
+
 ---
 
-### Dashboard enseignant
+### 2. Dashboard enseignant
 
-Le tableau de bord permet de :
+Le dashboard permet de :
 
-- visualiser le nombre de configurations générées ;
+- visualiser le nombre de configurations créées ;
 - visualiser le nombre de rendus reçus ;
 - visualiser le nombre de machines suivies ;
 - créer une configuration d'examen ;
 - consulter les configurations existantes ;
-- télécharger les configurations JSON ;
-- consulter les détails d'une configuration ;
+- télécharger une configuration JSON ;
 - supprimer une configuration ;
 - consulter les rendus étudiants ;
 - télécharger les archives ZIP ;
 - supprimer un rendu ;
-- suivre l'état des machines ;
+- consulter le dernier état d'une machine ;
 - consulter l'historique d'une machine ;
-- consulter et télécharger la configuration NixOS générée.
-
-Les données affichées dans le dashboard sont lues depuis la base SQLite.
+- accéder aux informations de génération NixOS.
 
 ---
 
-### Création d'une configuration d'examen
+### 3. Création d'une configuration d'examen
 
 L'enseignant peut définir :
 
@@ -181,56 +234,73 @@ L'enseignant peut définir :
 - l'identifiant de l'étudiant ;
 - l'identifiant de la machine ;
 - le workspace étudiant ;
-- les paquets autorisés ;
+- les paquets logiciels autorisés ;
 - l'autorisation ou non de `sudo` ;
 - l'autorisation ou non d'Internet ;
 - l'autorisation ou non de l'accès Educ ;
 - une liste de domaines autorisés.
 
-Exemple de configuration générée :
+Exemple de configuration :
 
 ```json
 {
   "exam_id": "EXAM-PYTHON-2026",
   "student_id": "etu001",
   "machine_id": "PC01",
-  "packages": ["python3", "gcc", "make"],
+  "packages": ["gcc", "make", "nano", "python3"],
   "sudo": false,
-  "internet": false,
-  "educ_access": true,
-  "allowed_domains": ["educ.isen.fr"],
+  "internet": true,
+  "educ_access": false,
+  "allowed_domains": ["github.com"],
   "workspace": "/home/exam/etu001/workspace"
 }
 ```
 
-La configuration est enregistrée dans SQLite. Elle peut ensuite être récupérée par le client machine via l'API.
+La configuration est enregistrée dans SQLite et peut ensuite être récupérée par le client machine via l'API.
 
 ---
 
-### Profil professeur
+### 4. Catalogue logiciel
+
+Le catalogue logiciel permet de gérer les paquets disponibles pour les examens.
+
+Fonctionnalités disponibles :
+
+- affichage des paquets ;
+- ajout d'un paquet ;
+- activation d'un paquet ;
+- désactivation d'un paquet ;
+- filtrage des paquets actifs ou inactifs ;
+- validation côté client et côté backend.
+
+Les paquets désactivés ne peuvent pas être sélectionnés dans une nouvelle configuration.
+
+---
+
+### 5. Profil enseignant
 
 Une page profil permet à l'enseignant de :
 
 - consulter ses informations ;
-- modifier son nom, son email, son rôle, son département et son établissement ;
+- modifier son nom, email, rôle, département et établissement ;
 - importer une photo de profil ;
-- consulter les demandes de support envoyées depuis la page support.
+- consulter les demandes de support envoyées.
 
-Les informations du profil sont stockées dans SQLite.
+Les informations sont stockées dans SQLite.
 
-La photo de profil reste stockée comme fichier local dans :
+La photo est stockée localement dans :
 
 ```text
 backend/profile/
 ```
 
-La base de données stocke uniquement le chemin de la photo.
+La base de données stocke uniquement le chemin du fichier.
 
 ---
 
-### Support enseignant
+### 6. Support enseignant
 
-La page support permet d'envoyer une demande en cas de problème de connexion ou d'accès à la plateforme.
+La page support permet d'envoyer une demande en cas de problème.
 
 Le formulaire contient :
 
@@ -241,28 +311,26 @@ Le formulaire contient :
 
 Lorsqu'une demande est envoyée :
 
-1. le frontend Angular envoie la demande au backend ;
-2. le backend enregistre la demande dans SQLite ;
-3. le backend tente d'envoyer automatiquement un e-mail via SMTP ;
-4. la demande apparaît dans la page profil professeur.
+1. le frontend transmet la demande au backend ;
+2. le backend l'enregistre dans SQLite ;
+3. le backend tente d'envoyer un e-mail via SMTP ;
+4. la demande apparaît dans la page profil enseignant.
 
-Le système SMTP utilise des variables d'environnement afin de ne pas exposer les identifiants dans le code source.
+Les paramètres SMTP sont stockés dans le fichier `.env`.
 
 ---
 
 ## Backend FastAPI
 
-Le backend fournit une API REST permettant de gérer :
+Le backend fournit une API REST pour :
 
-- l'authentification enseignant ;
-- les configurations d'examen ;
-- les rendus étudiants ;
-- les statuts machines ;
-- l'historique machines ;
-- la configuration NixOS générée ;
-- le profil professeur ;
-- les demandes de support ;
-- l'envoi d'e-mails SMTP.
+- l'authentification ;
+- la gestion des configurations ;
+- la gestion du catalogue logiciel ;
+- la réception des rendus ;
+- la supervision des machines ;
+- la gestion des profils enseignants ;
+- la gestion des demandes de support.
 
 Routes principales :
 
@@ -274,6 +342,11 @@ POST   /auth/login
 GET    /auth/me
 
 GET    /dashboard
+
+GET    /packages
+POST   /packages
+PATCH  /packages/{package_id}/enable
+PATCH  /packages/{package_id}/disable
 
 POST   /configs
 GET    /configs-list
@@ -308,18 +381,18 @@ GET    /support-requests-list
 
 ## Base de données SQLite
 
-La plateforme utilise une base de données SQLite pour stocker les données applicatives principales.
-
-La base locale est créée automatiquement au lancement du backend :
+La base SQLite est créée automatiquement au lancement du backend :
 
 ```text
 backend/database/secure_exam.db
 ```
 
-Cette base contient les tables suivantes :
+Elle contient notamment les tables suivantes :
 
 ```text
+teachers
 teacher_profile
+package_catalog
 support_requests
 exam_configs
 submissions
@@ -327,62 +400,60 @@ machine_status
 machine_status_history
 ```
 
-Elle stocke notamment :
+Elle stocke :
 
-- le profil professeur ;
+- les comptes enseignants ;
+- les profils enseignants ;
+- le catalogue logiciel ;
 - les demandes de support ;
 - les configurations d'examen ;
-- les métadonnées des rendus étudiants ;
+- les métadonnées des rendus ;
 - le dernier état des machines ;
-- l'historique des statuts machines.
+- l'historique des machines.
 
-Les fichiers volumineux ne sont pas stockés directement dans SQLite. Ils restent sur le système de fichiers, tandis que leurs chemins et métadonnées sont enregistrés en base.
+Les fichiers volumineux ne sont pas stockés directement dans SQLite.
+
+Ils restent sur le système de fichiers :
 
 ```text
 backend/submissions/     → archives ZIP réelles des rendus étudiants
-backend/profile/         → photo de profil professeur
-exam-client/generated/   → fichiers générés côté client, notamment la configuration NixOS
+backend/profile/         → photos de profil
+exam-client/generated/   → fichiers générés côté client
 ```
 
-Cette séparation permet de conserver une base de données légère tout en gardant une gestion simple des fichiers binaires.
-
-La base `secure_exam.db` est une donnée locale générée automatiquement. Elle ne doit pas être publiée sur GitHub.
+La base `secure_exam.db` est une donnée locale. Elle ne doit pas être publiée sur GitHub.
 
 ---
 
 ## Variables d'environnement
 
-Le backend utilise un fichier `.env` pour charger les paramètres sensibles et la configuration locale.
-
-Le fichier réel doit être créé ici :
+Le backend utilise un fichier `.env` :
 
 ```text
 backend/.env
 ```
 
-Ce fichier contient notamment :
-
-- la configuration SMTP ;
-- la clé secrète JWT ;
-- les identifiants du compte enseignant de test ;
-- la durée de validité du token.
-
-Pour faciliter l'installation, un fichier d'exemple est fourni :
+Un modèle est fourni :
 
 ```text
 backend/.env.example
 ```
 
-Pour configurer le projet, copier ce fichier :
+Créer le fichier local :
+
+### Linux / NixOS
+
+```bash
+cd backend
+cp .env.example .env
+```
+
+### Windows PowerShell
 
 ```powershell
 cd backend
 Copy-Item .env.example .env
 ```
-
-Puis remplacer les valeurs par les paramètres locaux.
-
-Le fichier `.env` ne doit jamais être publié sur GitHub.
 
 Exemple de variables attendues :
 
@@ -398,30 +469,110 @@ JWT_SECRET_KEY=replace_with_long_random_secret_key
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=120
 
-TEACHER_USERNAME=replace_with_teacher_username
-TEACHER_PASSWORD=replace_with_teacher_password
+TEACHER_USERNAME=prof
+TEACHER_PASSWORD=1234
+```
+
+Le fichier `.env` ne doit jamais être publié sur GitHub.
+
+---
+
+## Installation du backend
+
+### Linux / NixOS
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Windows PowerShell
+
+```powershell
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --reload
+```
+
+Vérifier le backend :
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Réponse attendue :
+
+```json
+{
+  "status": "ok",
+  "message": "Serveur opérationnel"
+}
+```
+
+Documentation Swagger :
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+---
+
+## Installation du frontend
+
+Depuis le dossier `frontend` :
+
+```bash
+cd frontend
+npm install
+ng serve
+```
+
+Sous Windows, si PowerShell bloque `ng`, utiliser :
+
+```powershell
+ng.cmd serve
+```
+
+L'interface est disponible sur :
+
+```text
+http://localhost:4200
 ```
 
 ---
 
 ## Client machine d'examen
 
-Le client machine est un ensemble de scripts Python simulant le comportement d'une machine d'examen.
+Le client machine se trouve dans :
+
+```text
+exam-client/
+```
 
 Il permet de :
 
-- récupérer une configuration depuis le serveur ;
-- appliquer la configuration en simulation ;
+- récupérer la configuration depuis le backend ;
 - générer une configuration NixOS ;
-- créer un workspace étudiant ;
-- simuler un travail étudiant ;
-- créer une archive ZIP du workspace ;
-- envoyer l'archive au serveur ;
-- vérifier que l'envoi a réussi ;
+- préparer le workspace étudiant ;
+- créer les fichiers de suivi ;
+- sauvegarder le workspace ;
+- envoyer l'archive au backend ;
+- vérifier l'envoi ;
 - réinitialiser le workspace ;
 - envoyer les statuts d'avancement au backend.
 
-Fichier de configuration du client :
+---
+
+## Configuration du client
+
+Le fichier de configuration du client est :
 
 ```text
 exam-client/client_settings.json
@@ -434,9 +585,105 @@ Exemple :
   "server_url": "http://127.0.0.1:8000",
   "exam_id": "EXAM-PYTHON-2026",
   "student_id": "etu001",
-  "machine_id": "PC01"
+  "machine_id": "PC01",
+  "execution_mode": "real"
 }
 ```
+
+Champs :
+
+| Champ | Description |
+|---|---|
+| `server_url` | URL du backend FastAPI |
+| `exam_id` | Identifiant de l'examen |
+| `student_id` | Identifiant de l'étudiant |
+| `machine_id` | Identifiant de la machine |
+| `execution_mode` | `simulation` ou `real` |
+
+---
+
+## Modes d'exécution
+
+### Mode simulation
+
+Le mode simulation permet de tester le client sans modifier le vrai système.
+
+Workspace utilisé :
+
+```text
+exam-client/runtime/home/exam/<student_id>/workspace
+```
+
+### Mode réel NixOS
+
+Le mode réel travaille directement sur le workspace système :
+
+```text
+/home/exam/<student_id>/workspace
+```
+
+Ce mode nécessite les droits administrateur pour préparer et réinitialiser le workspace.
+
+---
+
+## Démarrage d'un examen
+
+Depuis `exam-client` :
+
+```bash
+cd exam-client
+nix-shell -p 'python312.withPackages (ps: [ ps.requests ])' zip unzip curl
+```
+
+Lancer le démarrage :
+
+```bash
+PYTHON_BIN="$(which python3)"
+sudo -E env "PYTHONPATH=$PYTHONPATH" "$PYTHON_BIN" start_exam.py
+```
+
+Cette commande effectue :
+
+```text
+FETCH
+GENERATE_NIX
+APPLY
+```
+
+Elle permet de :
+
+- récupérer la configuration depuis le backend ;
+- générer les fichiers NixOS ;
+- préparer le workspace réel ;
+- créer les fichiers `exam_metadata.json` et `exam_network_policy.json` ;
+- envoyer le statut `EXAM_READY`.
+
+---
+
+## Fin d'un examen
+
+Depuis `exam-client` :
+
+```bash
+PYTHON_BIN="$(which python3)"
+sudo -E env "PYTHONPATH=$PYTHONPATH" "$PYTHON_BIN" finish_exam.py
+```
+
+Cette commande effectue :
+
+```text
+BACKUP
+SUBMIT
+RESET
+```
+
+Elle permet de :
+
+- créer une archive ZIP du workspace ;
+- envoyer l'archive au backend ;
+- créer une preuve locale d'envoi ;
+- réinitialiser le workspace uniquement après confirmation ;
+- envoyer le statut `EXAM_FINISHED`.
 
 ---
 
@@ -456,32 +703,141 @@ exam-client/generated/exam-metadata.json
 exam-client/generated/network-policy.json
 ```
 
-La configuration NixOS générée représente :
+La configuration générée représente :
 
-- l'utilisateur d'examen ;
-- les droits `sudo` ;
+- l'utilisateur d'examen `exam` ;
 - les paquets autorisés ;
+- les droits sudo de l'étudiant ;
 - le workspace étudiant ;
-- l'activation du firewall ;
-- l'activation de nftables ;
-- les métadonnées de l'examen ;
+- les métadonnées d'examen ;
 - la politique réseau prévue.
 
-Logique globale :
+---
+
+## Application réelle sur NixOS
+
+Copier la configuration générée :
+
+```bash
+sudo cp ~/secure_exam/exam-client/generated/exam-configuration.nix /etc/nixos/exam-configuration.nix
+```
+
+Modifier :
 
 ```text
-Choix enseignant dans Angular
-→ configuration enregistrée dans SQLite
-→ récupération par exam-client via API
-→ génération automatique NixOS
-→ fichier exploitable sur une machine Linux/NixOS
+/etc/nixos/configuration.nix
+```
+
+Ajouter l'import :
+
+```nix
+imports =
+  [
+    ./hardware-configuration.nix
+    ./exam-configuration.nix
+  ];
+```
+
+Tester la configuration :
+
+```bash
+sudo nixos-rebuild test
+```
+
+Vérifications utiles :
+
+```bash
+getent passwd exam
+sudo ls -la /home/exam/etu001/workspace
+sudo -u exam -H bash -lc 'whoami; groups; sudo -n true; echo sudo_exit:$?'
+```
+
+Si `sudo_exit` est différent de `0`, l'utilisateur `exam` ne dispose pas de sudo.
+
+---
+
+## Script de démonstration complet
+
+Le script :
+
+```text
+exam-client/demo_full.sh
+```
+
+permet de lancer une démonstration complète du cycle réel.
+
+### Terminal 1 : backend
+
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Terminal 2 : démonstration
+
+```bash
+cd exam-client
+nix-shell -p 'python312.withPackages (ps: [ ps.requests ])' zip unzip curl
+chmod +x demo_full.sh
+./demo_full.sh
+```
+
+Le script effectue automatiquement :
+
+1. vérification du backend ;
+2. vérification du module `requests` ;
+3. démarrage réel de l'examen ;
+4. simulation du travail étudiant ;
+5. sauvegarde du workspace ;
+6. envoi de l'archive au backend ;
+7. reset du workspace ;
+8. vérification de l'archive ;
+9. vérification des soumissions côté backend.
+
+Résultat attendu :
+
+```text
+Démonstration terminée avec succès.
+```
+
+---
+
+## Scénario validé
+
+Le scénario réel validé est le suivant :
+
+```text
+Configuration enseignant
+→ récupération par la machine d'examen
+→ génération NixOS
+→ préparation du workspace réel
+→ travail étudiant
+→ archivage ZIP
+→ envoi au backend
+→ confirmation d'envoi
+→ reset sécurisé du workspace
+```
+
+Exemple d'archive générée :
+
+```text
+EXAM-PYTHON-2026_etu001_PC01_YYYYMMDD_HHMMSS.zip
+```
+
+Contenu attendu :
+
+```text
+main.py
+exam_metadata.json
+exam_network_policy.json
 ```
 
 ---
 
 ## Politique réseau
 
-Le prototype permet de représenter trois niveaux de contrôle réseau :
+Le prototype permet de représenter :
 
 ```text
 Internet autorisé ou bloqué
@@ -489,24 +845,48 @@ Accès Educ autorisé ou bloqué
 Domaines autorisés
 ```
 
-Dans la version actuelle, la politique réseau est générée et documentée, mais elle n'est pas encore appliquée réellement au système.
+La politique est générée dans :
 
-Dans une version cible, l'application effective pourrait s'appuyer sur :
+```text
+generated/network-policy.json
+/etc/exam/network-policy.json
+/home/exam/<student_id>/workspace/exam_network_policy.json
+```
 
-- nftables ;
-- iptables ;
+Le filtrage réseau strict par domaine n'est pas encore appliqué automatiquement.
+
+Une version cible pourrait s'appuyer sur :
+
 - un proxy ;
 - un DNS contrôlé ;
-- une passerelle réseau administrée par l'établissement ;
-- une liste blanche IP/domaine validée par la DSI.
-
-Le filtrage par nom de domaine nécessite une solution adaptée, car un pare-feu système filtre principalement par IP, port et interface.
+- une passerelle réseau ;
+- des règles `nftables` basées sur des IP validées ;
+- une intégration avec l'infrastructure réseau de l'établissement.
 
 ---
 
-## Sauvegarde, rendu et reset
+## Sécurité
 
-Le client suit une logique sécurisée :
+Le prototype inclut plusieurs mécanismes de sécurité :
+
+- authentification par JWT ;
+- hash des mots de passe avec Argon2 ;
+- routes backend protégées ;
+- séparation des données par enseignant ;
+- validation du catalogue logiciel ;
+- refus des paquets non autorisés ;
+- utilisateur système dédié `exam` ;
+- contrôle des droits sudo ;
+- refus d'un workspace réel hors de `/home/exam/` ;
+- archive locale avant reset ;
+- reset uniquement après confirmation d'envoi serveur ;
+- exclusion des secrets et données locales du dépôt Git.
+
+---
+
+## Sauvegarde et reset
+
+La logique de fin d'examen est sécurisée :
 
 ```text
 workspace étudiant
@@ -516,140 +896,33 @@ workspace étudiant
 → reset du workspace
 ```
 
-Le reset n'est exécuté que si :
+Le reset est annulé si :
 
-- une archive locale existe ;
-- l'archive a bien été envoyée au serveur ;
-- la preuve d'envoi correspond à la dernière archive.
+- aucune archive locale n'existe ;
+- aucune preuve d'envoi serveur n'existe ;
+- l'archive locale la plus récente ne correspond pas à l'archive envoyée.
 
-Cette logique évite de supprimer le travail étudiant avant la sauvegarde et l'envoi du rendu.
-
-Les métadonnées du rendu sont stockées dans SQLite. Le fichier ZIP réel reste stocké dans :
-
-```text
-backend/submissions/
-```
+Cette logique évite la perte du travail étudiant.
 
 ---
 
-## Installation et lancement
+## Fichiers non versionnés
 
-### 1. Cloner le projet
-
-```powershell
-git clone https://github.com/aymanchergui/secure_exam.git
-cd secure_exam
-```
-
----
-
-### 2. Lancer le backend
-
-Créer et activer un environnement virtuel Python :
-
-```powershell
-cd backend
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-```
-
-Installer les dépendances :
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-Créer le fichier d'environnement :
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Modifier ensuite le fichier `.env` avec les valeurs locales.
-
-Lancer le serveur :
-
-```powershell
-python -m uvicorn main:app --reload
-```
-
-Le backend est disponible sur :
-
-```text
-http://127.0.0.1:8000
-```
-
-Documentation Swagger :
-
-```text
-http://127.0.0.1:8000/docs
-```
-
----
-
-### 3. Lancer le frontend Angular
-
-Dans un deuxième terminal :
-
-```powershell
-cd frontend
-npm install
-ng.cmd serve
-```
-
-L'interface est disponible sur :
-
-```text
-http://localhost:4200
-```
-
----
-
-### 4. Lancer le client machine
-
-Dans un troisième terminal :
-
-```powershell
-cd exam-client
-python start_exam.py
-python simulate_student_work.py
-python finish_exam.py
-```
-
----
-
-## Scénario de démonstration
-
-1. Lancer le backend FastAPI.
-2. Lancer le frontend Angular.
-3. Se connecter avec les identifiants définis dans `backend/.env`.
-4. Créer une configuration d'examen depuis le dashboard.
-5. Lancer `python start_exam.py` côté `exam-client`.
-6. Vérifier la génération NixOS dans le dashboard.
-7. Lancer `python simulate_student_work.py`.
-8. Lancer `python finish_exam.py`.
-9. Vérifier le rendu ZIP dans Angular.
-10. Consulter l'état machine et l'historique.
-11. Tester la page support.
-12. Consulter les demandes support depuis la page profil.
-
----
-
-## Gestion Git
-
-Le dépôt Git contient le code source du projet, mais pas les données locales générées.
-
-Les éléments suivants ne doivent pas être versionnés :
+Les éléments suivants ne doivent pas être publiés sur GitHub :
 
 ```text
 backend/.env
 backend/venv/
 backend/database/*.db
+backend/database/*.sqlite
+backend/database/*.sqlite3
 backend/submissions/
 backend/profile/
+
 frontend/node_modules/
 frontend/.angular/
 frontend/dist/
+
 exam-client/archives/
 exam-client/downloaded/
 exam-client/generated/
@@ -658,102 +931,107 @@ exam-client/runtime/
 exam-client/submitted/
 ```
 
-Le fichier `.env.example` est versionné afin de documenter les variables nécessaires au lancement du backend.
-
----
-
-## Sécurité
-
-La version actuelle inclut déjà :
-
-- authentification enseignant par JWT ;
-- hash du mot de passe avec Argon2 ;
-- routes protégées côté backend ;
-- token transmis dans l'en-tête `Authorization` ;
-- séparation frontend / backend / client machine ;
-- stockage SMTP via variables d'environnement ;
-- exclusion du fichier `.env` du dépôt Git ;
-- exclusion de la base locale `secure_exam.db` du dépôt Git ;
-- validation des paquets autorisés ;
-- vérification de l'envoi du rendu avant reset.
-
-Points à renforcer pour une version production :
-
-- gérer plusieurs comptes enseignants ;
-- ajouter des rôles : enseignant, administrateur, surveillant ;
-- stocker les utilisateurs en base de données ;
-- ajouter une rotation plus avancée des tokens ;
-- sécuriser davantage l'upload de fichiers ;
-- appliquer réellement les règles réseau sur Linux/NixOS ;
-- intégrer une authentification institutionnelle si nécessaire ;
-- ajouter des tests automatisés backend et frontend.
-
----
-
-## Partie réalisée et partie simulée
-
-### Réalisé dans le prototype
-
-- Interface Angular moderne ;
-- authentification JWT ;
-- externalisation des secrets dans `.env` ;
-- dashboard enseignant ;
-- création de configurations ;
-- validation des paquets ;
-- stockage des données applicatives dans SQLite ;
-- client Python de récupération ;
-- génération de configuration NixOS ;
-- sauvegarde ZIP ;
-- upload des rendus ;
-- stockage des métadonnées de rendu en base ;
-- suivi d'état machine ;
-- historique machine ;
-- page support ;
-- envoi automatique d'e-mail SMTP ;
-- profil professeur ;
-- modification de photo de profil ;
-- consultation des demandes support ;
-- téléchargement de fichiers.
-
-### Simulé dans le prototype actuel
-
-- installation réelle des paquets système ;
-- modification réelle des droits Linux ;
-- application réelle des règles réseau ;
-- reset complet d'une machine NixOS ;
-- déploiement sur un parc physique ;
-- exécution réelle de `nixos-rebuild`.
-
-Le prototype fonctionne sous Windows pour le développement, mais la cible finale reste une machine Linux/NixOS contrôlée par l'établissement.
+Le fichier `.env.example` est versionné pour documenter les variables nécessaires.
 
 ---
 
 ## Limites actuelles
 
-- un seul compte enseignant de test ;
-- utilisateurs non encore stockés en base de données ;
-- politique réseau générée mais non appliquée réellement ;
-- configuration NixOS générée mais non encore appliquée avec `nixos-rebuild` ;
-- reset limité à un workspace simulé ;
-- absence de tests automatisés ;
-- déploiement multi-machines non encore validé physiquement.
+Le prototype est fonctionnel, mais certaines parties restent à industrialiser :
+
+- application réseau stricte encore à intégrer ;
+- déploiement multi-machines non automatisé ;
+- supervision multi-salles à compléter ;
+- pas encore de tests automatisés complets ;
+- application NixOS encore semi-manuelle via `nixos-rebuild test` ;
+- intégration DSI à prévoir pour le réseau, le parc machines et les politiques système.
 
 ---
 
-## Évolutions prévues
+## Perspectives d'amélioration
 
-- gestion multi-utilisateurs ;
-- gestion des rôles : enseignant, administrateur, surveillant ;
-- stockage des comptes utilisateurs en base ;
-- amélioration de la sécurité JWT ;
-- application réelle de la configuration NixOS ;
-- intégration d'un cache local de paquets ;
-- mise en place d'un vrai filtrage réseau ;
-- ajout de tests backend et frontend ;
-- amélioration des logs ;
-- export de rapports d'examen ;
-- reset complet par image système, snapshot ou profil NixOS ;
-- déploiement sur plusieurs machines d'examen.
+Évolutions possibles :
+
+- appliquer réellement les règles réseau ;
+- intégrer un proxy ou DNS contrôlé ;
+- automatiser l'application NixOS complète ;
+- ajouter une gestion multi-salles ;
+- ajouter une interface administrateur DSI ;
+- ajouter une signature ou un hash des archives ;
+- ajouter une vérification d'intégrité côté serveur ;
+- ajouter des tests backend et frontend ;
+- améliorer le dashboard de supervision ;
+- automatiser le déploiement sur plusieurs machines ;
+- intégrer une authentification institutionnelle.
+
+---
+
+## Commandes utiles
+
+### Lancer le backend
+
+```bash
+cd backend
+source venv/bin/activate
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Lancer le frontend
+
+```bash
+cd frontend
+ng serve
+```
+
+### Lancer le client en mode réel
+
+```bash
+cd exam-client
+nix-shell -p 'python312.withPackages (ps: [ ps.requests ])' zip unzip curl
+PYTHON_BIN="$(which python3)"
+sudo -E env "PYTHONPATH=$PYTHONPATH" "$PYTHON_BIN" start_exam.py
+```
+
+### Terminer l'examen
+
+```bash
+PYTHON_BIN="$(which python3)"
+sudo -E env "PYTHONPATH=$PYTHONPATH" "$PYTHON_BIN" finish_exam.py
+```
+
+### Lancer la démo complète
+
+```bash
+cd exam-client
+nix-shell -p 'python312.withPackages (ps: [ ps.requests ])' zip unzip curl
+./demo_full.sh
+```
+
+### Vérifier le workspace réel
+
+```bash
+sudo ls -la /home/exam/etu001/workspace
+```
+
+### Vérifier la dernière archive
+
+```bash
+LATEST=$(ls -t archives/EXAM-PYTHON-2026_etu001_PC01_*.zip | head -n 1)
+echo "$LATEST"
+unzip -l "$LATEST"
+```
+
+---
+
+## Documentation complémentaire
+
+Une documentation dédiée à la démonstration réelle NixOS est disponible dans :
+
+```text
+docs/demo_nixos_reel.md
+```
+
+Elle décrit le scénario complet de validation sur machine NixOS réelle.
 
 ---
 
@@ -771,16 +1049,8 @@ Projet académique / prototype de démonstration.
 
 ## Conclusion
 
-ISEN SecureExam valide une chaîne fonctionnelle complète pour la configuration, le suivi et la récupération de rendus dans un environnement Linux d'examen.
+**ISEN SecureExam** démontre une chaîne complète de configuration et de supervision d'un environnement Linux d'examen.
 
-Le prototype démontre :
+Le prototype permet de passer d'une configuration créée par un enseignant à un environnement NixOS réel, avec workspace étudiant, droits contrôlés, sauvegarde du rendu, dépôt serveur et remise à zéro sécurisée.
 
-- une interface enseignant sécurisée ;
-- une API backend protégée ;
-- une base SQLite pour les données applicatives ;
-- une génération automatique de configuration ;
-- une logique de supervision machine ;
-- une génération NixOS ;
-- une sauvegarde sécurisée des rendus ;
-- un module support avec notification e-mail ;
-- une base solide pour une évolution vers un déploiement réel.
+Le cœur technique du projet est fonctionnel et constitue une base solide pour une évolution vers un déploiement réel en environnement académique.
