@@ -151,7 +151,7 @@
                 class="secondary package-create-toggle-button btn-create-action btn-neutral-action"
                 (click)="togglePackageCreationForm()">
                 <i data-lucide="package-plus" class="btn-icon"></i>
-                {{ showPackageCreationForm ? 'Fermer' : 'Créer un paquet' }}
+                {{ showPackageCreationForm ? 'Fermer' : 'Ajouter un paquet' }}
               </button>
 
     <button
@@ -352,6 +352,7 @@
           <thead>
             <tr>
               <th>Fichier de configuration</th>
+              <th>Créée le</th>
               <th>Détail</th>
               <th>Téléchargement</th>
               <th>Action</th>
@@ -361,6 +362,7 @@
           <tbody>
             <tr *ngFor="let config of dashboard.configs">
               <td>{{ config.filename }}</td>
+              <td class="config-date-cell">{{ formatConfigDate(config) }}</td>
 
               <td>
                 <button class="btn-neutral-action" type="button" (click)="viewConfig(config)">

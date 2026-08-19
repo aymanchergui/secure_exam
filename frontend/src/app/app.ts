@@ -166,7 +166,7 @@ export class App implements OnInit, AfterViewInit {
   loginError = '';
   accessToken = '';
 
-  private apiUrl = 'http://127.0.0.1:8000';
+  private apiUrl = `http://${window.location.hostname}:8000`;
 
   availablePackages: PackageCatalogItem[] = [];
   packageFilter: PackageFilter = 'all';
@@ -968,6 +968,41 @@ export class App implements OnInit, AfterViewInit {
     });
   }
 
+
+  formatConfigDate(config: any): string {
+    const rawDate = config?.created_at || config?.createdAt || config?.updated_at || config?.updatedAt;
+
+    if (!rawDate) {
+      return '—';
+    }
+
+    const parsedDate = new Date(rawDate);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return rawDate;
+    }
+
+    return parsedDate.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getApiErrorMessage(err: any, fallback: string): string {
+    if (typeof err?.error?.detail === 'string') {
+      return err.error.detail;
+    }
+
+    if (err?.error?.detail?.message) {
+      return err.error.detail.message;
+    }
+
+    return fallback;
+  }
+
   createConfig(): void {
     this.error = '';
     this.success = '';
@@ -1007,11 +1042,22 @@ export class App implements OnInit, AfterViewInit {
         error: (err) => {
           console.error(err);
 
+        const configErrorMessage = this.getApiErrorMessage(
+          err,
+          "Erreur lors de la création de la configuration."
+        );
+
+        if (err.status === 409) {
+          window.alert(configErrorMessage);
+        }
+
+        this.error = configErrorMessage;
+
           if (err.error?.detail?.message === 'Paquets non autorisés') {
             const invalidPackages = err.error.detail.invalid_packages?.join(', ') || '';
             this.error = `Paquets non autorisés : ${invalidPackages}`;
           } else {
-            this.error = 'Erreur lors de la création de la configuration.';
+            this.error = this.getApiErrorMessage(err, "Erreur lors de la création de la configuration.");
           }
 
           this.refreshView();
@@ -1253,7 +1299,7 @@ export class App implements OnInit, AfterViewInit {
       error: (err) => {
         console.error(err);
 
-        this.error = 'Erreur lors de la suppression de la configuration.';
+        this.error = this.getApiErrorMessage(err, "Erreur lors de la création de la configuration.");
         this.refreshView();
       }
     });

@@ -1574,3 +1574,13 @@ html {
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
 }
+\n
+/* =========================================================
+   CONFIGURATIONS GÉNÉRÉES - DATE
+   ========================================================= */
+
+.config-date-cell {
+  color: #475569;
+  font-weight: 800;
+  white-space: nowrap;
+}
