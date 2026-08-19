@@ -103,7 +103,7 @@ if not CONFIG_FILE.exists():
 
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
-requested_packages = config.get("packages", [])
+requested_packages = config.get("nix_packages", config.get("packages", []))
 invalid_packages = [
     package
     for package in requested_packages

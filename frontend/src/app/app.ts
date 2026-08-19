@@ -35,6 +35,7 @@ interface ExamConfigDetail {
   student_id: string;
   machine_id: string;
   packages: string[];
+  nix_packages?: string[];
   sudo: boolean;
   internet: boolean;
   educ_access: boolean;
@@ -50,6 +51,7 @@ interface NixosConfig {
 interface PackageCatalogItem {
   id: number;
   name: string;
+  nixName: string;
   displayName: string;
   description: string;
   isActive: boolean;
@@ -64,8 +66,45 @@ interface PackageCatalogResponse {
 
 interface PackageCreateResponse {
   message: string;
+  verifiedNixPackage?: string;
   package: PackageCatalogItem;
 }
+
+interface PackageVerificationResponse {
+  exists: boolean;
+  catalogExists: boolean;
+  name: string;
+  nixName: string;
+  displayName: string;
+  verifiedNixPackage: string;
+}
+
+interface PackageSearchCandidate {
+  name: string;
+  nixName: string;
+  displayName: string;
+  version: string;
+  description: string;
+  verifiedNixPackage: string;
+  catalogExists: boolean;
+}
+
+interface PackageSearchResponse {
+  query: string;
+  count: number;
+  candidates: PackageSearchCandidate[];
+}
+
+interface PackageManagementItem extends PackageCatalogItem {
+  usageCount: number;
+  canDelete: boolean;
+}
+
+interface PackageManagementResponse {
+  count: number;
+  packages: PackageManagementItem[];
+}
+
 
 interface Dashboard {
   configs_count: number;
@@ -133,9 +172,22 @@ export class App implements OnInit, AfterViewInit {
   packageFilter: PackageFilter = 'all';
   showPackageCreationForm = false;
 
+  packageVerificationStatus: 'idle' | 'checking' | 'valid' | 'invalid' = 'idle';
+  packageVerificationMessage = '';
+  verifiedPackageName = '';
+  verifiedPackageDisplayName = '';
+  verifiedPackageNixName = '';
+  packageSearchCandidates: PackageSearchCandidate[] = [];
+  selectedPackageCandidateNixName = '';
+
+  showPackageDeleteModal = false;
+  packageManagementLoading = false;
+  packageManagementItems: PackageManagementItem[] = [];
+  selectedPackageIdsToDelete = new Set<number>();
+  private packageVerificationTimer?: number;
+
   newPackage = {
     name: '',
-    displayName: '',
     description: ''
   };
 
@@ -313,7 +365,6 @@ export class App implements OnInit, AfterViewInit {
 
     this.newPackage = {
       name: '',
-      displayName: '',
       description: ''
     };
 
@@ -412,30 +463,403 @@ export class App implements OnInit, AfterViewInit {
     this.refreshView();
   }
 
+  openPackageDeleteModal(): void {
+    this.showPackageDeleteModal = true;
+    this.selectedPackageIdsToDelete.clear();
+    this.loadPackageManagementItems();
+    this.refreshView();
+  }
+
+  closePackageDeleteModal(): void {
+    this.showPackageDeleteModal = false;
+    this.selectedPackageIdsToDelete.clear();
+    this.refreshView();
+  }
+
+  loadPackageManagementItems(): void {
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.get<PackageManagementResponse>(
+      `${this.apiUrl}/packages/management`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.packageManagementItems = data.packages;
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = "Erreur lors du chargement des paquets.";
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  isPackageSelectedForDeletion(packageId: number): boolean {
+    return this.selectedPackageIdsToDelete.has(packageId);
+  }
+
+  togglePackageManagementSelection(packageId: number, checked: boolean): void {
+    if (checked) {
+      this.selectedPackageIdsToDelete.add(packageId);
+    } else {
+      this.selectedPackageIdsToDelete.delete(packageId);
+    }
+
+    this.refreshView();
+  }
+
+  getSelectedPackageDeleteCount(): number {
+    return this.selectedPackageIdsToDelete.size;
+  }
+
+  deletePackageManagementItem(packageItem: PackageManagementItem): void {
+    this.error = '';
+    this.success = '';
+
+    if (!packageItem.canDelete) {
+      this.error = "Ce paquet est utilisé dans une configuration. Désactive-le au lieu de le supprimer.";
+      this.refreshView();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Supprimer définitivement le paquet "${packageItem.displayName}" du catalogue ?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.delete<{ message: string }>(
+      `${this.apiUrl}/packages/${packageItem.id}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.selectedPackageIdsToDelete.delete(packageItem.id);
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (err.status === 409 && err.error?.detail?.message) {
+          this.error = err.error.detail.message;
+        } else if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else {
+          this.error = "Suppression impossible.";
+        }
+
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  deleteSelectedPackages(): void {
+    const selectedPackages = this.packageManagementItems.filter(
+      packageItem =>
+        this.selectedPackageIdsToDelete.has(packageItem.id) &&
+        packageItem.canDelete
+    );
+
+    if (selectedPackages.length === 0) {
+      this.error = "Sélectionne au moins un paquet supprimable.";
+      this.refreshView();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Supprimer définitivement ${selectedPackages.length} paquet(s) du catalogue ?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    const deleteNext = (index: number): void => {
+      if (index >= selectedPackages.length) {
+        this.success = "Paquets sélectionnés supprimés avec succès.";
+        this.selectedPackageIdsToDelete.clear();
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+        return;
+      }
+
+      const packageItem = selectedPackages[index];
+
+      this.http.delete<{ message: string }>(
+        `${this.apiUrl}/packages/${packageItem.id}`,
+        { headers }
+      ).subscribe({
+        next: () => {
+          deleteNext(index + 1);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = `Suppression interrompue sur ${packageItem.displayName}.`;
+          this.packageManagementLoading = false;
+          this.refreshView();
+        }
+      });
+    };
+
+    deleteNext(0);
+  }
+
+  disablePackageManagementItem(packageItem: PackageManagementItem): void {
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.patch<{ message: string }>(
+      `${this.apiUrl}/packages/${packageItem.id}/disable`,
+      {},
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = "Désactivation impossible.";
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+
   togglePackageCreationForm(): void {
     this.showPackageCreationForm = !this.showPackageCreationForm;
+
+    if (!this.showPackageCreationForm) {
+      this.resetPackageVerification();
+    }
+
     this.refreshView();
+  }
+
+  resetPackageVerification(): void {
+    if (this.packageVerificationTimer) {
+      window.clearTimeout(this.packageVerificationTimer);
+      this.packageVerificationTimer = undefined;
+    }
+
+    this.packageVerificationStatus = 'idle';
+    this.packageVerificationMessage = '';
+    this.verifiedPackageName = '';
+    this.verifiedPackageDisplayName = '';
+    this.verifiedPackageNixName = '';
+    this.packageSearchCandidates = [];
+    this.selectedPackageCandidateNixName = '';
+  }
+
+  onPackageNameChanged(): void {
+    const packageName = this.newPackage.name.trim().toLowerCase();
+
+    if (this.packageVerificationTimer) {
+      window.clearTimeout(this.packageVerificationTimer);
+      this.packageVerificationTimer = undefined;
+    }
+
+    this.packageSearchCandidates = [];
+    this.selectedPackageCandidateNixName = '';
+    this.verifiedPackageName = '';
+    this.verifiedPackageDisplayName = '';
+    this.verifiedPackageNixName = '';
+
+    if (!packageName) {
+      this.packageVerificationStatus = 'idle';
+      this.packageVerificationMessage = '';
+      this.refreshView();
+      return;
+    }
+
+    if (packageName.length < 2) {
+      this.packageVerificationStatus = 'idle';
+      this.packageVerificationMessage = 'Saisis au moins 2 caractères.';
+      this.refreshView();
+      return;
+    }
+
+    this.packageVerificationStatus = 'checking';
+    this.packageVerificationMessage = 'Vérification du paquet et chargement des versions...';
+    this.refreshView();
+
+    this.packageVerificationTimer = window.setTimeout(() => {
+      this.searchPackageCandidates(packageName);
+    }, 700);
+  }
+
+  searchPackageCandidates(packageName: string): void {
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<PackageSearchResponse>(
+      `${this.apiUrl}/packages/search/${encodeURIComponent(packageName)}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        const currentPackageName = this.newPackage.name.trim().toLowerCase();
+
+        if (currentPackageName !== packageName) {
+          return;
+        }
+
+        this.packageSearchCandidates = data.candidates;
+
+        if (data.candidates.length === 0) {
+          this.packageVerificationStatus = 'invalid';
+          this.packageVerificationMessage = 'Paquet introuvable.';
+          this.refreshView();
+          return;
+        }
+
+        const firstAvailable = data.candidates.find(candidate => !candidate.catalogExists);
+        const selectedCandidate = firstAvailable || data.candidates[0];
+
+        this.selectedPackageCandidateNixName = selectedCandidate.nixName;
+        this.applySelectedPackageCandidate();
+
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.packageVerificationStatus = 'invalid';
+        this.packageVerificationMessage = typeof err.error?.detail === 'string'
+          ? err.error.detail
+          : 'Paquet introuvable.';
+
+        this.packageSearchCandidates = [];
+        this.selectedPackageCandidateNixName = '';
+        this.verifiedPackageName = '';
+        this.verifiedPackageDisplayName = '';
+        this.verifiedPackageNixName = '';
+
+        this.refreshView();
+      }
+    });
+  }
+
+  getSelectedPackageCandidate(): PackageSearchCandidate | undefined {
+    return this.packageSearchCandidates.find(
+      candidate => candidate.nixName === this.selectedPackageCandidateNixName
+    );
+  }
+
+  getPackageCandidateLabel(candidate: PackageSearchCandidate): string {
+    const versionText = candidate.version ? candidate.version : candidate.verifiedNixPackage;
+    const status = candidate.catalogExists ? 'déjà présent' : 'disponible';
+
+    return `${versionText} — ${candidate.nixName} (${status})`;
+  }
+
+  onPackageCandidateSelected(): void {
+    this.applySelectedPackageCandidate();
+    this.refreshView();
+  }
+
+  applySelectedPackageCandidate(): void {
+    const selectedCandidate = this.getSelectedPackageCandidate();
+
+    if (!selectedCandidate) {
+      this.packageVerificationStatus = 'invalid';
+      this.packageVerificationMessage = 'Choisis une version disponible.';
+      this.verifiedPackageName = '';
+      this.verifiedPackageDisplayName = '';
+      this.verifiedPackageNixName = '';
+      return;
+    }
+
+    this.verifiedPackageName = selectedCandidate.name;
+    this.verifiedPackageDisplayName = selectedCandidate.displayName;
+    this.verifiedPackageNixName = selectedCandidate.nixName;
+
+    if (selectedCandidate.catalogExists) {
+      this.packageVerificationStatus = 'invalid';
+      this.packageVerificationMessage = 'Cette version existe déjà dans le catalogue.';
+    } else {
+      this.packageVerificationStatus = 'valid';
+      this.packageVerificationMessage = `Version sélectionnée : ${selectedCandidate.verifiedNixPackage}`;
+    }
+  }
+
+  getPackageDisplayFieldValue(): string {
+    if (this.packageVerificationStatus === 'checking') {
+      return 'Vérification en cours...';
+    }
+
+    if (this.packageVerificationStatus === 'valid') {
+      return this.verifiedPackageDisplayName;
+    }
+
+    if (this.packageVerificationStatus === 'invalid') {
+      return 'Paquet introuvable';
+    }
+
+    return '';
+  }
+
+  getGeneratedPackageDisplayName(): string {
+    const packageName = this.newPackage.name.trim().toLowerCase();
+
+    const displayNames: Record<string, string> = {
+      gcc: 'GCC',
+      gdb: 'GDB',
+      git: 'Git',
+      gnumake: 'Make',
+      htop: 'Htop',
+      make: 'Make',
+      nano: 'Nano',
+      python3: 'Python 3',
+      vim: 'Vim'
+    };
+
+    if (!packageName) {
+      return '';
+    }
+
+    if (displayNames[packageName]) {
+      return displayNames[packageName];
+    }
+
+    return packageName
+      .replace(/[-_.]+/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   createPackage(): void {
     this.error = '';
     this.success = '';
 
-    const packageName = this.newPackage.name.trim().toLowerCase();
-    const displayName = this.newPackage.displayName.trim();
     const description = this.newPackage.description.trim();
-
-    if (!packageName) {
-      this.error = 'Le nom technique du paquet est obligatoire.';
-      this.refreshView();
-      return;
-    }
-
-    if (!displayName) {
-      this.error = 'Le nom affiché du paquet est obligatoire.';
-      this.refreshView();
-      return;
-    }
+    const selectedCandidate = this.getSelectedPackageCandidate();
 
     if (!description) {
       this.error = 'La description du paquet est obligatoire.';
@@ -443,9 +867,20 @@ export class App implements OnInit, AfterViewInit {
       return;
     }
 
+    if (
+      this.packageVerificationStatus !== 'valid' ||
+      !selectedCandidate ||
+      selectedCandidate.catalogExists
+    ) {
+      this.error = 'Choisis une version valide avant ajout.';
+      this.refreshView();
+      return;
+    }
+
     const payload = {
-      name: packageName,
-      displayName: displayName,
+      name: selectedCandidate.name,
+      nixName: selectedCandidate.nixName,
+      displayName: selectedCandidate.displayName,
       description: description
     };
 
@@ -459,13 +894,16 @@ export class App implements OnInit, AfterViewInit {
       { headers }
     ).subscribe({
       next: (data) => {
-        this.success = data.message;
+        this.success = data.verifiedNixPackage
+          ? `${data.message} Paquet NixOS vérifié : ${data.verifiedNixPackage}`
+          : data.message;
 
         this.newPackage = {
           name: '',
-          displayName: '',
           description: ''
         };
+
+        this.resetPackageVerification();
 
         this.packageCreating = false;
         this.showPackageCreationForm = false;
@@ -481,6 +919,8 @@ export class App implements OnInit, AfterViewInit {
           this.error = 'Ce paquet existe déjà dans le catalogue.';
         } else if (typeof err.error?.detail === 'string') {
           this.error = err.error.detail;
+        } else if (err.error?.detail?.message) {
+          this.error = `${err.error.detail.message} ${err.error.detail.nixName || ''}`.trim();
         } else {
           this.error = "Erreur lors de l'ajout du paquet logiciel.";
         }

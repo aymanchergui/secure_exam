@@ -1,6 +1,8 @@
 import json
 import os
+import re
 import shutil
+import subprocess
 import smtplib
 import ssl
 from datetime import datetime, timedelta, timezone
@@ -122,8 +124,12 @@ class TeacherProfile(BaseModel):
 
 class PackageCreate(BaseModel):
     name: str
-    displayName: str
     description: str
+    displayName: str | None = None
+    nixName: str | None = None
+    description: str
+    displayName: str | None = None
+    nixName: str | None = None
 
 
 def now_text() -> str:
@@ -182,9 +188,16 @@ def teacher_row_to_public_dict(row):
 
 
 def package_row_to_public_dict(row):
+    row_keys = row.keys()
+    nix_name = row["name"]
+
+    if "nix_name" in row_keys and row["nix_name"]:
+        nix_name = row["nix_name"]
+
     return {
         "id": row["id"],
         "name": row["name"],
+        "nixName": nix_name,
         "displayName": row["display_name"],
         "description": row["description"],
         "isActive": bool(row["is_active"]),
@@ -541,11 +554,15 @@ def get_config_row_by_filename_or_404(filename: str):
 
 
 def row_to_config(row):
+    package_names = json.loads(row["packages"])
+    nix_package_names = get_nix_package_names_for_package_names(package_names)
+
     return {
         "exam_id": row["exam_id"],
         "student_id": row["student_id"],
         "machine_id": row["machine_id"],
-        "packages": json.loads(row["packages"]),
+        "packages": package_names,
+        "nix_packages": nix_package_names,
         "sudo": bool(row["sudo"]),
         "internet": bool(row["internet"]),
         "educ_access": bool(row["educ_access"]),
@@ -634,7 +651,204 @@ def update_support_email_status(request_id: int, email_sent: int):
     connection.close()
 
 
+NIX_PACKAGE_OVERRIDES = {
+    "make": "gnumake"
+}
+
+PACKAGE_DISPLAY_OVERRIDES = {
+    "gcc": "GCC",
+    "gdb": "GDB",
+    "git": "Git",
+    "gnumake": "Make",
+    "htop": "Htop",
+    "make": "Make",
+    "nano": "Nano",
+    "python3": "Python 3",
+    "vim": "Vim"
+}
+
+
+def ensure_package_catalog_nix_names():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("PRAGMA table_info(package_catalog)")
+    columns = {
+        row["name"]
+        for row in cursor.fetchall()
+    }
+
+    if "nix_name" not in columns:
+        cursor.execute("""
+            ALTER TABLE package_catalog
+            ADD COLUMN nix_name TEXT
+        """)
+
+    cursor.execute("""
+        SELECT id, name, nix_name
+        FROM package_catalog
+    """)
+
+    rows = cursor.fetchall()
+
+    for row in rows:
+        current_nix_name = row["nix_name"]
+
+        if current_nix_name is None or not str(current_nix_name).strip():
+            default_nix_name = NIX_PACKAGE_OVERRIDES.get(
+                row["name"],
+                row["name"]
+            )
+
+            cursor.execute("""
+                UPDATE package_catalog
+                SET nix_name = ?, updated_at = ?
+                WHERE id = ?
+            """, (
+                default_nix_name,
+                now_iso(),
+                row["id"]
+            ))
+
+    connection.commit()
+    connection.close()
+
+
+def normalize_package_identifier(value: str) -> str:
+    return value.strip().lower()
+
+
+def validate_package_identifier(value: str, label: str) -> str:
+    cleaned_value = normalize_package_identifier(value)
+
+    if not cleaned_value:
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} obligatoire."
+        )
+
+    if not re.fullmatch(r"[a-zA-Z0-9._+-]+", cleaned_value):
+        raise HTTPException(
+            status_code=400,
+            detail=f"{label} invalide. Utilisez seulement lettres, chiffres, points, tirets, underscores ou +."
+        )
+
+    return cleaned_value
+
+
+def nix_attr_expression(nix_name: str) -> str:
+    parts = nix_name.split(".")
+    quoted_parts = ".".join(
+        json.dumps(part)
+        for part in parts
+        if part
+    )
+
+    return f"(import <nixpkgs> {{}}).{quoted_parts}.name"
+
+
+def verify_nix_package_exists(nix_name: str) -> str:
+    nix_binary = shutil.which("nix")
+
+    if nix_binary is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Commande nix introuvable sur le backend. Vérification NixOS impossible."
+        )
+
+    commands = [
+        [
+            nix_binary,
+            "eval",
+            "--extra-experimental-features",
+            "nix-command flakes",
+            "--raw",
+            f"nixpkgs#{nix_name}.name"
+        ],
+        [
+            nix_binary,
+            "eval",
+            "--extra-experimental-features",
+            "nix-command",
+            "--impure",
+            "--raw",
+            "--expr",
+            nix_attr_expression(nix_name)
+        ]
+    ]
+
+    last_error = ""
+
+    for command in commands:
+        try:
+            result = subprocess.run(
+                command,
+                text=True,
+                capture_output=True,
+                timeout=45
+            )
+        except subprocess.TimeoutExpired:
+            last_error = "La vérification du paquet NixOS a expiré."
+            continue
+
+        if result.returncode == 0:
+            resolved_name = result.stdout.strip()
+
+            if not resolved_name:
+                resolved_name = nix_name
+
+            return resolved_name
+
+        last_error = result.stderr.strip()
+
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "message": "Paquet NixOS introuvable.",
+            "nixName": nix_name,
+            "error": last_error
+        }
+    )
+
+
+def get_nix_package_names_for_package_names(package_names: list[str]) -> list[str]:
+    if not package_names:
+        return []
+
+    placeholders = ",".join(["?"] * len(package_names))
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(f"""
+        SELECT name, nix_name
+        FROM package_catalog
+        WHERE name IN ({placeholders})
+    """, package_names)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    mapping = {}
+
+    for row in rows:
+        mapping[row["name"]] = row["nix_name"] or row["name"]
+
+    nix_package_names = []
+
+    for package_name in package_names:
+        nix_package_names.append(
+            mapping.get(
+                package_name,
+                NIX_PACKAGE_OVERRIDES.get(package_name, package_name)
+            )
+        )
+
+    return nix_package_names
+
+
 seed_default_teacher_account()
+ensure_package_catalog_nix_names()
 
 
 @app.get("/")
@@ -771,6 +985,7 @@ def list_packages(current_teacher: dict = Depends(get_current_teacher)):
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,
@@ -803,6 +1018,7 @@ def list_active_packages(current_teacher: dict = Depends(get_current_teacher)):
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,
@@ -827,40 +1043,490 @@ def list_active_packages(current_teacher: dict = Depends(get_current_teacher)):
     }
 
 
-@app.post("/packages")
-def create_package(
-    package: PackageCreate,
+
+
+PACKAGE_VERIFY_CACHE = {}
+NIX_ATTR_NAMES_CACHE = None
+PACKAGE_SEARCH_CACHE = {}
+
+PACKAGE_DISPLAY_OVERRIDES = {
+    "gcc": "GCC",
+    "gdb": "GDB",
+    "git": "Git",
+    "gitfull": "Git Full",
+    "gitminimal": "Git Minimal",
+    "gnumake": "Make",
+    "htop": "Htop",
+    "make": "Make",
+    "nano": "Nano",
+    "python": "Python",
+    "python3": "Python 3",
+    "vim": "Vim"
+}
+
+
+def generate_package_display_name(package_name: str, nix_name: str) -> str:
+    package_name = package_name.strip().lower()
+    nix_name = nix_name.strip().lower()
+    clean_key = nix_name.replace("-", "").replace("_", "")
+
+    if package_name in PACKAGE_DISPLAY_OVERRIDES:
+        return PACKAGE_DISPLAY_OVERRIDES[package_name]
+
+    if nix_name in PACKAGE_DISPLAY_OVERRIDES:
+        return PACKAGE_DISPLAY_OVERRIDES[nix_name]
+
+    if clean_key in PACKAGE_DISPLAY_OVERRIDES:
+        return PACKAGE_DISPLAY_OVERRIDES[clean_key]
+
+    readable_name = package_name.replace("-", " ").replace("_", " ").replace(".", " ")
+
+    return " ".join(
+        word[:1].upper() + word[1:]
+        for word in readable_name.split()
+        if word
+    )
+
+
+def verify_nix_package_exists_cached(nix_name: str) -> str:
+    nix_name = nix_name.strip()
+
+    if nix_name in PACKAGE_VERIFY_CACHE:
+        return PACKAGE_VERIFY_CACHE[nix_name]
+
+    resolved_name = verify_nix_package_exists(nix_name)
+    PACKAGE_VERIFY_CACHE[nix_name] = resolved_name
+
+    return resolved_name
+
+
+def extract_package_version(resolved_name: str) -> str:
+    match = re.search(r"-(\d[^\s]*)$", resolved_name)
+
+    if match:
+        return match.group(1)
+
+    return resolved_name
+
+
+def get_existing_package_keys() -> set[str]:
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT name, nix_name
+        FROM package_catalog
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    keys = set()
+
+    for row in rows:
+        keys.add(row["name"])
+
+        if row["nix_name"]:
+            keys.add(row["nix_name"])
+
+    return keys
+
+
+def get_nix_attr_names() -> list[str]:
+    global NIX_ATTR_NAMES_CACHE
+
+    if NIX_ATTR_NAMES_CACHE is not None:
+        return NIX_ATTR_NAMES_CACHE
+
+    nix_binary = shutil.which("nix")
+
+    if nix_binary is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Commande nix introuvable sur le backend."
+        )
+
+    command = [
+        nix_binary,
+        "eval",
+        "--extra-experimental-features",
+        "nix-command",
+        "--impure",
+        "--json",
+        "--expr",
+        "builtins.attrNames (import <nixpkgs> {})"
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            text=True,
+            capture_output=True,
+            timeout=90
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=504,
+            detail="Chargement de la liste Nixpkgs expiré."
+        )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Impossible de lire les paquets Nixpkgs.",
+                "error": result.stderr.strip()
+            }
+        )
+
+    try:
+        NIX_ATTR_NAMES_CACHE = json.loads(result.stdout or "[]")
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500,
+            detail="Réponse Nixpkgs invalide."
+        )
+
+    return NIX_ATTR_NAMES_CACHE
+
+
+def get_nix_metadata_for_attrs(attr_names: list[str]) -> list[dict]:
+    if not attr_names:
+        return []
+
+    nix_binary = shutil.which("nix")
+
+    if nix_binary is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Commande nix introuvable sur le backend."
+        )
+
+    attrs_json = json.dumps(attr_names)
+
+    expr = """
+let
+  pkgs = import <nixpkgs> {};
+  attrs = builtins.fromJSON ATTRS_JSON_PLACEHOLDER;
+
+  read = name:
+    let attempt = builtins.tryEval (builtins.getAttr name pkgs);
+    in
+      if (!attempt.success) then null
+      else
+        let p = attempt.value;
+        in
+          if builtins.isAttrs p && ((p ? pname) || (p ? version) || (p ? name)) then {
+            nixName = name;
+            pname = if p ? pname then p.pname else name;
+            version = if p ? version then p.version else "";
+            fullName = if p ? name then p.name else name;
+            description = if p ? meta && p.meta ? description then p.meta.description else "";
+          } else null;
+in
+  builtins.filter (x: x != null) (map read attrs)
+""".replace("ATTRS_JSON_PLACEHOLDER", json.dumps(attrs_json))
+
+    command = [
+        nix_binary,
+        "eval",
+        "--extra-experimental-features",
+        "nix-command",
+        "--impure",
+        "--json",
+        "--expr",
+        expr
+    ]
+
+    try:
+        result = subprocess.run(
+            command,
+            text=True,
+            capture_output=True,
+            timeout=60
+        )
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=504,
+            detail="Chargement des versions du paquet expiré."
+        )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Impossible de lire les métadonnées du paquet.",
+                "error": result.stderr.strip()
+            }
+        )
+
+    try:
+        return json.loads(result.stdout or "[]")
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500,
+            detail="Métadonnées Nixpkgs invalides."
+        )
+
+
+def package_attr_score(attr_name: str, query: str) -> tuple:
+    attr_lower = attr_name.lower()
+    query = query.lower()
+
+    if attr_lower == query:
+        return (0, attr_lower)
+
+    if attr_lower.startswith(query):
+        return (1, attr_lower)
+
+    if query in attr_lower:
+        return (2, attr_lower)
+
+    return (9, attr_lower)
+
+
+def build_package_version_candidates(query: str) -> list[dict]:
+    query = validate_package_identifier(
+        query,
+        "Le nom du paquet"
+    )
+
+    if len(query) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Saisissez au moins 2 caractères."
+        )
+
+    cache_key = query.lower()
+
+    if cache_key in PACKAGE_SEARCH_CACHE:
+        return PACKAGE_SEARCH_CACHE[cache_key]
+
+    candidate_attrs = [query]
+
+    all_attrs = get_nix_attr_names()
+
+    matched_attrs = [
+        attr for attr in all_attrs
+        if query.lower() in attr.lower()
+    ]
+
+    matched_attrs.sort(key=lambda attr: package_attr_score(attr, query))
+
+    for attr in matched_attrs[:50]:
+        if attr not in candidate_attrs:
+            candidate_attrs.append(attr)
+
+    metadata_items = get_nix_metadata_for_attrs(candidate_attrs)
+    existing_keys = get_existing_package_keys()
+
+    candidates = []
+    seen = set()
+
+    for item in metadata_items:
+        nix_name = item.get("nixName", "").strip()
+
+        if not nix_name or nix_name in seen:
+            continue
+
+        seen.add(nix_name)
+
+        pname = item.get("pname") or nix_name
+        version = item.get("version") or extract_package_version(item.get("fullName", nix_name))
+        full_name = item.get("fullName") or f"{pname}-{version}"
+        description = item.get("description") or ""
+        display_name = generate_package_display_name(pname, nix_name)
+        technical_name = nix_name.lower()
+
+        candidates.append({
+            "name": technical_name,
+            "nixName": nix_name,
+            "displayName": display_name,
+            "version": version,
+            "description": description,
+            "verifiedNixPackage": full_name,
+            "catalogExists": technical_name in existing_keys or nix_name in existing_keys
+        })
+
+    candidates.sort(key=lambda candidate: package_attr_score(candidate["nixName"], query))
+
+    PACKAGE_SEARCH_CACHE[cache_key] = candidates[:25]
+
+    return PACKAGE_SEARCH_CACHE[cache_key]
+
+
+
+def count_package_usage_in_configs(package_name: str, nix_name: str | None = None) -> int:
+    targets = {package_name}
+
+    if nix_name:
+        targets.add(nix_name)
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT packages
+        FROM exam_configs
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    usage_count = 0
+
+    for row in rows:
+        try:
+            config_packages = json.loads(row["packages"])
+        except Exception:
+            continue
+
+        if any(package in targets for package in config_packages):
+            usage_count += 1
+
+    return usage_count
+
+
+@app.get("/packages/management")
+def get_packages_management(
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    name = package.name.strip().lower()
-    display_name = package.displayName.strip()
-    description = package.description.strip()
+    connection = get_connection()
+    cursor = connection.cursor()
 
-    if not name:
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            nix_name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        ORDER BY display_name ASC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    packages = []
+
+    for row in rows:
+        package = package_row_to_public_dict(row)
+        usage_count = count_package_usage_in_configs(row["name"], row["nix_name"])
+
+        package["usageCount"] = usage_count
+        package["canDelete"] = usage_count == 0
+
+        packages.append(package)
+
+    return {
+        "count": len(packages),
+        "packages": packages
+    }
+
+
+@app.delete("/packages/{package_id}")
+def delete_package(
+    package_id: int,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            name,
+            nix_name,
+            display_name,
+            description,
+            is_active,
+            created_at,
+            updated_at
+        FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    package = cursor.fetchone()
+
+    if package is None:
+        connection.close()
         raise HTTPException(
-            status_code=400,
-            detail="Le nom technique du paquet est obligatoire."
+            status_code=404,
+            detail="Paquet introuvable."
         )
 
-    if not display_name:
+    usage_count = count_package_usage_in_configs(
+        package["name"],
+        package["nix_name"]
+    )
+
+    if usage_count > 0:
+        connection.close()
         raise HTTPException(
-            status_code=400,
-            detail="Le nom affiché du paquet est obligatoire."
+            status_code=409,
+            detail={
+                "message": "Ce paquet est déjà utilisé dans une ou plusieurs configurations. Il peut être désactivé, mais pas supprimé.",
+                "usageCount": usage_count
+            }
         )
 
-    if not description:
+    cursor.execute("""
+        DELETE FROM package_catalog
+        WHERE id = ?
+    """, (
+        package_id,
+    ))
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "Paquet supprimé définitivement du catalogue.",
+        "deletedPackageId": package_id
+    }
+
+
+
+@app.get("/packages/search/{package_query}")
+def search_packages_for_catalog(
+    package_query: str,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    candidates = build_package_version_candidates(package_query)
+
+    if not candidates:
         raise HTTPException(
-            status_code=400,
-            detail="La description du paquet est obligatoire."
+            status_code=404,
+            detail="Paquet introuvable dans Nixpkgs."
         )
 
-    if not name.replace("-", "").replace("_", "").isalnum():
-        raise HTTPException(
-            status_code=400,
-            detail="Le nom technique doit contenir seulement des lettres, chiffres, tirets ou underscores."
-        )
+    return {
+        "query": package_query.strip().lower(),
+        "count": len(candidates),
+        "candidates": candidates
+    }
 
-    current_time = now_iso()
+
+@app.get("/packages/verify/{package_name}")
+def verify_package_for_catalog(
+    package_name: str,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    name = validate_package_identifier(
+        package_name,
+        "Le nom du paquet"
+    )
+
+    nix_name = NIX_PACKAGE_OVERRIDES.get(name, name)
+
+    resolved_nix_name = verify_nix_package_exists_cached(nix_name)
+    display_name = generate_package_display_name(name, nix_name)
 
     connection = get_connection()
     cursor = connection.cursor()
@@ -871,6 +1537,65 @@ def create_package(
         WHERE name = ?
     """, (
         name,
+    ))
+
+    existing_package = cursor.fetchone()
+    connection.close()
+
+    return {
+        "exists": True,
+        "catalogExists": existing_package is not None,
+        "name": name,
+        "nixName": nix_name,
+        "displayName": display_name,
+        "verifiedNixPackage": resolved_nix_name
+    }
+
+
+@app.post("/packages")
+def create_package(
+    package: PackageCreate,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    name = validate_package_identifier(
+        package.name,
+        "Le nom du paquet"
+    )
+
+    raw_nix_name = package.nixName.strip() if package.nixName else ""
+    if not raw_nix_name:
+        raw_nix_name = NIX_PACKAGE_OVERRIDES.get(name, name)
+
+    nix_name = validate_package_identifier(
+        raw_nix_name,
+        "Le nom NixOS du paquet"
+    )
+
+    description = package.description.strip()
+
+    if not description:
+        raise HTTPException(
+            status_code=400,
+            detail="La description du paquet est obligatoire."
+        )
+
+    display_name = package.displayName.strip() if package.displayName else ""
+    if not display_name:
+        display_name = generate_package_display_name(name, nix_name)
+
+    resolved_nix_name = verify_nix_package_exists_cached(nix_name)
+    current_time = now_iso()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id
+        FROM package_catalog
+        WHERE name = ? OR nix_name = ?
+    """, (
+        name,
+        nix_name
     ))
 
     existing_package = cursor.fetchone()
@@ -885,15 +1610,17 @@ def create_package(
     cursor.execute("""
         INSERT INTO package_catalog (
             name,
+            nix_name,
             display_name,
             description,
             is_active,
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         name,
+        nix_name,
         display_name,
         description,
         1,
@@ -902,15 +1629,16 @@ def create_package(
     ))
 
     package_id = cursor.lastrowid
-
     connection.commit()
     connection.close()
 
     return {
         "message": "Paquet ajouté au catalogue avec succès.",
+        "verifiedNixPackage": resolved_nix_name,
         "package": {
             "id": package_id,
             "name": name,
+            "nixName": nix_name,
             "displayName": display_name,
             "description": description,
             "isActive": True,
@@ -932,6 +1660,7 @@ def disable_package(
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,
@@ -978,6 +1707,7 @@ def disable_package(
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,
@@ -1010,6 +1740,7 @@ def enable_package(
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,
@@ -1056,6 +1787,7 @@ def enable_package(
         SELECT
             id,
             name,
+            nix_name,
             display_name,
             description,
             is_active,

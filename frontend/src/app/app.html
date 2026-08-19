@@ -103,7 +103,7 @@
 
         <div class="options package-manager">
           <div class="package-manager-header">
-            <div>
+  <div class="package-manager-info">
               <strong>
                 <i data-lucide="package-check" class="inline-icon"></i>
                 Paquets autorisés
@@ -114,16 +114,8 @@
               </p>
             </div>
 
-            <div class="package-manager-actions">
-              <button
-                type="button"
-                class="secondary"
-                (click)="togglePackageCreationForm()">
-                <i data-lucide="package-plus" class="btn-icon"></i>
-                {{ showPackageCreationForm ? 'Fermer' : 'Créer un paquet' }}
-              </button>
-
-              <div class="package-filter">
+  <div class="package-manager-filter-slot">
+    <div class="package-filter">
                 <button
                   type="button"
                   class="filter-pill"
@@ -148,8 +140,26 @@
                   Désactivés
                 </button>
               </div>
-            </div>
-          </div>
+  </div>
+
+  <div class="package-toolbar-buttons">
+    <button
+                type="button"
+                class="secondary package-create-toggle-button"
+                (click)="togglePackageCreationForm()">
+                <i data-lucide="package-plus" class="btn-icon"></i>
+                {{ showPackageCreationForm ? 'Fermer' : 'Créer un paquet' }}
+              </button>
+
+    <button
+                type="button"
+                class="btn-danger-outline package-delete-manager-button package-manage-button"
+                (click)="openPackageDeleteModal()">
+                <i data-lucide="settings"></i>
+                Gérer les paquets
+              </button>
+  </div>
+</div>
 
           <div *ngIf="showPackageCreationForm" class="package-create-card">
             <div class="package-create-header">
@@ -166,39 +176,79 @@
             </div>
 
             <div class="form-grid">
-              <label>
-                Nom technique
+              <label class="package-name-field">
+                Nom du paquet
                 <input
                   [(ngModel)]="newPackage.name"
+                  (ngModelChange)="onPackageNameChanged()"
                   type="text"
-                  placeholder="exemple : git"
+                  placeholder="exemple : htop, git, make"
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
                 >
               </label>
 
-              <label>
+              <label class="package-display-field">
                 Nom affiché
                 <input
-                  [(ngModel)]="newPackage.displayName"
+                  [ngModel]="getPackageDisplayFieldValue()"
                   type="text"
-                  placeholder="exemple : Git"
+                  placeholder="généré après sélection"
+                  readonly
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
                 >
               </label>
+              <label class=" package-version-field">
+                Version du paquet
+                <select
+                  [(ngModel)]="selectedPackageCandidateNixName"
+                  (ngModelChange)="onPackageCandidateSelected()"
+                  [disabled]="packageVerificationStatus === 'checking' || packageSearchCandidates.length === 0"
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'">
+                  <option value="">
+                    {{ packageVerificationStatus === 'checking' ? 'Chargement des versions...' : 'En attente de vérification' }}
+                  </option>
+                  <option
+                    *ngFor="let candidate of packageSearchCandidates"
+                    [ngValue]="candidate.nixName">
+                    {{ getPackageCandidateLabel(candidate) }}
+                  </option>
+                </select>
+              </label>
 
-              <label class="full">
+              <div
+                class="package-verification-hint"
+                *ngIf="packageVerificationMessage"
+                [class.valid]="packageVerificationStatus === 'valid'"
+                [class.invalid]="packageVerificationStatus === 'invalid'"
+                [class.checking]="packageVerificationStatus === 'checking'">
+                {{ packageVerificationMessage }}
+              </div>
+
+              <label class="full package-description-field">
                 Description
                 <input
                   [(ngModel)]="newPackage.description"
                   type="text"
-                  placeholder="exemple : Gestionnaire de versions utilisé pour les projets."
+                  placeholder="exemple : Outil de supervision système en terminal."
                 >
               </label>
             </div>
 
             <div class="package-create-actions">
-              <button
+              
+              
+
+
+<button
                 type="button"
                 (click)="createPackage()"
-                [disabled]="packageCreating">
+                [disabled]="packageCreating || packageVerificationStatus !== 'valid' || !selectedPackageCandidateNixName">
                 <i data-lucide="plus" class="btn-icon"></i>
                 {{ packageCreating ? 'Ajout en cours...' : 'Ajouter le paquet' }}
               </button>
@@ -229,6 +279,7 @@
                   <span class="package-title">
                     {{ packageItem.displayName }}
                     <span class="package-code">({{ packageItem.name }})</span>
+                    <span class="package-nix-name">NixOS : {{ packageItem.nixName }}</span>
                   </span>
                 </div>
 
@@ -355,6 +406,11 @@
         <p>
           <strong>Paquets :</strong>
           {{ selectedConfig.packages.join(', ') }}
+        </p>
+
+        <p *ngIf="selectedConfig.nix_packages">
+          <strong>Paquets NixOS :</strong>
+          {{ selectedConfig.nix_packages.join(', ') }}
         </p>
 
         <p>
@@ -540,5 +596,134 @@
         </table>
       </section>
     </main>
+  </div>
+</div>
+
+<div class="modal-backdrop package-management-backdrop" *ngIf="showPackageDeleteModal">
+  <div class="package-management-modal">
+    <div class="package-management-header">
+      <div>
+        <h2>
+          <i data-lucide="trash-2"></i>
+          Gestion des paquets
+        </h2>
+        <p>
+          Supprimez les paquets non utilisés ou désactivez ceux déjà présents dans des configurations.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="icon-button"
+        (click)="closePackageDeleteModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="package-management-actions">
+      <button
+        type="button"
+        class="btn-danger"
+        (click)="deleteSelectedPackages()"
+        [disabled]="packageManagementLoading || getSelectedPackageDeleteCount() === 0">
+        <i data-lucide="trash-2"></i>
+        Supprimer la sélection
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button"
+        (click)="loadPackageManagementItems()"
+        [disabled]="packageManagementLoading">
+        <i data-lucide="refresh-cw"></i>
+        Actualiser
+      </button>
+    </div>
+
+    <div class="package-management-loading" *ngIf="packageManagementLoading">
+      Chargement...
+    </div>
+
+    <div class="package-management-table-wrapper" *ngIf="!packageManagementLoading">
+      <table class="package-management-table">
+        <thead>
+          <tr>
+            <th>Sélection</th>
+            <th>Paquet</th>
+            <th>NixOS</th>
+            <th>Statut</th>
+            <th>Utilisation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let packageItem of packageManagementItems">
+            <td>
+              <input
+                type="checkbox"
+                [checked]="isPackageSelectedForDeletion(packageItem.id)"
+                [disabled]="!packageItem.canDelete"
+                (change)="togglePackageManagementSelection(packageItem.id, $any($event.target).checked)">
+            </td>
+
+            <td>
+              <strong>{{ packageItem.displayName }}</strong>
+              <small>{{ packageItem.name }}</small>
+            </td>
+
+            <td>
+              <code>{{ packageItem.nixName }}</code>
+            </td>
+
+            <td>
+              <span class="status-pill active" *ngIf="packageItem.isActive">Actif</span>
+              <span class="status-pill disabled" *ngIf="!packageItem.isActive">Désactivé</span>
+            </td>
+
+            <td>
+              <span *ngIf="packageItem.usageCount === 0" class="usage-free">
+                Non utilisé
+              </span>
+
+              <span *ngIf="packageItem.usageCount > 0" class="usage-locked">
+                {{ packageItem.usageCount }} config(s)
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="table-danger-button"
+                *ngIf="packageItem.canDelete"
+                (click)="deletePackageManagementItem(packageItem)">
+                <i data-lucide="trash-2"></i>
+                Supprimer
+              </button>
+
+              <button
+                type="button"
+                class="table-warning-button"
+                *ngIf="!packageItem.canDelete && packageItem.isActive"
+                (click)="disablePackageManagementItem(packageItem)">
+                Désactiver
+              </button>
+
+              <span
+                class="locked-text"
+                *ngIf="!packageItem.canDelete && !packageItem.isActive">
+                Protégé
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="packageManagementItems.length === 0">
+            <td colspan="6" class="empty-table-message">
+              Aucun paquet dans le catalogue.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
