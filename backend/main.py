@@ -418,7 +418,9 @@ Date :
         server.send_message(email_message)
 
 
-def load_teacher_profile():
+def load_teacher_profile(teacher_id: int):
+    ensure_teacher_profile_scope()
+
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -430,9 +432,12 @@ def load_teacher_profile():
             department,
             school,
             photo_path
-        FROM teacher_profile
-        WHERE id = 1
-    """)
+        FROM teacher_profiles
+        WHERE teacher_id = ?
+        LIMIT 1
+    """, (
+        teacher_id,
+    ))
 
     row = cursor.fetchone()
     connection.close()
@@ -453,12 +458,16 @@ def load_teacher_profile():
     }
 
 
-def save_teacher_profile(profile: TeacherProfile):
+def save_teacher_profile(profile: TeacherProfile, teacher_id: int):
+    ensure_teacher_profile_scope()
+
     connection = get_connection()
     cursor = connection.cursor()
 
+    current_time = now_iso()
+
     cursor.execute("""
-        UPDATE teacher_profile
+        UPDATE teacher_profiles
         SET
             full_name = ?,
             email = ?,
@@ -466,37 +475,69 @@ def save_teacher_profile(profile: TeacherProfile):
             department = ?,
             school = ?,
             updated_at = ?
-        WHERE id = 1
+        WHERE teacher_id = ?
     """, (
         profile.fullName,
         profile.email,
         profile.role,
         profile.department,
         profile.school,
-        now_iso()
+        current_time,
+        teacher_id
     ))
+
+    if cursor.rowcount == 0:
+        cursor.execute("""
+            INSERT INTO teacher_profiles (
+                teacher_id,
+                full_name,
+                email,
+                role,
+                department,
+                school,
+                photo_path,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            teacher_id,
+            profile.fullName,
+            profile.email,
+            profile.role,
+            profile.department,
+            profile.school,
+            "",
+            current_time,
+            current_time
+        ))
 
     connection.commit()
     connection.close()
 
 
-def update_teacher_photo_path(photo_path: str):
+def update_teacher_photo_path(photo_path: str, teacher_id: int):
+    ensure_teacher_profile_scope()
+
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute("""
-        UPDATE teacher_profile
+        UPDATE teacher_profiles
         SET
             photo_path = ?,
             updated_at = ?
-        WHERE id = 1
+        WHERE teacher_id = ?
     """, (
         photo_path,
-        now_iso()
+        now_iso(),
+        teacher_id
     ))
 
     connection.commit()
     connection.close()
+
+
 
 
 def config_filename(exam_id: str, student_id: str, machine_id: str) -> str:
@@ -850,8 +891,142 @@ def get_nix_package_names_for_package_names(package_names: list[str]) -> list[st
     return nix_package_names
 
 
+
+def ensure_exam_configs_teacher_scope():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("PRAGMA table_info(exam_configs)")
+    columns = {
+        row["name"]
+        for row in cursor.fetchall()
+    }
+
+    if "teacher_id" not in columns:
+        cursor.execute("""
+            ALTER TABLE exam_configs
+            ADD COLUMN teacher_id INTEGER
+        """)
+
+    cursor.execute("""
+        UPDATE exam_configs
+        SET teacher_id = 1
+        WHERE teacher_id IS NULL
+    """)
+
+    connection.commit()
+    connection.close()
+
+
+
+def ensure_teacher_profile_scope():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS teacher_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            teacher_id INTEGER NOT NULL UNIQUE,
+            full_name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            role TEXT NOT NULL,
+            department TEXT NOT NULL,
+            school TEXT NOT NULL,
+            photo_path TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
+    current_time = now_iso()
+
+    cursor.execute("""
+        SELECT
+            full_name,
+            email,
+            role,
+            department,
+            school,
+            photo_path
+        FROM teacher_profile
+        WHERE id = 1
+        LIMIT 1
+    """)
+
+    old_profile = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT id, username
+        FROM teachers
+        WHERE is_active = 1
+        ORDER BY id ASC
+    """)
+
+    teachers = cursor.fetchall()
+
+    for teacher in teachers:
+        cursor.execute("""
+            SELECT id
+            FROM teacher_profiles
+            WHERE teacher_id = ?
+            LIMIT 1
+        """, (
+            teacher["id"],
+        ))
+
+        existing_profile = cursor.fetchone()
+
+        if existing_profile is not None:
+            continue
+
+        if teacher["id"] == 1 and old_profile is not None:
+            full_name = old_profile["full_name"]
+            email = old_profile["email"]
+            role = old_profile["role"]
+            department = old_profile["department"]
+            school = old_profile["school"]
+            photo_path = old_profile["photo_path"] or ""
+        else:
+            full_name = teacher["username"]
+            email = f"{teacher['username']}@isen.fr"
+            role = "Enseignant"
+            department = "Département informatique"
+            school = "ISEN"
+            photo_path = ""
+
+        cursor.execute("""
+            INSERT INTO teacher_profiles (
+                teacher_id,
+                full_name,
+                email,
+                role,
+                department,
+                school,
+                photo_path,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            teacher["id"],
+            full_name,
+            email,
+            role,
+            department,
+            school,
+            photo_path,
+            current_time,
+            current_time
+        ))
+
+    connection.commit()
+    connection.close()
+
+
 seed_default_teacher_account()
 ensure_package_catalog_nix_names()
+ensure_exam_configs_teacher_scope()
+ensure_teacher_profile_scope()
 
 
 @app.get("/")
@@ -1850,7 +2025,7 @@ def get_database_stats(current_teacher: dict = Depends(get_current_teacher)):
 
 @app.get("/teacher-profile")
 def get_teacher_profile(current_teacher: dict = Depends(get_current_teacher)):
-    profile = load_teacher_profile()
+    profile = load_teacher_profile(current_teacher["id"])
     photo_path = profile.get("photoPath")
 
     has_photo = False
@@ -1865,7 +2040,7 @@ def get_teacher_profile(current_teacher: dict = Depends(get_current_teacher)):
         "department": profile["department"],
         "school": profile["school"],
         "hasPhoto": has_photo,
-        "photoUrl": "/teacher-profile/photo" if has_photo else ""
+        "photoUrl": f"/teacher-profile/photo/{current_teacher['id']}" if has_photo else ""
     }
 
 
@@ -1874,7 +2049,7 @@ def update_teacher_profile(
     profile: TeacherProfile,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    save_teacher_profile(profile)
+    save_teacher_profile(profile, current_teacher["id"])
 
     return {
         "message": "Profil professeur mis à jour avec succès.",
@@ -1908,26 +2083,28 @@ async def upload_teacher_profile_photo(
             detail="Format image non autorisé. Utilisez PNG, JPG, JPEG ou WEBP."
         )
 
-    for old_photo in PROFILE_DIR.glob("profile_photo.*"):
+    teacher_id = current_teacher["id"]
+
+    for old_photo in PROFILE_DIR.glob(f"profile_photo_teacher_{teacher_id}.*"):
         old_photo.unlink()
 
-    photo_path = PROFILE_DIR / f"profile_photo{extension}"
+    photo_path = PROFILE_DIR / f"profile_photo_teacher_{teacher_id}{extension}"
     relative_photo_path = f"profile/{photo_path.name}"
 
     with open(photo_path, "wb") as buffer:
         shutil.copyfileobj(photo.file, buffer)
 
-    update_teacher_photo_path(relative_photo_path)
+    update_teacher_photo_path(relative_photo_path, teacher_id)
 
     return {
         "message": "Photo de profil mise à jour avec succès.",
-        "photoUrl": "/teacher-profile/photo"
+        "photoUrl": f"/teacher-profile/photo/{teacher_id}"
     }
 
 
-@app.get("/teacher-profile/photo")
-def get_teacher_profile_photo():
-    profile = load_teacher_profile()
+@app.get("/teacher-profile/photo/{teacher_id}")
+def get_teacher_profile_photo_by_teacher(teacher_id: int):
+    profile = load_teacher_profile(teacher_id)
     photo_path = profile.get("photoPath")
 
     if not photo_path:
@@ -1957,6 +2134,13 @@ def get_teacher_profile_photo():
         path=photo_file,
         media_type=media_type
     )
+
+
+@app.get("/teacher-profile/photo")
+def get_teacher_profile_photo():
+    return get_teacher_profile_photo_by_teacher(1)
+
+
 
 
 @app.post("/support-requests")
@@ -2060,17 +2244,21 @@ def create_config(
             }
         )
 
+    teacher_id = current_teacher["id"]
+
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT id, workspace
+        SELECT id
         FROM exam_configs
-        WHERE exam_id = ?
+        WHERE teacher_id = ?
+        AND exam_id = ?
         AND student_id = ?
         AND machine_id = ?
         LIMIT 1
     """, (
+        teacher_id,
         config.exam_id,
         config.student_id,
         config.machine_id
@@ -2082,13 +2270,7 @@ def create_config(
         connection.close()
         raise HTTPException(
             status_code=409,
-            detail={
-                "message": "Cette configuration existe déjà. Pour la recréer, supprimez d’abord l’ancienne configuration.",
-                "exam_id": config.exam_id,
-                "student_id": config.student_id,
-                "machine_id": config.machine_id,
-                "workspace": existing_config["workspace"]
-            }
+            detail="Cette configuration existe déjà dans votre espace. Pour la recréer, supprimez d’abord l’ancienne configuration."
         )
 
     created_at = now_iso()
@@ -2096,6 +2278,7 @@ def create_config(
 
     cursor.execute("""
         INSERT INTO exam_configs (
+            teacher_id,
             exam_id,
             student_id,
             machine_id,
@@ -2108,8 +2291,9 @@ def create_config(
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
+        teacher_id,
         config.exam_id,
         config.student_id,
         config.machine_id,
@@ -2158,23 +2342,24 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT exam_id, student_id, machine_id, workspace, created_at, updated_at
+        SELECT
+            exam_id,
+            student_id,
+            machine_id,
+            workspace,
+            created_at,
+            updated_at
         FROM exam_configs
+        WHERE teacher_id = ?
         ORDER BY updated_at DESC
-    """)
+    """, (
+        current_teacher["id"],
+    ))
 
     rows = cursor.fetchall()
     connection.close()
 
-    files = [
-        config_filename(
-            row["exam_id"],
-            row["student_id"],
-            row["machine_id"]
-        )
-        for row in rows
-    ]
-
+    files = []
     configs_details = []
 
     for row in rows:
@@ -2183,6 +2368,8 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
             row["student_id"],
             row["machine_id"]
         )
+
+        files.append(filename)
 
         configs_details.append({
             "filename": filename,
@@ -2197,6 +2384,8 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
         "configs": files,
         "configs_details": configs_details
     }
+
+
 
 
 @app.get("/configs/{filename}/download")
@@ -2341,10 +2530,17 @@ def list_submissions(current_teacher: dict = Depends(get_current_teacher)):
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT filename
-        FROM submissions
-        ORDER BY created_at DESC
-    """)
+        SELECT s.filename
+        FROM submissions s
+        INNER JOIN exam_configs c
+            ON c.exam_id = s.exam_id
+            AND c.student_id = s.student_id
+            AND c.machine_id = s.machine_id
+        WHERE c.teacher_id = ?
+        ORDER BY s.created_at DESC
+    """, (
+        current_teacher["id"],
+    ))
 
     rows = cursor.fetchall()
     connection.close()
@@ -2358,6 +2554,8 @@ def list_submissions(current_teacher: dict = Depends(get_current_teacher)):
         "count": len(files),
         "submissions": files
     }
+
+
 
 
 @app.get("/submissions/{filename}/download")
@@ -2560,10 +2758,20 @@ def list_machine_status(current_teacher: dict = Depends(get_current_teacher)):
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT exam_id, student_id, machine_id
-        FROM machine_status
-        ORDER BY created_at DESC
-    """)
+        SELECT
+            m.exam_id,
+            m.student_id,
+            m.machine_id
+        FROM machine_status m
+        INNER JOIN exam_configs c
+            ON c.exam_id = m.exam_id
+            AND c.student_id = m.student_id
+            AND c.machine_id = m.machine_id
+        WHERE c.teacher_id = ?
+        ORDER BY m.created_at DESC
+    """, (
+        current_teacher["id"],
+    ))
 
     rows = cursor.fetchall()
     connection.close()
@@ -2581,6 +2789,8 @@ def list_machine_status(current_teacher: dict = Depends(get_current_teacher)):
         "count": len(files),
         "statuses": files
     }
+
+
 
 
 @app.get("/machine-status-history/{exam_id}/{student_id}/{machine_id}")
@@ -2644,10 +2854,19 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT exam_id, student_id, machine_id, workspace, created_at, updated_at
+        SELECT
+            exam_id,
+            student_id,
+            machine_id,
+            workspace,
+            created_at,
+            updated_at
         FROM exam_configs
+        WHERE teacher_id = ?
         ORDER BY updated_at DESC
-    """)
+    """, (
+        current_teacher["id"],
+    ))
 
     config_rows = cursor.fetchall()
 
@@ -2670,12 +2889,19 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
     cursor.execute("""
         SELECT
-            filename,
-            size_kb,
-            created_at
-        FROM submissions
-        ORDER BY created_at DESC
-    """)
+            s.filename,
+            s.size_kb,
+            s.created_at
+        FROM submissions s
+        INNER JOIN exam_configs c
+            ON c.exam_id = s.exam_id
+            AND c.student_id = s.student_id
+            AND c.machine_id = s.machine_id
+        WHERE c.teacher_id = ?
+        ORDER BY s.created_at DESC
+    """, (
+        current_teacher["id"],
+    ))
 
     submission_rows = cursor.fetchall()
 
@@ -2691,16 +2917,23 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
     cursor.execute("""
         SELECT
-            exam_id,
-            student_id,
-            machine_id,
-            step,
-            status,
-            message,
-            created_at
-        FROM machine_status
-        ORDER BY created_at DESC
-    """)
+            m.exam_id,
+            m.student_id,
+            m.machine_id,
+            m.step,
+            m.status,
+            m.message,
+            m.created_at
+        FROM machine_status m
+        INNER JOIN exam_configs c
+            ON c.exam_id = m.exam_id
+            AND c.student_id = m.student_id
+            AND c.machine_id = m.machine_id
+        WHERE c.teacher_id = ?
+        ORDER BY m.created_at DESC
+    """, (
+        current_teacher["id"],
+    ))
 
     machine_rows = cursor.fetchall()
     connection.close()
@@ -2726,6 +2959,8 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
         "submissions": submissions,
         "machine_statuses": machine_statuses
     }
+
+
 
 
 @app.get("/nixos-config")

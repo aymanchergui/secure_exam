@@ -12,7 +12,7 @@
 </div>
 
 <div class="page" *ngIf="isAuthenticated">
-  <app-header
+  <app-header [teacherFullName]="headerTeacherFullName"
     (refreshRequested)="loadDashboard()"
     (logoutRequested)="logout()"
     (profileRequested)="openProfilePage()"

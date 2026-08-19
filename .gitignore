@@ -46,3 +46,5 @@ Thumbs.db
 exam-client/client_settings.json
 patch.py
 backend/*.bak*
+backup/*.bak*
+backend/*.bak*

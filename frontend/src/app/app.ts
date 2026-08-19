@@ -167,6 +167,7 @@ export class App implements OnInit, AfterViewInit {
   accessToken = '';
 
   private apiUrl = `http://${window.location.hostname}:8000`;
+  headerTeacherFullName = localStorage.getItem('secure_exam_teacher_full_name') || 'Professeur';
 
   availablePackages: PackageCatalogItem[] = [];
   packageFilter: PackageFilter = 'all';
@@ -214,6 +215,8 @@ export class App implements OnInit, AfterViewInit {
     if (savedToken) {
       this.accessToken = savedToken;
       this.isAuthenticated = true;
+        setTimeout(() => this.refreshHeaderTeacherName(), 80);
+        setTimeout(() => this.refreshHeaderTeacherName(), 350);
       this.publicPage = 'authentication';
       this.authenticatedPage = 'dashboard';
 
@@ -327,10 +330,15 @@ export class App implements OnInit, AfterViewInit {
       next: (data) => {
         this.accessToken = data.access_token;
         this.isAuthenticated = true;
+        setTimeout(() => this.refreshHeaderTeacherName(), 80);
+        setTimeout(() => this.refreshHeaderTeacherName(), 350);
         this.publicPage = 'authentication';
         this.authenticatedPage = 'dashboard';
 
         localStorage.setItem('accessToken', data.access_token);
+        setTimeout(() => this.refreshHeaderTeacherName(), 120);
+        this.syncHeaderTeacherNameAfterLogin(localStorage.getItem('token') || localStorage.getItem('secure_exam_access_token') || localStorage.getItem('access_token') || '');
+        window.dispatchEvent(new Event('secure-exam-authenticated'));
 
         this.loadActivePackages();
         this.loadDashboard();
@@ -347,9 +355,136 @@ export class App implements OnInit, AfterViewInit {
     });
   }
 
+
+  syncHeaderTeacherNameAfterLogin(token: string): void {
+    if (!token) {
+      return;
+    }
+
+    setTimeout(() => {
+      fetch(`${this.apiUrl}/teacher-profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Profil professeur non chargé');
+          }
+
+          return response.json();
+        })
+        .then(profile => {
+          if (!profile?.fullName) {
+            return;
+          }
+
+          localStorage.setItem('secure_exam_teacher_full_name', profile.fullName);
+
+          window.dispatchEvent(
+            new CustomEvent('secure-exam-teacher-name-updated', {
+              detail: {
+                fullName: profile.fullName
+              }
+            })
+          );
+        })
+        .catch(() => {});
+    }, 150);
+  }
+
+
+  getHeaderAuthToken(): string {
+    const possibleKeys = [
+      'token',
+      'access_token',
+      'authToken',
+      'auth_token',
+      'secure_exam_token',
+      'secure_exam_access_token'
+    ];
+
+    for (const key of possibleKeys) {
+      const value = localStorage.getItem(key);
+
+      if (value && value.split('.').length === 3) {
+        return value;
+      }
+    }
+
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index);
+
+      if (!key) {
+        continue;
+      }
+
+      const value = localStorage.getItem(key);
+
+      if (value && value.split('.').length === 3) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+  applyHeaderTeacherFullName(fullName: string): void {
+    const cleanName = fullName.trim();
+
+    if (!cleanName) {
+      return;
+    }
+
+    this.headerTeacherFullName = cleanName;
+    localStorage.setItem('secure_exam_teacher_full_name', cleanName);
+
+    const applyDom = () => {
+      document.querySelectorAll('.profile-name').forEach((element) => {
+        element.textContent = cleanName;
+      });
+    };
+
+    applyDom();
+    setTimeout(applyDom, 50);
+    setTimeout(applyDom, 200);
+    setTimeout(applyDom, 600);
+  }
+
+  refreshHeaderTeacherName(): void {
+    const token = this.getHeaderAuthToken();
+
+    if (!token) {
+      this.headerTeacherFullName = 'Professeur';
+      localStorage.removeItem('secure_exam_teacher_full_name');
+      return;
+    }
+
+    fetch(`${this.apiUrl}/teacher-profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Profil professeur non chargé');
+        }
+
+        return response.json();
+      })
+      .then((profile) => {
+        if (profile?.fullName) {
+          this.applyHeaderTeacherFullName(profile.fullName);
+        }
+      })
+      .catch(() => {});
+  }
+
   logout(): void {
     this.accessToken = '';
     this.isAuthenticated = false;
+    this.headerTeacherFullName = 'Professeur';
+    localStorage.removeItem('secure_exam_teacher_full_name');
     this.publicPage = 'authentication';
     this.authenticatedPage = 'dashboard';
 
