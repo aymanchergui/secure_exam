@@ -44,3 +44,4 @@ Thumbs.db
 .vscode/
 .idea/exam-client/client_settings.json
 exam-client/client_settings.json
+patch.py
