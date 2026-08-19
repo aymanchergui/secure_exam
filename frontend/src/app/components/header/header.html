@@ -70,6 +70,8 @@
       type="button"
       title="Voir le profil"
       (click)="openProfile()"
+    
+      [class.active]="activeSection === 'profile'"
     >
       <span class="profile-avatar">
         <i data-lucide="user-round"></i>

@@ -465,6 +465,7 @@ export class App implements OnInit, AfterViewInit {
 
   openPackageDeleteModal(): void {
     this.showPackageDeleteModal = true;
+    document.body.style.overflow = 'hidden';
     this.selectedPackageIdsToDelete.clear();
     this.loadPackageManagementItems();
     this.refreshView();
@@ -472,6 +473,7 @@ export class App implements OnInit, AfterViewInit {
 
   closePackageDeleteModal(): void {
     this.showPackageDeleteModal = false;
+    document.body.style.overflow = '';
     this.selectedPackageIdsToDelete.clear();
     this.refreshView();
   }

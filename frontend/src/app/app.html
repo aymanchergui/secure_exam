@@ -110,12 +110,15 @@
               </strong>
 
               <p class="package-manager-subtitle">
-                Sélectionnez les logiciels disponibles pour l'environnement d'examen.
+                Sélectionnez les logiciels disponibles pour l’environnement d’examen.
               </p>
             </div>
 
   <div class="package-manager-filter-slot">
     <div class="package-filter">
+                <span class="package-filter-icon">
+                  <i data-lucide="filter"></i>
+                </span>
                 <button
                   type="button"
                   class="filter-pill"
@@ -145,7 +148,7 @@
   <div class="package-toolbar-buttons">
     <button
                 type="button"
-                class="secondary package-create-toggle-button"
+                class="secondary package-create-toggle-button btn-create-action btn-neutral-action"
                 (click)="togglePackageCreationForm()">
                 <i data-lucide="package-plus" class="btn-icon"></i>
                 {{ showPackageCreationForm ? 'Fermer' : 'Créer un paquet' }}
@@ -153,7 +156,7 @@
 
     <button
                 type="button"
-                class="btn-danger-outline package-delete-manager-button package-manage-button"
+                class="btn-danger-outline package-delete-manager-button package-manage-button btn-neutral-action"
                 (click)="openPackageDeleteModal()">
                 <i data-lucide="settings"></i>
                 Gérer les paquets
@@ -245,7 +248,7 @@
               
 
 
-<button
+<button class="btn-create-action"
                 type="button"
                 (click)="createPackage()"
                 [disabled]="packageCreating || packageVerificationStatus !== 'valid' || !selectedPackageCandidateNixName">
@@ -333,7 +336,7 @@
           <input [(ngModel)]="newConfig.allowed_domains_text" type="text">
         </label>
 
-        <button type="button" (click)="createConfig()">
+        <button class="btn-create-action" type="button" (click)="createConfig()">
           <i data-lucide="plus" class="btn-icon"></i>
           Créer la configuration
         </button>
@@ -360,21 +363,21 @@
               <td>{{ config.filename }}</td>
 
               <td>
-                <button type="button" (click)="viewConfig(config)">
+                <button class="btn-neutral-action" type="button" (click)="viewConfig(config)">
                   <i data-lucide="eye" class="btn-icon"></i>
                   Voir détail
                 </button>
               </td>
 
               <td>
-                <button type="button" (click)="downloadConfig(config)">
+                <button class="btn-download-action" type="button" (click)="downloadConfig(config)">
                   <i data-lucide="download" class="btn-icon"></i>
                   Télécharger
                 </button>
               </td>
 
               <td>
-                <button type="button" class="danger" (click)="deleteConfig(config)">
+                <button type="button" class="danger btn-delete-action" (click)="deleteConfig(config)">
                   <i data-lucide="trash-2" class="btn-icon"></i>
                   Supprimer
                 </button>
@@ -391,7 +394,7 @@
             Détail de la configuration
           </h2>
 
-          <button type="button" (click)="closeConfigDetails()">
+          <button class="btn-neutral-action" type="button" (click)="closeConfigDetails()">
             <i data-lucide="x" class="btn-icon"></i>
             Fermer
           </button>
@@ -442,12 +445,12 @@
           </h2>
 
           <div class="actions">
-            <button type="button" (click)="viewNixosConfig()">
+            <button class="btn-neutral-action" type="button" (click)="viewNixosConfig()">
               <i data-lucide="eye" class="btn-icon"></i>
               Voir configuration NixOS
             </button>
 
-            <button type="button" (click)="downloadNixosConfig()">
+            <button class="btn-download-action" type="button" (click)="downloadNixosConfig()">
               <i data-lucide="download" class="btn-icon"></i>
               Télécharger .nix
             </button>
@@ -459,7 +462,7 @@
 
           <pre class="nix-content"><code>{{ nixosConfig.content }}</code></pre>
 
-          <button type="button" (click)="closeNixosConfig()">
+          <button class="btn-neutral-action" type="button" (click)="closeNixosConfig()">
             <i data-lucide="x" class="btn-icon"></i>
             Fermer
           </button>
@@ -519,7 +522,7 @@
             Historique machine
           </h2>
 
-          <button type="button" (click)="closeStatusHistory()">
+          <button class="btn-neutral-action" type="button" (click)="closeStatusHistory()">
             <i data-lucide="x" class="btn-icon"></i>
             Fermer
           </button>
@@ -579,14 +582,14 @@
               <td>{{ submission.created_at }}</td>
 
               <td>
-                <button type="button" (click)="downloadSubmission(submission)">
+                <button class="btn-download-action" type="button" (click)="downloadSubmission(submission)">
                   <i data-lucide="download" class="btn-icon"></i>
                   Télécharger
                 </button>
               </td>
 
               <td>
-                <button type="button" class="danger" (click)="deleteSubmission(submission)">
+                <button type="button" class="danger btn-delete-action" (click)="deleteSubmission(submission)">
                   <i data-lucide="trash-2" class="btn-icon"></i>
                   Supprimer
                 </button>
@@ -600,7 +603,7 @@
 </div>
 
 <div class="modal-backdrop package-management-backdrop" *ngIf="showPackageDeleteModal">
-  <div class="package-management-modal">
+  <div class="package-management-modal" (wheel)="$event.stopPropagation()" (touchmove)="$event.stopPropagation()">
     <div class="package-management-header">
       <div>
         <h2>
@@ -623,7 +626,7 @@
     <div class="package-management-actions">
       <button
         type="button"
-        class="btn-danger"
+        class="btn-danger btn-delete-action"
         (click)="deleteSelectedPackages()"
         [disabled]="packageManagementLoading || getSelectedPackageDeleteCount() === 0">
         <i data-lucide="trash-2"></i>
@@ -632,7 +635,7 @@
 
       <button
         type="button"
-        class="secondary-button"
+        class="secondary-button btn-neutral-action btn-refresh-action"
         (click)="loadPackageManagementItems()"
         [disabled]="packageManagementLoading">
         <i data-lucide="refresh-cw"></i>
@@ -694,7 +697,7 @@
             <td>
               <button
                 type="button"
-                class="table-danger-button"
+                class="table-danger-button btn-delete-action"
                 *ngIf="packageItem.canDelete"
                 (click)="deletePackageManagementItem(packageItem)">
                 <i data-lucide="trash-2"></i>
@@ -706,6 +709,7 @@
                 class="table-warning-button"
                 *ngIf="!packageItem.canDelete && packageItem.isActive"
                 (click)="disablePackageManagementItem(packageItem)">
+                <i data-lucide="power-off"></i>
                 Désactiver
               </button>
 

@@ -525,3 +525,24 @@
     height: 3px;
   }
 }
+
+
+
+/* =========================================================
+   PROFIL ACTIF = EXACTEMENT LE HOVER EXISTANT
+   ========================================================= */
+
+.profile-button.active {
+  transform: translateY(-1px);
+
+  background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
+  color: #ffffff;
+
+  box-shadow:
+    0 12px 28px rgba(139, 0, 24, 0.22),
+    0 8px 18px rgba(17, 24, 39, 0.16);
+}
+
+.profile-button.active .profile-role {
+  color: rgba(255, 255, 255, 0.72);
+}

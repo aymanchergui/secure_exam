@@ -14,6 +14,10 @@
   --isen-red-light: rgba(196, 0, 36, 0.11);
   --isen-red-glow: rgba(196, 0, 36, 0.16);
 
+  --isen-green: #16a34a;
+  --isen-green-dark: #15803d;
+  --isen-green-soft: rgba(22, 163, 74, 0.12);
+
   --isen-black: #111827;
   --isen-black-soft: #1f2937;
 
@@ -183,6 +187,15 @@
   color: var(--isen-black);
 }
 
+.panel p {
+  color: #374151;
+  line-height: 1.6;
+}
+
+.panel p strong {
+  color: var(--isen-black);
+}
+
 /* =========================================================
    FORMS
    ========================================================= */
@@ -237,8 +250,81 @@ input[readonly] {
   cursor: not-allowed;
 }
 
+select {
+  appearance: none;
+}
+
+select:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.full {
+  margin-bottom: 20px;
+}
+
+/* Position fixe formulaire paquet */
+.package-name-field {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.package-display-field {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.package-description-field {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.package-version-field {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.package-verification-hint {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: -4px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.package-verification-hint.valid {
+  color: #047857;
+}
+
+.package-verification-hint.invalid {
+  color: #b91c1c;
+}
+
+.package-verification-hint.checking {
+  color: #475569;
+}
+
+input.package-input-valid,
+select.package-input-valid {
+  border-color: #22c55e !important;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12) !important;
+}
+
+input.package-input-invalid,
+select.package-input-invalid {
+  border-color: var(--isen-red) !important;
+  box-shadow: 0 0 0 4px rgba(196, 0, 36, 0.12) !important;
+}
+
+input.package-input-checking,
+select.package-input-checking {
+  border-color: #94a3b8 !important;
+  box-shadow: 0 0 0 4px rgba(100, 116, 139, 0.12) !important;
+}
+
 /* =========================================================
-   OPTIONS GÉNÉRALES
+   OPTIONS
    ========================================================= */
 
 .options {
@@ -286,15 +372,17 @@ input[type="checkbox"] {
   height: 16px;
 }
 
-.full {
-  margin-bottom: 20px;
-}
-
 /* =========================================================
    BUTTONS
+   Règle demandée :
+   - Téléchargement = vert
+   - Créer / Ajouter = rouge
+   - Reste = noir
    ========================================================= */
 
-button {
+button,
+.secondary-button,
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -304,13 +392,15 @@ button {
   padding: 11px 16px;
   cursor: pointer;
   background: var(--isen-black);
-  color: white;
+  color: #ffffff;
   font-size: 14px;
   font-weight: 800;
   transition: 0.2s ease;
 }
 
-button:hover {
+button:hover,
+.secondary-button:hover,
+.icon-button:hover {
   background: var(--isen-black-soft);
   transform: translateY(-1px);
   box-shadow: 0 10px 20px rgba(17, 24, 39, 0.16);
@@ -321,12 +411,124 @@ button:active {
   box-shadow: none;
 }
 
-button.danger {
-  background: var(--isen-red);
+button:disabled,
+.secondary-button:disabled,
+.icon-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-button.danger:hover {
-  background: var(--isen-red-dark);
+/* Créer / Ajouter = rouge */
+button.create,
+button.add,
+button.danger,
+.btn-create,
+.btn-add,
+.package-create-toggle,
+.package-create-toggle-button,
+.package-create-actions button,
+.package-toolbar-buttons .package-create-toggle-button,
+button[class*="create"],
+button[class*="add"],
+button[class*="ajout"] {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-red) !important;
+}
+
+button.create:hover,
+button.add:hover,
+button.danger:hover,
+.btn-create:hover,
+.btn-add:hover,
+.package-create-toggle:hover,
+.package-create-toggle-button:hover,
+.package-create-actions button:hover,
+.package-toolbar-buttons .package-create-toggle-button:hover,
+button[class*="create"]:hover,
+button[class*="add"]:hover,
+button[class*="ajout"]:hover {
+  background: var(--isen-red-dark) !important;
+  border-color: var(--isen-red-dark) !important;
+  box-shadow: 0 12px 24px rgba(196, 0, 36, 0.22) !important;
+}
+
+/* Téléchargement / export = vert */
+button.download,
+button.export,
+.btn-download,
+.btn-export,
+.download-button,
+.export-button,
+button[class*="download"],
+button[class*="telecharg"],
+button[class*="export"] {
+  background: var(--isen-green) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-green) !important;
+}
+
+button.download:hover,
+button.export:hover,
+.btn-download:hover,
+.btn-export:hover,
+.download-button:hover,
+.export-button:hover,
+button[class*="download"]:hover,
+button[class*="telecharg"]:hover,
+button[class*="export"]:hover {
+  background: var(--isen-green-dark) !important;
+  border-color: var(--isen-green-dark) !important;
+  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.22) !important;
+}
+
+/* Boutons de gestion / suppression : noir par défaut */
+.btn-danger,
+.btn-danger-outline,
+.table-danger-button,
+.table-warning-button,
+.package-manage-button,
+.package-delete-manager-button {
+  background: var(--isen-black) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-black) !important;
+}
+
+.btn-danger:hover,
+.btn-danger-outline:hover,
+.table-danger-button:hover,
+.table-warning-button:hover,
+.package-manage-button:hover,
+.package-delete-manager-button:hover {
+  background: var(--isen-black-soft) !important;
+  border-color: var(--isen-black-soft) !important;
+  box-shadow: 0 10px 20px rgba(17, 24, 39, 0.16) !important;
+}
+
+/* Filtres : conservent le style noir/clair */
+.filter-pill {
+  border: 0 !important;
+  background: transparent !important;
+  color: #475569 !important;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-pill:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  transform: none;
+  box-shadow: none;
+}
+
+.filter-pill.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
 }
 
 .actions {
@@ -349,15 +551,6 @@ button.danger:hover {
 
 .details-header h2 {
   margin: 0;
-}
-
-.panel p {
-  color: #374151;
-  line-height: 1.6;
-}
-
-.panel p strong {
-  color: var(--isen-black);
 }
 
 /* =========================================================
@@ -556,10 +749,16 @@ html {
 }
 
 .package-manager-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
+  display: grid !important;
+  grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr) !important;
+  align-items: center !important;
+  gap: 24px !important;
+  width: 100% !important;
+}
+
+.package-manager-info {
+  grid-column: 1 !important;
+  justify-self: start !important;
 }
 
 .package-manager-subtitle {
@@ -568,34 +767,15 @@ html {
   font-size: 14px;
 }
 
-.package-manager-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.package-manager-filter-slot {
+  grid-column: 2 !important;
+  justify-self: center !important;
 }
 
-/* Bouton rouge "Créer un paquet" */
-.package-manager-actions .package-create-toggle {
-  background: var(--isen-red) !important;
-  color: #ffffff !important;
-  border: 1px solid var(--isen-red) !important;
+.package-manager-filter-slot .package-filter {
+  margin: 0 !important;
 }
 
-.package-manager-actions .package-create-toggle:hover {
-  background: var(--isen-red) !important;
-  color: #ffffff !important;
-  border-color: var(--isen-red) !important;
-  transform: none;
-  box-shadow: none;
-}
-
-.package-manager-actions .package-create-toggle .btn-icon {
-  color: #ffffff !important;
-}
-
-/* Filtres Tous / Actifs / Désactivés */
 .package-filter {
   display: inline-flex;
   align-items: center;
@@ -606,30 +786,19 @@ html {
   border-radius: 999px;
 }
 
-.filter-pill {
-  border: 0;
-  background: transparent;
-  color: #475569;
-  border-radius: 999px;
-  padding: 10px 16px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: 0.2s ease;
+.package-toolbar-buttons {
+  grid-column: 3 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
 }
 
-.filter-pill:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-  transform: none;
-  box-shadow: none;
+.package-toolbar-buttons button {
+  white-space: nowrap !important;
 }
 
-.filter-pill.active {
-  background: #0f172a;
-  color: #ffffff;
-}
-
-/* Formulaire de création de paquet */
+/* Formulaire création paquet */
 .package-create-card {
   border: 1px solid #e2e8f0;
   background: #f8fafc;
@@ -656,14 +825,13 @@ html {
   justify-content: flex-end;
 }
 
-/* Grille des paquets en 3 colonnes */
+/* Grille des paquets */
 .packages-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
-/* Carte d’un paquet */
 .package-card {
   display: flex;
   flex-direction: column;
@@ -683,7 +851,6 @@ html {
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
 }
 
-/* Carte grisée si le paquet est désactivé */
 .package-card.inactive {
   background: #f1f5f9;
   opacity: 0.55;
@@ -737,7 +904,6 @@ html {
   color: #94a3b8;
 }
 
-/* Badge actif / désactivé */
 .package-status {
   border-radius: 999px;
   padding: 7px 12px;
@@ -756,7 +922,6 @@ html {
   color: #991b1b;
 }
 
-/* Switch d’activation du paquet */
 .package-card-actions {
   display: flex;
   justify-content: flex-end;
@@ -770,7 +935,7 @@ html {
   border: 0;
   border-radius: 999px;
   padding: 0;
-  background: transparent;
+  background: transparent !important;
   cursor: pointer;
   transition: none;
 }
@@ -778,7 +943,7 @@ html {
 .package-power-switch:hover {
   transform: none;
   box-shadow: none;
-  background: transparent;
+  background: transparent !important;
 }
 
 .package-power-switch:disabled {
@@ -819,213 +984,9 @@ html {
   background: #94a3b8;
 }
 
-/* Animation ouverture formulaire */
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* =========================================================
-   RESPONSIVE
+   POPUP GESTION DES PAQUETS
    ========================================================= */
-
-@media (max-width: 1200px) {
-  .packages-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1000px) {
-  .stats {
-    grid-template-columns: 1fr;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .page {
-    padding: 20px;
-  }
-
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-}
-
-@media (max-width: 760px) {
-  .package-manager-header {
-    flex-direction: column;
-  }
-
-  .package-manager-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .packages-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 700px) {
-  .page {
-    padding: 16px;
-  }
-
-  .panel {
-    padding: 18px;
-    border-radius: 18px;
-  }
-
-  .card {
-    padding: 20px;
-  }
-
-  .details-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .actions {
-    flex-wrap: wrap;
-  }
-
-  button {
-    width: 100%;
-  }
-
-  .package-power-switch {
-    width: 58px;
-  }
-
-  .login-card {
-    padding: 26px;
-  }
-
-  .login-card h1 {
-    font-size: 26px;
-  }
-}
-
-.package-verification-hint {
-  grid-column: 1 / -1;
-  margin-top: -4px;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.package-verification-hint.valid {
-  color: #047857;
-}
-
-.package-verification-hint.invalid {
-  color: #b91c1c;
-}
-
-.package-verification-hint.checking {
-  color: #475569;
-}
-
-input.package-input-valid {
-  border-color: #22c55e !important;
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12) !important;
-}
-
-input.package-input-invalid {
-  border-color: var(--isen-red) !important;
-  box-shadow: 0 0 0 4px rgba(196, 0, 36, 0.12) !important;
-}
-
-input.package-input-checking {
-  border-color: #94a3b8 !important;
-  box-shadow: 0 0 0 4px rgba(100, 116, 139, 0.12) !important;
-}
-
-
-select {
-  appearance: none;
-}
-
-select:disabled {
-  background: #f8fafc;
-  color: #94a3b8;
-  cursor: not-allowed;
-}
-
-
-/* Positionnement fixe du formulaire paquet */
-.package-name-field {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.package-display-field {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.package-description-field {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.package-version-field {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-.package-verification-hint {
-  grid-column: 1 / -1;
-  grid-row: 3;
-}
-
-/* Mobile : une seule colonne */
-@media (max-width: 760px) {
-  .package-name-field,
-  .package-display-field,
-  .package-description-field,
-  .package-version-field,
-  .package-verification-hint {
-    grid-column: 1 / -1;
-    grid-row: auto;
-  }
-}
-
-
-.btn-danger-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(220, 38, 38, 0.25);
-  background: #fff;
-  color: #b91c1c;
-  font-weight: 900;
-  cursor: pointer;
-  transition: 0.18s ease;
-}
-
-.btn-danger-outline:hover {
-  background: #fef2f2;
-  border-color: rgba(220, 38, 38, 0.45);
-}
-
-.package-delete-manager-button {
-  margin-right: 10px;
-}
 
 .package-management-backdrop {
   position: fixed;
@@ -1078,25 +1039,6 @@ select:disabled {
   gap: 12px;
   padding: 16px 26px;
   border-bottom: 1px solid #e2e8f0;
-}
-
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 0 16px;
-  border: 0;
-  border-radius: 12px;
-  background: #dc2626;
-  color: #fff;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.btn-danger:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .package-management-loading {
@@ -1183,28 +1125,6 @@ select:disabled {
   font-weight: 900;
 }
 
-.table-danger-button,
-.table-warning-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  border: 0;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.table-danger-button {
-  background: #fef2f2;
-  color: #b91c1c;
-}
-
-.table-warning-button {
-  background: #fffbeb;
-  color: #b45309;
-}
-
 .locked-text {
   color: #64748b;
   font-weight: 900;
@@ -1216,124 +1136,30 @@ select:disabled {
   font-weight: 800;
 }
 
-@media (max-width: 760px) {
-  .package-management-modal {
-    width: 96vw;
-    max-height: 90vh;
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
   }
 
-  .package-management-actions {
-    flex-direction: column;
-  }
-
-  .package-management-table {
-    min-width: 820px;
-  }
-}
-
-
-/* Barre Paquets autorisés : filtre au milieu, actions à droite */
-.package-manager-header {
-  align-items: flex-start;
-  gap: 24px;
-}
-
-.package-manager-header > div:first-child {
-  flex: 1 1 340px;
-  min-width: 280px;
-}
-
-.package-manager-actions {
-  flex: 1.8 1 660px;
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  align-items: center;
-  gap: 12px;
-}
-
-.package-manager-actions .package-filter {
-  grid-column: 1;
-  justify-self: center;
-  margin: 0;
-}
-
-.package-create-toggle-button {
-  grid-column: 2;
-  justify-self: end;
-  white-space: nowrap;
-}
-
-.package-manage-button,
-.package-delete-manager-button {
-  grid-column: 3;
-  justify-self: end;
-  margin: 0 !important;
-  white-space: nowrap;
-  border-color: rgba(15, 23, 42, 0.14) !important;
-  background: #ffffff !important;
-  color: #0f172a !important;
-}
-
-.package-manage-button:hover,
-.package-delete-manager-button:hover {
-  background: #f8fafc !important;
-  border-color: rgba(15, 23, 42, 0.24) !important;
-  transform: translateY(-1px);
-}
-
-@media (max-width: 980px) {
-  .package-manager-header {
-    flex-direction: column;
-  }
-
-  .package-manager-actions {
-    width: 100%;
-    grid-template-columns: 1fr;
-  }
-
-  .package-manager-actions .package-filter,
-  .package-create-toggle-button,
-  .package-manage-button,
-  .package-delete-manager-button {
-    grid-column: 1;
-    justify-self: stretch;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
-/* Header paquets en vraie grille 3 colonnes */
-.package-manager-header {
-  display: grid !important;
-  grid-template-columns: minmax(280px, 1fr) auto minmax(280px, 1fr) !important;
-  align-items: center !important;
-  gap: 24px !important;
-  width: 100% !important;
-}
-
-.package-manager-info {
-  grid-column: 1 !important;
-  justify-self: start !important;
-}
-
-.package-manager-filter-slot {
-  grid-column: 2 !important;
-  justify-self: center !important;
-}
-
-.package-manager-filter-slot .package-filter {
-  margin: 0 !important;
-}
-
-.package-toolbar-buttons {
-  grid-column: 3 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 12px !important;
-}
-
-.package-toolbar-buttons button {
-  white-space: nowrap !important;
+@media (max-width: 1200px) {
+  .packages-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1050px) {
@@ -1356,4 +1182,395 @@ select:disabled {
   .package-toolbar-buttons button {
     width: 100% !important;
   }
+}
+
+@media (max-width: 1000px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page {
+    padding: 20px;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .package-name-field,
+  .package-display-field,
+  .package-description-field,
+  .package-version-field,
+  .package-verification-hint {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .packages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .package-management-modal {
+    width: 96vw;
+    max-height: 90vh;
+  }
+
+  .package-management-actions {
+    flex-direction: column;
+  }
+
+  .package-management-table {
+    min-width: 820px;
+  }
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 16px;
+  }
+
+  .panel {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .package-power-switch {
+    width: 58px;
+  }
+
+  .login-card {
+    padding: 26px;
+  }
+
+  .login-card h1 {
+    font-size: 26px;
+  }
+}
+
+
+/* =========================================================
+   COULEURS BOUTONS - RÈGLE FINALE
+   Créer / Ajouter = rouge
+   Télécharger = vert
+   Voir / Gérer / Fermer / Actualiser = noir
+   Supprimer = rouge danger
+   ========================================================= */
+
+.btn-create-action {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-red) !important;
+}
+
+.btn-create-action:hover {
+  background: var(--isen-red-dark) !important;
+  border-color: var(--isen-red-dark) !important;
+  box-shadow: 0 12px 24px rgba(196, 0, 36, 0.22) !important;
+}
+
+.btn-download-action {
+  background: var(--isen-green) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-green) !important;
+}
+
+.btn-download-action:hover {
+  background: var(--isen-green-dark) !important;
+  border-color: var(--isen-green-dark) !important;
+  box-shadow: 0 12px 24px rgba(22, 163, 74, 0.22) !important;
+}
+
+.btn-neutral-action {
+  background: var(--isen-black) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-black) !important;
+}
+
+.btn-neutral-action:hover {
+  background: var(--isen-black-soft) !important;
+  border-color: var(--isen-black-soft) !important;
+  box-shadow: 0 10px 20px rgba(17, 24, 39, 0.16) !important;
+}
+
+.btn-delete-action {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-red) !important;
+}
+
+.btn-delete-action:hover {
+  background: var(--isen-red-dark) !important;
+  border-color: var(--isen-red-dark) !important;
+  box-shadow: 0 12px 24px rgba(196, 0, 36, 0.22) !important;
+}
+
+
+/* =========================================================
+   SOUS-BLOC PAQUETS AUTORISÉS DANS LA CONFIGURATION
+   ========================================================= */
+
+.package-manager {
+  margin-top: 26px;
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(255, 255, 255, 0.96));
+  box-shadow:
+    0 12px 30px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.package-manager-header {
+  padding-bottom: 20px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.package-manager-info h2,
+.package-manager-info h3 {
+  margin-bottom: 6px;
+}
+
+.package-manager-subtitle {
+  margin-top: 6px;
+}
+
+/* Filtre avec icône */
+.package-filter {
+  min-height: 50px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.package-filter-icon {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #0f172a;
+  margin-right: 2px;
+}
+
+.package-filter-icon i {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.4;
+}
+
+.package-filter .filter-pill {
+  min-height: 36px;
+}
+
+/* Les cartes restent bien dans le sous-bloc */
+.packages-grid {
+  margin-top: 2px;
+}
+
+/* Formulaire nouveau paquet intégré dans le bloc */
+.package-create-card {
+  margin-bottom: 18px;
+  background: #ffffff;
+  border-color: #dbe3ee;
+}
+
+/* Responsive */
+@media (max-width: 1050px) {
+  .package-manager {
+    padding: 20px;
+  }
+
+  .package-manager-header {
+    gap: 16px !important;
+  }
+
+  .package-filter {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .package-manager {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .package-filter {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+}
+
+
+/* =========================================================
+   POPUP PAQUETS - BOUTONS ET STATUTS PROPRES
+   ========================================================= */
+
+/* Bouton Actualiser : bleu propre */
+.btn-refresh-action {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+}
+
+.btn-refresh-action:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22) !important;
+}
+
+/* Supprimer et Désactiver : même taille */
+.table-danger-button,
+.table-warning-button {
+  min-width: 138px !important;
+  height: 48px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+/* Supprimer : rouge */
+.table-danger-button {
+  background: var(--isen-red) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-red) !important;
+}
+
+.table-danger-button:hover {
+  background: var(--isen-red-dark) !important;
+  border-color: var(--isen-red-dark) !important;
+  box-shadow: 0 12px 24px rgba(196, 0, 36, 0.22) !important;
+}
+
+/* Désactiver : orange professionnel */
+.table-warning-button {
+  background: #f59e0b !important;
+  color: #ffffff !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.table-warning-button:hover {
+  background: #d97706 !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 12px 24px rgba(245, 158, 11, 0.22) !important;
+}
+
+/* Icônes des boutons de table */
+.table-danger-button i,
+.table-warning-button i,
+.btn-refresh-action i {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2.4 !important;
+}
+
+/* Statuts même taille */
+.status-pill {
+  min-width: 92px !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+.status-pill.active {
+  background: #dcfce7 !important;
+  color: #047857 !important;
+}
+
+.status-pill.disabled {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+}
+
+/* Bouton supprimer sélection : même style rouge mais plus large */
+.package-management-actions .btn-delete-action,
+.package-management-actions .btn-danger {
+  min-width: 220px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+}
+
+/* Bouton actualiser même hauteur */
+.package-management-actions .btn-refresh-action {
+  min-width: 138px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+}
+
+
+/* =========================================================
+   FIX FINAL POPUP PAQUETS
+   ========================================================= */
+
+/* Actualiser en noir */
+.btn-refresh-action,
+.package-management-actions .btn-refresh-action {
+  background: var(--isen-black) !important;
+  color: #ffffff !important;
+  border: 1px solid var(--isen-black) !important;
+}
+
+.btn-refresh-action:hover,
+.package-management-actions .btn-refresh-action:hover {
+  background: var(--isen-black-soft) !important;
+  border-color: var(--isen-black-soft) !important;
+  box-shadow: 0 10px 20px rgba(17, 24, 39, 0.16) !important;
+}
+
+/* La popup garde son propre scroll sans faire bouger la page derrière */
+.package-management-backdrop {
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+}
+
+.package-management-modal {
+  overscroll-behavior: contain !important;
+}
+
+.package-management-table-wrapper {
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
 }
