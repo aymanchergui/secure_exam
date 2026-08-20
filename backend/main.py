@@ -410,11 +410,16 @@ Date :
     )
 
     context = ssl.create_default_context()
+    server = None
 
-    with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as server:
+    try:
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=12)
         server.starttls(context=context)
         server.login(smtp_username, smtp_password)
         server.send_message(email_message)
+    finally:
+        if server is not None:
+            server.close()
 
 
 def load_teacher_profile(teacher_id: int):
@@ -795,13 +800,17 @@ def generate_nixos_config_preview(config_data: dict) -> str:
 def save_support_request_to_database(
     request: SupportRequest,
     created_at: str,
-    email_sent: int
+    email_sent: int,
+    teacher_id: int | None = None
 ) -> int:
+    ensure_support_requests_teacher_scope()
+
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute("""
         INSERT INTO support_requests (
+            teacher_id,
             full_name,
             email,
             subject,
@@ -809,8 +818,9 @@ def save_support_request_to_database(
             created_at,
             email_sent
         )
-        VALUES (?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
+        teacher_id,
         request.fullName,
         request.email,
         request.subject,
@@ -1142,10 +1152,32 @@ def ensure_teacher_profile_scope():
     connection.close()
 
 
+
+def ensure_support_requests_teacher_scope():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("PRAGMA table_info(support_requests)")
+    columns = {
+        row["name"]
+        for row in cursor.fetchall()
+    }
+
+    if "teacher_id" not in columns:
+        cursor.execute("""
+            ALTER TABLE support_requests
+            ADD COLUMN teacher_id INTEGER
+        """)
+
+    connection.commit()
+    connection.close()
+
+
 seed_default_teacher_account()
 ensure_package_catalog_nix_names()
 ensure_exam_configs_teacher_scope()
 ensure_teacher_profile_scope()
+ensure_support_requests_teacher_scope()
 
 
 @app.get("/")
@@ -2304,8 +2336,51 @@ def create_support_request(request: SupportRequest):
     }
 
 
+
+@app.post("/teacher-support-requests")
+def create_teacher_support_request(
+    request: SupportRequest,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    if not request.fullName.strip():
+        raise HTTPException(status_code=400, detail="Le nom complet est obligatoire.")
+
+    if not request.email.strip():
+        raise HTTPException(status_code=400, detail="L'email est obligatoire.")
+
+    if not request.message.strip():
+        raise HTTPException(status_code=400, detail="Le message est obligatoire.")
+
+    created_at = now_iso()
+
+    request_id = save_support_request_to_database(
+        request=request,
+        created_at=created_at,
+        email_sent=0,
+        teacher_id=current_teacher["id"]
+    )
+
+    try:
+        send_support_email(request)
+        update_support_email_status(request_id, 1)
+    except Exception as exc:
+        update_support_email_status(request_id, 0)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Demande enregistrée, mais email non envoyé : {exc}"
+        )
+
+    return {
+        "message": "Demande support envoyée par email avec succès.",
+        "request_id": request_id,
+        "email_sent": True
+    }
+
+
 @app.get("/support-requests-list")
 def list_support_requests(current_teacher: dict = Depends(get_current_teacher)):
+    ensure_support_requests_teacher_scope()
+
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -2319,8 +2394,11 @@ def list_support_requests(current_teacher: dict = Depends(get_current_teacher)):
             created_at,
             email_sent
         FROM support_requests
+        WHERE teacher_id = ?
         ORDER BY id DESC
-    """)
+    """, (
+        current_teacher["id"],
+    ))
 
     rows = cursor.fetchall()
     connection.close()
@@ -3023,16 +3101,21 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
     cursor.execute("""
         SELECT
+            s.exam_id,
+            s.student_id,
+            s.machine_id,
             s.filename,
             s.size_kb,
-            s.created_at
+            s.created_at,
+            c.created_at AS exam_created_at,
+            c.updated_at AS exam_updated_at
         FROM submissions s
         INNER JOIN exam_configs c
             ON c.exam_id = s.exam_id
             AND c.student_id = s.student_id
             AND c.machine_id = s.machine_id
         WHERE c.teacher_id = ?
-        ORDER BY s.created_at DESC
+        ORDER BY c.created_at DESC, s.created_at DESC
     """, (
         current_teacher["id"],
     ))
@@ -3043,9 +3126,14 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
     for row in submission_rows:
         submissions.append({
+            "exam_id": row["exam_id"],
+            "student_id": row["student_id"],
+            "machine_id": row["machine_id"],
             "filename": row["filename"],
             "size_kb": row["size_kb"],
             "created_at": row["created_at"],
+            "exam_created_at": row["exam_created_at"],
+            "exam_updated_at": row["exam_updated_at"],
             "download_url": f"/submissions/{row['filename']}/download"
         })
 

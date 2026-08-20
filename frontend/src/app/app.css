@@ -1584,3 +1584,917 @@ html {
   font-weight: 800;
   white-space: nowrap;
 }
+
+/* Groupement des rendus par examen */
+.empty-state {
+  padding: 18px 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.submission-exam-group {
+  margin-top: 22px;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.submission-exam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.submission-exam-header h3 {
+  margin: 0;
+  color: #020617;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.submission-exam-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.submission-count {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.submission-table-wrapper {
+  overflow-x: auto;
+}
+
+.archive-cell {
+  max-width: 520px;
+  overflow-wrap: anywhere;
+}
+
+/* Bouton ajout demande support */
+.support-add-button {
+  width: 50px;
+  height: 50px;
+  border: none;
+  border-radius: 16px;
+  background: #16a34a;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.support-add-button:hover {
+  background: #15803d;
+}
+
+.support-add-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Modal demande support depuis profil */
+.profile-support-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.profile-support-modal {
+  width: min(760px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(15, 23, 42, 0.35);
+  padding: 30px;
+}
+
+.profile-support-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.profile-support-modal-header h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #020617;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.profile-support-modal-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.profile-support-close {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 14px;
+  background: #f1f5f9;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.profile-support-close:hover {
+  background: #e2e8f0;
+}
+
+.profile-support-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-support-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.profile-support-form label {
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.profile-support-input,
+.profile-support-textarea {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
+  background: #ffffff;
+  padding: 0 16px;
+}
+
+.profile-support-input {
+  height: 58px;
+}
+
+.profile-support-textarea {
+  align-items: flex-start;
+  padding-top: 16px;
+}
+
+.profile-support-input svg,
+.profile-support-textarea svg {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  flex: 0 0 auto;
+}
+
+.profile-support-input input,
+.profile-support-input select,
+.profile-support-textarea textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #020617;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.profile-support-textarea textarea {
+  resize: vertical;
+  min-height: 130px;
+  padding-bottom: 16px;
+}
+
+.profile-support-submit {
+  height: 56px;
+  border: none;
+  border-radius: 16px;
+  background: #0f172a;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.profile-support-submit:hover {
+  background: #020617;
+}
+
+.profile-support-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.profile-support-error,
+.profile-support-success {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.profile-support-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.profile-support-success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+@media (max-width: 760px) {
+  .profile-support-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-support-modal {
+    padding: 22px;
+  }
+}
+
+/* Filtres des rendus étudiants */
+.submission-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.submission-panel-header h2 {
+  margin: 0;
+}
+
+.submission-panel-subtitle {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.submission-filters {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.submission-filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.submission-filters select,
+.submission-filters input {
+  height: 44px;
+  min-width: 190px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 0 13px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+  outline: none;
+}
+
+.submission-filters select:focus,
+.submission-filters input:focus {
+  border-color: #c40024;
+  box-shadow: 0 0 0 4px rgba(196, 0, 36, 0.10);
+}
+
+.submission-reset-filter {
+  height: 44px;
+  border-radius: 14px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .submission-panel-header {
+    flex-direction: column;
+  }
+
+  .submission-filters {
+    justify-content: flex-start;
+  }
+
+  .submission-filters select,
+  .submission-filters input {
+    min-width: 100%;
+  }
+}
+
+/* Filtres modernes des rendus étudiants */
+.submission-filters-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(196, 0, 36, 0.04);
+}
+
+.submission-filter-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 6px;
+}
+
+.submission-filter-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(196, 0, 36, 0.10);
+  color: #c40024;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submission-filter-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.5;
+}
+
+.submission-filter-heading strong {
+  display: block;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.submission-filter-heading small {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.submission-filters {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.filter-field > span {
+  color: #475569;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-control {
+  height: 52px;
+  min-width: 230px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 17px;
+  background: #ffffff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.035);
+  transition: 0.22s ease;
+}
+
+.filter-control:focus-within {
+  border-color: #c40024;
+  box-shadow:
+    0 0 0 4px rgba(196, 0, 36, 0.10),
+    0 12px 26px rgba(196, 0, 36, 0.08);
+}
+
+.filter-control > svg:first-child,
+.filter-control > i:first-child {
+  width: 19px;
+  height: 19px;
+  color: #c40024;
+  stroke: #c40024;
+  flex: 0 0 auto;
+}
+
+.filter-control select,
+.filter-control input {
+  width: 100%;
+  height: 100%;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.select-control select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 28px !important;
+  cursor: pointer;
+}
+
+.filter-chevron {
+  position: absolute;
+  right: 14px;
+  width: 19px;
+  height: 19px;
+  color: #0f172a;
+  stroke: #0f172a;
+  pointer-events: none;
+}
+
+.submission-reset-filter {
+  height: 52px;
+  border: none;
+  border-radius: 17px;
+  padding: 0 18px;
+  background: #111827;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.16);
+  transition: 0.22s ease;
+}
+
+.submission-reset-filter:hover {
+  background: linear-gradient(135deg, #111827 0%, #c40024 100%);
+  transform: translateY(-2px);
+}
+
+.submission-reset-filter svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1100px) {
+  .submission-filters-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .submission-filters {
+    width: 100%;
+  }
+
+  .filter-control {
+    min-width: 220px;
+  }
+}
+
+/* Réduction taille bloc filtres rendus étudiants */
+.submission-panel-header {
+  align-items: center !important;
+  gap: 18px !important;
+  margin-bottom: 22px !important;
+}
+
+.submission-filters-card {
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  gap: 12px !important;
+  box-shadow:
+    0 10px 24px rgba(15, 23, 42, 0.06),
+    0 3px 8px rgba(196, 0, 36, 0.03) !important;
+}
+
+.submission-filter-heading {
+  gap: 9px !important;
+  padding-right: 2px !important;
+}
+
+.submission-filter-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 13px !important;
+}
+
+.submission-filter-icon svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.submission-filter-heading strong {
+  font-size: 13px !important;
+  line-height: 1.1 !important;
+}
+
+.submission-filter-heading small {
+  font-size: 11px !important;
+  margin-top: 2px !important;
+}
+
+.submission-filters {
+  gap: 9px !important;
+}
+
+.filter-field {
+  gap: 5px !important;
+}
+
+.filter-field > span {
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.filter-control {
+  height: 40px !important;
+  min-width: 190px !important;
+  border-radius: 14px !important;
+  padding: 0 12px !important;
+  gap: 8px !important;
+}
+
+.filter-control > svg:first-child,
+.filter-control > i:first-child {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.filter-control select,
+.filter-control input {
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+
+.filter-chevron {
+  right: 11px !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.submission-reset-filter {
+  height: 40px !important;
+  border-radius: 14px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  gap: 7px !important;
+}
+
+.submission-reset-filter svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* Filtre rendus : garder seulement l'icône + espacement */
+.submission-filter-heading strong,
+.submission-filter-heading small {
+  display: none !important;
+}
+
+.submission-filter-heading {
+  padding-right: 18px !important;
+  margin-right: 8px !important;
+}
+
+.submission-filters-card {
+  gap: 18px !important;
+}
+
+.submission-filter-icon {
+  margin-right: 0 !important;
+}
+
+/* Style pill/capsule pour filtres rendus étudiants */
+.submission-filter-pillbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid #dbe3ee;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.07),
+    0 4px 10px rgba(15, 23, 42, 0.04);
+}
+
+.submission-filter-pill-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.submission-filter-pill-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.6;
+}
+
+.submission-filter-pill-control {
+  height: 42px;
+  min-width: 190px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: #0f172a;
+}
+
+.submission-filter-pill-control:hover {
+  background: #f8fafc;
+}
+
+.submission-filter-pill-control > svg:first-child,
+.submission-filter-pill-control > i:first-child {
+  width: 18px;
+  height: 18px;
+  color: #c40024;
+  stroke: #c40024;
+  flex: 0 0 auto;
+}
+
+.submission-filter-pill-control select,
+.submission-filter-pill-control input {
+  width: 100%;
+  height: 100%;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.submission-filter-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 26px !important;
+  cursor: pointer;
+}
+
+.submission-filter-chevron {
+  position: absolute;
+  right: 12px;
+  width: 17px;
+  height: 17px;
+  color: #0f172a;
+  stroke: #0f172a;
+  pointer-events: none;
+}
+
+.submission-filter-reset-pill {
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: #0f172a;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.22s ease;
+}
+
+.submission-filter-reset-pill:hover {
+  background: #c40024;
+  transform: translateY(-1px);
+}
+
+.submission-filter-reset-pill svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.5;
+}
+
+@media (max-width: 900px) {
+  .submission-filter-pillbar {
+    width: 100%;
+    flex-wrap: wrap;
+    border-radius: 24px;
+  }
+
+  .submission-filter-pill-control {
+    min-width: 100%;
+  }
+}
+
+/* Version paquet : même taille/style que NixOS */
+.package-version-name {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #475569 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+}
+
+.package-card.inactive .package-version-name {
+  color: #94a3b8 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+
+/* Options autorisées : même style visuel que Paquets autorisés */
+.exam-options-header {
+  margin: 24px 0 12px !important;
+}
+
+.exam-options-header .package-manager-info {
+  grid-column: auto !important;
+  justify-self: start !important;
+}
+
+.exam-options-header .package-manager-info strong {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 8px !important;
+  color: var(--isen-black) !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+}
+
+.exam-options-header .package-manager-subtitle {
+  margin: 6px 0 0 !important;
+  color: #64748b !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* Pagination moderne des paquets */
+.package-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.package-pagination-info {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.package-pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid #d8dee8;
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.package-page-number,
+.package-page-arrow {
+  width: 38px;
+  height: 38px;
+  padding: 0 !important;
+  border-radius: 999px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #475569 !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  box-shadow: none !important;
+}
+
+.package-page-number:hover,
+.package-page-arrow:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  transform: none !important;
+}
+
+.package-page-number.active {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.package-page-arrow:disabled {
+  opacity: 0.35 !important;
+  cursor: not-allowed !important;
+}
+
+.package-page-arrow svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.6;
+}
+
+@media (max-width: 700px) {
+  .package-pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+/* Pagination paquets : compteur centré après le sélecteur */
+.package-pagination {
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.package-pagination-controls {
+  order: 1 !important;
+}
+
+.package-pagination-info {
+  order: 2 !important;
+  text-align: center !important;
+  margin: 0 !important;
+  color: #64748b !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}

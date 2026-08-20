@@ -271,7 +271,7 @@
           <div class="packages-grid" *ngIf="!packagesLoading && displayedPackages.length > 0">
             <div
               class="package-card"
-              *ngFor="let packageItem of displayedPackages"
+              *ngFor="let packageItem of paginatedPackages"
               [class.inactive]="!packageItem.isActive"
               [title]="packageItem.description">
 
@@ -281,8 +281,8 @@
 
                   <span class="package-title">
                     {{ packageItem.displayName }}
-                    <span class="package-code">({{ packageItem.name }})</span>
                     <span class="package-nix-name">NixOS : {{ packageItem.nixName }}</span>
+                    <span class="package-version-name">Version : {{ getPackageVersionLabel(packageItem) }}</span>
                   </span>
                 </div>
 
@@ -312,9 +312,65 @@
               </div>
             </div>
           </div>
+
+          <div
+                      class="package-pagination"
+                      *ngIf="displayedPackages.length > packagePageSize"
+                    >
+                      <div class="package-pagination-info">
+                        {{ getPackagePaginationStart() }}-{{ getPackagePaginationEnd() }}
+                        sur {{ displayedPackages.length }} paquet(s)
+                      </div>
+          
+                      <div class="package-pagination-controls">
+                        <button
+                          type="button"
+                          class="package-page-arrow"
+                          [disabled]="packagePage === 1"
+                          (click)="goToPackagePage(packagePage - 1)"
+                        >
+                          <i data-lucide="chevron-left"></i>
+                        </button>
+          
+                        <button
+                          type="button"
+                          class="package-page-number"
+                          *ngFor="let page of getPackagePages()"
+                          [class.active]="packagePage === page"
+                          (click)="goToPackagePage(page)"
+                        >
+                          {{ page }}
+                        </button>
+          
+                        <button
+                          type="button"
+                          class="package-page-arrow"
+                          [disabled]="packagePage === getPackageTotalPages()"
+                          (click)="goToPackagePage(packagePage + 1)"
+                        >
+                          <i data-lucide="chevron-right"></i>
+                        </button>
+                      </div>
+                    </div>
+
         </div>
 
-        <div class="options-row">
+        <div class="exam-options-header">
+          <div class="package-manager-info">
+            <strong>
+              <i data-lucide="shield-check" class="inline-icon"></i>
+              Options autorisées
+            </strong>
+
+            <p class="package-manager-subtitle">
+              Définissez les droits système et les accès réseau disponibles pendant l’examen.
+            </p>
+          </div>
+
+          
+        </div>
+
+        <div class="options-row exam-options-row">
           <label>
             <input type="checkbox" [(ngModel)]="newConfig.sudo">
             Sudo autorisé
@@ -561,44 +617,115 @@
       </section>
 
       <section id="submissions" class="panel">
-        <h2>
-          <i data-lucide="archive" class="title-icon"></i>
-          Rendus étudiants
-        </h2>
+        <div class="submission-panel-header">
+          <div>
+            <h2>
+              <i data-lucide="archive" class="title-icon"></i>
+              Rendus étudiants
+            </h2>
+            <p class="submission-panel-subtitle">
+              Filtrez les rendus par examen et par date.
+            </p>
+          </div>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Archive</th>
-              <th>Taille</th>
-              <th>Date</th>
-              <th>Téléchargement</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+          <div class="submission-filter-pillbar">
+            <span class="submission-filter-pill-icon">
+              <i data-lucide="filter"></i>
+            </span>
 
-          <tbody>
-            <tr *ngFor="let submission of dashboard.submissions">
-              <td>{{ submission.filename }}</td>
-              <td>{{ submission.size_kb }} KB</td>
-              <td>{{ submission.created_at }}</td>
+            <div class="submission-filter-pill-control submission-filter-select">
+              <i data-lucide="book-open"></i>
 
-              <td>
-                <button class="btn-download-action" type="button" (click)="downloadSubmission(submission)">
-                  <i data-lucide="download" class="btn-icon"></i>
-                  Télécharger
-                </button>
-              </td>
+              <select [(ngModel)]="submissionExamFilter">
+                <option value="all">Tous les examens</option>
+                <option *ngFor="let exam of getSubmissionExamOptions()" [value]="exam">
+                  {{ exam }}
+                </option>
+              </select>
 
-              <td>
-                <button type="button" class="danger btn-delete-action" (click)="deleteSubmission(submission)">
-                  <i data-lucide="trash-2" class="btn-icon"></i>
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              <i data-lucide="chevron-down" class="submission-filter-chevron"></i>
+            </div>
+
+            <div class="submission-filter-pill-control">
+              <i data-lucide="calendar-days"></i>
+              <input type="date" [(ngModel)]="submissionDateFilter">
+            </div>
+
+            <button
+              type="button"
+              class="submission-filter-reset-pill"
+              (click)="resetSubmissionFilters()"
+            >
+              <i data-lucide="rotate-ccw"></i>
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="getFilteredSubmissions().length === 0" class="empty-state">
+          Aucun rendu trouvé pour ces filtres.
+        </div>
+
+        <div *ngFor="let group of getGroupedSubmissions()" class="submission-exam-group">
+          <div class="submission-exam-header">
+            <div>
+              <h3>{{ group.exam_id }}</h3>
+              <p>Date de l'examen : {{ formatDashboardDate(group.exam_created_at) }}</p>
+            </div>
+
+            <span class="submission-count">
+              {{ group.submissions.length }} rendu(s)
+            </span>
+          </div>
+
+          <div class="submission-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Étudiant</th>
+                  <th>Machine</th>
+                  <th>Archive</th>
+                  <th>Taille</th>
+                  <th>Date du rendu</th>
+                  <th>Téléchargement</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let submission of group.submissions">
+                  <td>{{ submission.student_id || '-' }}</td>
+                  <td>{{ submission.machine_id || '-' }}</td>
+                  <td class="archive-cell">{{ submission.filename }}</td>
+                  <td>{{ submission.size_kb }} KB</td>
+                  <td>{{ formatDashboardDate(submission.created_at) }}</td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="download-success"
+                      (click)="downloadSubmission(submission)"
+                    >
+                      <i data-lucide="download" class="btn-icon"></i>
+                      Télécharger
+                    </button>
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="danger btn-delete-action"
+                      (click)="deleteSubmission(submission)"
+                    >
+                      <i data-lucide="trash-2" class="btn-icon"></i>
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
     </main>
   </div>

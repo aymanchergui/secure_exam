@@ -234,4 +234,9 @@ export class HeaderComponent implements OnInit, AfterViewInit {
     this.logoutRequested.emit();
     this.loadIcons();
   }
+
+  goToDashboardFromLogo(): void {
+    this.sectionRequested.emit('dashboard');
+  }
+
 }

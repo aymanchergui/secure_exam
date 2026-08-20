@@ -13,6 +13,11 @@ interface Submission {
   size_kb: number;
   created_at: string;
   download_url: string;
+  exam_id?: string;
+  student_id?: string;
+  machine_id?: string;
+  exam_created_at?: string;
+  exam_updated_at?: string;
 }
 
 interface MachineStatus {
@@ -55,6 +60,8 @@ interface PackageCatalogItem {
   displayName: string;
   description: string;
   isActive: boolean;
+  version?: string;
+  verifiedNixPackage?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -171,6 +178,9 @@ export class App implements OnInit, AfterViewInit {
 
   availablePackages: PackageCatalogItem[] = [];
   packageFilter: PackageFilter = 'all';
+  packagePage = 1;
+  packagePageSize = 9;
+  packageVersionByNixName: Record<string, string> = {};
   showPackageCreationForm = false;
 
   packageVerificationStatus: 'idle' | 'checking' | 'valid' | 'invalid' = 'idle';
@@ -560,6 +570,7 @@ export class App implements OnInit, AfterViewInit {
       next: (data) => {
         this.availablePackages = data.packages;
         this.newConfig.packages = this.getActivePackageNames();
+        this.enrichPackageVersions();
 
         this.packagesLoading = false;
         this.refreshView();
@@ -595,6 +606,7 @@ export class App implements OnInit, AfterViewInit {
 
   setPackageFilter(filter: PackageFilter): void {
     this.packageFilter = filter;
+    this.packagePage = 1;
     this.refreshView();
   }
 
@@ -1439,4 +1451,395 @@ export class App implements OnInit, AfterViewInit {
       }
     });
   }
+
+  getExamIdFromArchiveName(filename: string): string {
+    if (!filename) {
+      return 'Examen inconnu';
+    }
+
+    const parts = filename.split('_');
+
+    return parts[0] || 'Examen inconnu';
+  }
+
+  formatDashboardDate(value: any): string {
+    if (!value) {
+      return 'Date non disponible';
+    }
+
+    const normalizedValue = String(value).replace(' ', 'T');
+    const date = new Date(normalizedValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    return date.toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+
+  profileSupportModalOpen = false;
+  profileSupportLoading = false;
+  profileSupportError = '';
+  profileSupportSuccess = '';
+
+  profileSupportRequest = {
+    fullName: '',
+    email: '',
+    subject: 'Problème de connexion',
+    message: ''
+  };
+
+  openProfileSupportModal(): void {
+    const self = this as any;
+
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+
+    this.profileSupportRequest = {
+      fullName:
+        self.teacherProfile?.fullName ||
+        self.profile?.fullName ||
+        self.profileForm?.fullName ||
+        '',
+      email:
+        self.teacherProfile?.email ||
+        self.profile?.email ||
+        self.profileForm?.email ||
+        '',
+      subject: 'Problème de connexion',
+      message: ''
+    };
+
+    this.profileSupportModalOpen = true;
+
+    setTimeout(() => {
+      if (typeof self.refreshIcons === 'function') {
+        self.refreshIcons();
+      }
+
+      if (typeof self.initializeIcons === 'function') {
+        self.initializeIcons();
+      }
+
+      if ((window as any).lucide) {
+        (window as any).lucide.createIcons();
+      }
+    }, 50);
+  }
+
+  closeProfileSupportModal(): void {
+    if (this.profileSupportLoading) {
+      return;
+    }
+
+    this.profileSupportModalOpen = false;
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+  }
+
+  async submitProfileSupportRequest(): Promise<void> {
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+
+    const request = {
+      fullName: this.profileSupportRequest.fullName.trim(),
+      email: this.profileSupportRequest.email.trim(),
+      subject: this.profileSupportRequest.subject.trim(),
+      message: this.profileSupportRequest.message.trim()
+    };
+
+    if (!request.fullName || !request.email || !request.message) {
+      this.profileSupportError = 'Veuillez remplir le nom, l’email et le message.';
+      this.refreshProfileSupportIcons();
+      return;
+    }
+
+    const token =
+      (this as any).accessToken ||
+      localStorage.getItem('secure_exam_access_token') ||
+      localStorage.getItem('secure_exam_token') ||
+      '';
+
+    if (!token) {
+      this.profileSupportError = 'Session expirée. Reconnectez-vous.';
+      this.refreshProfileSupportIcons();
+      return;
+    }
+
+    this.profileSupportLoading = true;
+    this.refreshProfileSupportIcons();
+
+    try {
+      const response = await fetch(`${this.getProfileSupportApiUrl()}/teacher-support-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(request)
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        let message = 'Impossible d’envoyer la demande support.';
+
+        try {
+          const data = JSON.parse(responseText);
+          message = data?.detail || message;
+        } catch {
+          message = responseText || message;
+        }
+
+        throw new Error(message);
+      }
+
+      this.profileSupportLoading = false;
+      this.profileSupportSuccess = 'Demande support envoyée avec succès.';
+      this.profileSupportRequest.message = '';
+
+      const self = this as any;
+
+      if (typeof self.loadSupportRequests === 'function') {
+        self.loadSupportRequests();
+      }
+
+      this.refreshProfileSupportIcons();
+
+      setTimeout(() => {
+        this.closeProfileSupportModal();
+      }, 1200);
+    } catch (error: any) {
+      this.profileSupportLoading = false;
+      this.profileSupportError =
+        error?.message || 'Impossible d’envoyer la demande support.';
+      this.refreshProfileSupportIcons();
+    }
+  }
+
+
+  getProfileSupportApiUrl(): string {
+    return this.apiUrl || `http://${window.location.hostname}:8000`;
+  }
+
+  refreshProfileSupportIcons(): void {
+    setTimeout(() => {
+      const lucide = (window as any).lucide;
+
+      if (lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }, 50);
+  }
+
+
+  submissionExamFilter = 'all';
+  submissionDateFilter = '';
+
+  getSubmissionExamOptions(): string[] {
+    const submissions = this.dashboard?.submissions || [];
+    const exams = new Set<string>();
+
+    for (const submission of submissions as any[]) {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+
+      if (examId) {
+        exams.add(examId);
+      }
+    }
+
+    return Array.from(exams).sort((a, b) => a.localeCompare(b));
+  }
+
+  getFilteredSubmissions(): any[] {
+    const submissions = this.dashboard?.submissions || [];
+
+    return (submissions as any[]).filter((submission) => {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+
+      const matchExam =
+        this.submissionExamFilter === 'all' ||
+        examId === this.submissionExamFilter;
+
+      const matchDate =
+        !this.submissionDateFilter ||
+        this.getDateOnly(submission.created_at) === this.submissionDateFilter ||
+        this.getDateOnly(submission.exam_created_at) === this.submissionDateFilter ||
+        this.getDateOnly(submission.exam_updated_at) === this.submissionDateFilter;
+
+      return matchExam && matchDate;
+    });
+  }
+
+  getGroupedSubmissions(): any[] {
+    const submissions = this.getFilteredSubmissions();
+    const groups: Record<string, any> = {};
+
+    for (const submission of submissions) {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+      const examDate =
+        submission.exam_created_at ||
+        submission.exam_updated_at ||
+        submission.created_at ||
+        '';
+
+      const key = `${examId}__${examDate}`;
+
+      if (!groups[key]) {
+        groups[key] = {
+          exam_id: examId,
+          exam_created_at: examDate,
+          submissions: []
+        };
+      }
+
+      groups[key].submissions.push(submission);
+    }
+
+    return Object.values(groups).sort((a: any, b: any) => {
+      const dateA = new Date(String(a.exam_created_at || '').replace(' ', 'T')).getTime() || 0;
+      const dateB = new Date(String(b.exam_created_at || '').replace(' ', 'T')).getTime() || 0;
+
+      return dateB - dateA;
+    });
+  }
+
+  getDateOnly(value: any): string {
+    if (!value) {
+      return '';
+    }
+
+    const text = String(value);
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+      return text.slice(0, 10);
+    }
+
+    const date = new Date(text.replace(' ', 'T'));
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  resetSubmissionFilters(): void {
+    this.submissionExamFilter = 'all';
+    this.submissionDateFilter = '';
+    this.refreshView();
+  }
+
+
+  enrichPackageVersions(): void {
+    const headers = this.getTeacherHeaders();
+
+    for (const packageItem of this.availablePackages) {
+      if (!packageItem?.name || !packageItem?.nixName) {
+        continue;
+      }
+
+      if (this.packageVersionByNixName[packageItem.nixName]) {
+        continue;
+      }
+
+      this.http.get<PackageSearchResponse>(
+        `${this.apiUrl}/packages/search/${encodeURIComponent(packageItem.name)}`,
+        { headers }
+      ).subscribe({
+        next: (data) => {
+          const exactCandidate =
+            data.candidates.find(candidate => candidate.nixName === packageItem.nixName) ||
+            data.candidates.find(candidate => candidate.name === packageItem.name);
+
+          if (exactCandidate?.version) {
+            this.packageVersionByNixName[packageItem.nixName] = exactCandidate.version;
+          } else {
+            this.packageVersionByNixName[packageItem.nixName] = 'Non renseignée';
+          }
+
+          this.refreshView();
+        },
+        error: () => {
+          this.packageVersionByNixName[packageItem.nixName] = 'Non renseignée';
+          this.refreshView();
+        }
+      });
+    }
+  }
+
+  getPackageVersionLabel(packageItem: any): string {
+    if (packageItem?.version) {
+      return packageItem.version;
+    }
+
+    if (packageItem?.nixName && this.packageVersionByNixName[packageItem.nixName]) {
+      return this.packageVersionByNixName[packageItem.nixName];
+    }
+
+    return 'Chargement...';
+  }
+
+
+  get paginatedPackages(): PackageCatalogItem[] {
+    const totalPages = this.getPackageTotalPages();
+
+    if (this.packagePage > totalPages) {
+      this.packagePage = totalPages;
+    }
+
+    if (this.packagePage < 1) {
+      this.packagePage = 1;
+    }
+
+    const start = (this.packagePage - 1) * this.packagePageSize;
+    const end = start + this.packagePageSize;
+
+    return this.displayedPackages.slice(start, end);
+  }
+
+  getPackageTotalPages(): number {
+    return Math.max(1, Math.ceil(this.displayedPackages.length / this.packagePageSize));
+  }
+
+  getPackagePages(): number[] {
+    const totalPages = this.getPackageTotalPages();
+
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  goToPackagePage(page: number): void {
+    const totalPages = this.getPackageTotalPages();
+
+    if (page < 1 || page > totalPages) {
+      return;
+    }
+
+    this.packagePage = page;
+    this.refreshView();
+  }
+
+  getPackagePaginationStart(): number {
+    if (this.displayedPackages.length === 0) {
+      return 0;
+    }
+
+    return ((this.packagePage - 1) * this.packagePageSize) + 1;
+  }
+
+  getPackagePaginationEnd(): number {
+    return Math.min(this.packagePage * this.packagePageSize, this.displayedPackages.length);
+  }
+
 }

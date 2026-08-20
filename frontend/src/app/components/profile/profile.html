@@ -131,7 +131,16 @@
           <p>Historique des demandes envoyées depuis la page support.</p>
         </div>
 
-        <button
+                  <button
+            type="button"
+            class="profile-support-add-button"
+            title="Nouvelle demande support"
+            (click)="openProfileSupportModal()"
+          >
+            <i data-lucide="plus"></i>
+          </button>
+
+<button
           type="button"
           class="refresh-button"
           (click)="loadSupportRequests()"
@@ -167,3 +176,112 @@
     </section>
   </div>
 </section>
+
+<div
+  *ngIf="profileSupportModalOpen"
+  class="profile-support-overlay"
+  (click)="closeProfileSupportModal()"
+>
+  <section
+    class="profile-support-modal"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="profile-support-modal-header">
+      <div>
+        <h2>
+          <i data-lucide="life-buoy"></i>
+          Nouvelle demande support
+        </h2>
+        <p>Décrivez le problème rencontré afin que l’équipe support puisse le traiter.</p>
+      </div>
+
+      <button
+        type="button"
+        class="profile-support-close"
+        (click)="closeProfileSupportModal()"
+      >
+        <i data-lucide="x"></i>
+      </button>
+    </header>
+
+    <form class="profile-support-form" (ngSubmit)="submitProfileSupportRequest()">
+      <div class="profile-support-grid">
+        <label>
+          Nom complet
+          <div class="profile-support-input">
+            <i data-lucide="user-round"></i>
+            <input
+              type="text"
+              name="profileSupportFullName"
+              [(ngModel)]="profileSupportRequest.fullName"
+              placeholder="Votre nom"
+            >
+          </div>
+        </label>
+
+        <label>
+          Email
+          <div class="profile-support-input">
+            <i data-lucide="mail"></i>
+            <input
+              type="email"
+              name="profileSupportEmail"
+              [(ngModel)]="profileSupportRequest.email"
+              placeholder="prenom.nom@isen.fr"
+            >
+          </div>
+        </label>
+      </div>
+
+      <label>
+        Type de problème
+        <div class="profile-support-input">
+          <i data-lucide="circle-help"></i>
+          <select
+            name="profileSupportSubject"
+            [(ngModel)]="profileSupportRequest.subject"
+          >
+            <option>Problème de connexion</option>
+            <option>Mot de passe oublié</option>
+            <option>Compte enseignant bloqué</option>
+            <option>Serveur indisponible</option>
+            <option>Autre problème</option>
+          </select>
+        </div>
+      </label>
+
+      <label>
+        Message
+        <div class="profile-support-textarea">
+          <i data-lucide="message-square-text"></i>
+          <textarea
+            name="profileSupportMessage"
+            [(ngModel)]="profileSupportRequest.message"
+            rows="6"
+            placeholder="Expliquez le problème rencontré..."
+          ></textarea>
+        </div>
+      </label>
+
+      <button
+        type="submit"
+        class="profile-support-submit"
+        [disabled]="profileSupportLoading"
+      >
+        <i [attr.data-lucide]="profileSupportLoading ? 'loader-circle' : 'send'"></i>
+        {{ profileSupportLoading ? 'Envoi en cours...' : 'Envoyer la demande' }}
+      </button>
+
+      <div *ngIf="profileSupportError" class="profile-support-error">
+        <i data-lucide="circle-alert"></i>
+        {{ profileSupportError }}
+      </div>
+
+      <div *ngIf="profileSupportSuccess" class="profile-support-success">
+        <i data-lucide="circle-check"></i>
+        {{ profileSupportSuccess }}
+      </div>
+    </form>
+  </section>
+</div>
+
