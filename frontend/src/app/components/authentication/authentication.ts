@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HeaderAuthComponent } from '../header-auth/header-auth';
 
 declare global {
   interface Window {
@@ -13,7 +14,7 @@ declare global {
 @Component({
   selector: 'app-authentication',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HeaderAuthComponent],
   templateUrl: './authentication.html',
   styleUrl: './authentication.css'
 })

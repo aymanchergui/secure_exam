@@ -1,42 +1,57 @@
 .authentication-page {
   min-height: 100vh;
-
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-
-  padding: 32px;
-
+  gap: 58px;
+  padding: 0 0 36px;
+  overflow-x: hidden;
   background: #f8edf0;
 }
 
+.authentication-header-auth {
+  width: 100%;
+  display: block;
+  margin: 0;
+}
+
+/* Carte authentication */
 .authentication-card {
   width: 100%;
   max-width: 430px;
-
+  box-sizing: border-box;
+  margin-top: 18px;
+  padding: 34px;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #e5e7eb;
   border-radius: 24px;
-
-  padding: 34px;
-
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+}
+
+.authentication-card form {
+  width: 100%;
+}
+
+/* Header interne */
+.authentication-heading {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 30px;
 }
 
 .authentication-icon {
   width: 52px;
   height: 52px;
-
-  border-radius: 16px;
-
-  background: rgba(196, 0, 36, 0.11);
-  color: #c40024;
-
+  flex: 0 0 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  margin-bottom: 18px;
+  border-radius: 16px;
+  margin: 0;
+  background: rgba(196, 0, 36, 0.11);
+  color: #c40024;
 }
 
 .authentication-icon i,
@@ -46,47 +61,70 @@
   stroke-width: 2.3;
 }
 
+.authentication-title-block {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.authentication-title-block h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 27px;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.authentication-title-block p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+/* Fallback titres simples */
 .authentication-card h1 {
   margin: 0;
-
-  font-size: 30px;
+  font-size: 27px;
   font-weight: 900;
   color: #111827;
 }
 
 .authentication-card p {
   margin: 8px 0 28px;
-
   color: #6b7280;
   font-weight: 600;
 }
 
+/* Formulaire */
 .authentication-card label {
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   margin-bottom: 18px;
-
   color: #374151;
   font-size: 14px;
   font-weight: 800;
 }
 
 .authentication-card input {
+  display: block;
   width: 100%;
+  max-width: 100%;
   height: 52px;
-
+  box-sizing: border-box;
   border: 1px solid #d1d5db;
   border-radius: 14px;
-
   padding: 0 15px;
-
   background: #ffffff;
   color: #111827;
-
   font-size: 15px;
-
   outline: none;
   transition: 0.22s ease;
 }
@@ -97,7 +135,6 @@
 
 .authentication-card input:focus {
   border-color: #c40024;
-
   box-shadow:
     0 0 0 4px rgba(196, 0, 36, 0.11),
     0 8px 18px rgba(15, 23, 42, 0.06);
@@ -105,27 +142,22 @@
 
 .authentication-card button {
   width: 100%;
+  max-width: 100%;
   height: 52px;
-
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-
   border: none;
   border-radius: 14px;
-
   margin-top: 8px;
-
   background: linear-gradient(135deg, #111827 0%, #c40024 100%);
   color: #ffffff;
-
   font-size: 15px;
   font-weight: 900;
-
   cursor: pointer;
   transition: 0.22s ease;
-
   box-shadow:
     0 14px 28px rgba(196, 0, 36, 0.22),
     0 8px 18px rgba(17, 24, 39, 0.14);
@@ -133,9 +165,7 @@
 
 .authentication-card button:hover {
   transform: translateY(-2px);
-
   background: linear-gradient(135deg, #111827 0%, #7a0015 100%);
-
   box-shadow:
     0 18px 34px rgba(122, 0, 21, 0.26),
     0 10px 20px rgba(17, 24, 39, 0.16);
@@ -149,42 +179,34 @@
 .message-icon {
   width: 18px;
   height: 18px;
-
   stroke-width: 2.3;
   flex-shrink: 0;
 }
 
+/* Message erreur */
 .authentication-error {
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin-top: 16px;
   padding: 13px 15px;
-
   border-radius: 14px;
-
   background: #fff1f2;
   color: #7a0015;
   border: 1px solid rgba(196, 0, 36, 0.18);
-
   font-size: 13px;
   font-weight: 800;
 }
 
-/* SUPPORT LINK */
-
+/* Support link */
 .authentication-support {
   margin-top: 22px;
   padding-top: 18px;
-
   border-top: 1px solid #eef0f3;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   color: #6b7280;
   font-size: 13px;
   font-weight: 700;
@@ -196,38 +218,27 @@
 
 .support-link {
   position: relative;
-
   display: inline-flex;
   align-items: center;
   gap: 6px;
-
   color: #7a0015;
-
   font-size: 13px;
   font-weight: 900;
-
   text-decoration: none;
-
   transition: 0.22s ease;
 }
 
 .support-link::after {
   content: "";
   position: absolute;
-
   left: 24px;
   right: 0;
   bottom: -4px;
-
   height: 2px;
-
   border-radius: 999px;
-
   background: linear-gradient(90deg, #111827 0%, #c40024 100%);
-
   transform: scaleX(0);
   transform-origin: left;
-
   transition: 0.22s ease;
 }
 
@@ -244,11 +255,8 @@
 .support-link svg {
   width: 15px;
   height: 15px;
-
   stroke-width: 2.5;
-
   color: #c40024;
-
   transition: 0.22s ease;
 }
 
@@ -257,18 +265,41 @@
   color: #111827;
 }
 
+/* Responsive */
 @media (max-width: 600px) {
   .authentication-page {
-    padding: 20px;
+    gap: 34px;
+    padding: 0 20px 28px;
   }
 
   .authentication-card {
     padding: 28px;
     border-radius: 22px;
+    margin-top: 0;
   }
 
-  .authentication-card h1 {
-    font-size: 26px;
+  .authentication-heading {
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+
+  .authentication-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 15px;
+  }
+
+  .authentication-title-block {
+    min-height: 48px;
+  }
+
+  .authentication-title-block h1 {
+    font-size: 24px;
+  }
+
+  .authentication-title-block p {
+    font-size: 14px;
   }
 
   .authentication-support {
@@ -280,4 +311,39 @@
   .support-link::after {
     left: 22px;
   }
+}
+
+/* Alignement parfait icône + titre + sous-titre */
+.authentication-heading {
+  display: grid !important;
+  grid-template-columns: 52px 1fr !important;
+  align-items: center !important;
+  column-gap: 18px !important;
+  margin-bottom: 30px !important;
+}
+
+.authentication-heading .authentication-icon {
+  width: 52px !important;
+  height: 52px !important;
+  margin: 0 !important;
+  align-self: center !important;
+}
+
+.authentication-title-block {
+  min-height: 52px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+.authentication-title-block h1 {
+  margin: 0 !important;
+  font-size: 27px !important;
+  line-height: 1.05 !important;
+}
+
+.authentication-title-block p {
+  margin: 5px 0 0 !important;
+  font-size: 15px !important;
+  line-height: 1.2 !important;
 }

@@ -1,0 +1,180 @@
+<header class="auth-header">
+  <div class="auth-header-left">
+    <img
+      src="/assets/isen_logo.png"
+      alt="ISEN Toulon"
+      class="auth-school-logo"
+    >
+  </div>
+
+  <div class="auth-header-center">
+    <img
+      src="/assets/secure_exam_logo.png"
+      alt="ISEN SecureExam"
+      class="auth-secure-logo"
+    >
+  </div>
+
+  <div class="auth-header-right">
+    <span class="auth-header-year">© {{ currentYear }} ISEN Toulon</span>
+
+    <button
+      type="button"
+      class="auth-header-link"
+      (click)="openProjectInfoModal()"
+    >
+      Licence & crédits
+    </button>
+  </div>
+</header>
+
+<div class="project-info-backdrop" *ngIf="showProjectInfoModal">
+  <div class="project-info-modal">
+    <div class="project-info-header">
+      <div>
+        <h2>
+          <i data-lucide="info"></i>
+          Licence & crédits
+        </h2>
+
+        <p>
+          Informations professionnelles relatives au projet ISEN SecureExam.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="project-info-close"
+        (click)="closeProjectInfoModal()"
+        aria-label="Fermer"
+      >
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="project-info-content">
+      <div class="project-info-brand-card">
+        <div class="project-info-brand-main">
+          <img
+            src="/assets/secure_exam_logo.png"
+            alt="ISEN SecureExam"
+          >
+
+          <div>
+            <strong>ISEN SecureExam</strong>
+            <span>ISEN Méditerranée / Toulon</span>
+          </div>
+        </div>
+
+        <div class="project-version-badge">
+          <span></span>
+          <strong>v{{ appVersion }}</strong>
+        </div>
+      </div>
+
+      <div class="project-info-section">
+        <h3>Présentation du projet</h3>
+        <p>
+          ISEN SecureExam est une plateforme académique permettant de préparer,
+          générer et appliquer des environnements Linux sécurisés pour les examens.
+          Le projet couvre la configuration des paquets autorisés, des droits système,
+          des accès réseau, ainsi que la récupération des rendus étudiants.
+        </p>
+      </div>
+
+      <div class="project-info-grid">
+        <div class="project-info-card">
+          <div class="project-info-card-icon">
+            <i data-lucide="graduation-cap"></i>
+          </div>
+
+          <div class="project-info-card-body">
+            <h3>Développeur</h3>
+            <p>
+              <strong>Ayman CHERGUI</strong><br>
+              Étudiant ingénieur à l’ISEN.
+            </p>
+
+            <div class="project-info-links">
+              <a href="mailto:aymanch.business@gmail.com">
+                <i data-lucide="mail"></i>
+                <span>aymanch.business@gmail.com</span>
+              </a>
+
+              <a
+                href="https://aymanchergui.com"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i data-lucide="globe"></i>
+                <span>aymanchergui.com</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="project-info-card">
+          <div class="project-info-card-icon">
+            <i data-lucide="briefcase-business"></i>
+          </div>
+
+          <div class="project-info-card-body">
+            <h3>Client / Référent</h3>
+            <p>
+              <strong>Willy DUQUENOY</strong><br>
+              Directeur des Systèmes d’Information.
+            </p>
+
+            <div class="project-info-links">
+              <a href="mailto:willy.duquenoy@yncrea.fr">
+                <i data-lucide="mail"></i>
+                <span>willy.duquenoy@yncrea.fr</span>
+              </a>
+
+              <a
+                href="https://isen-mediterranee.fr/membre/willy-duquenoy-2/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i data-lucide="external-link"></i>
+                <span>Profil ISEN Méditerranée</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-info-section">
+        <h3>Cadre académique</h3>
+        <p>
+          Ce projet est réalisé dans le cadre d’un projet bureau d’étude ISEN 2025-2026.
+          Il a pour objectif de proposer une solution reproductible, sécurisée et
+          exploitable pour la configuration d’environnements d’examen sous Linux.
+        </p>
+      </div>
+
+      <div class="project-info-section">
+        <h3>Technologies utilisées</h3>
+
+        <div class="project-tech-list">
+          <span>Angular</span>
+          <span>FastAPI</span>
+          <span>SQLite</span>
+          <span>NixOS</span>
+          <span>Python</span>
+          <span>Linux</span>
+          <span>Scripts client SecureExam</span>
+        </div>
+      </div>
+
+      <div class="project-info-note">
+        <i data-lucide="shield-check"></i>
+        <span>
+          Cette application est développée dans un cadre pédagogique et démonstratif.
+          Toute mise en production nécessite une validation technique, réseau et sécurité
+          par l’établissement.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

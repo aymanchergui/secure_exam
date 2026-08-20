@@ -546,3 +546,13 @@
 .profile-button.active .profile-role {
   color: rgba(255, 255, 255, 0.72);
 }
+
+
+/* Logo image cliquable sans bouton */
+.header-logo {
+  cursor: pointer;
+}
+
+.header-logo:hover {
+  opacity: 0.94;
+}

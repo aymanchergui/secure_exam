@@ -1,5 +1,8 @@
 <section class="support-page">
-  <header class="support-topbar">
+  <app-header-auth class="support-auth-header"></app-header-auth>
+
+  <div class="support-main-layout">
+    <div class="support-return-row">
     <button
       type="button"
       class="support-back-button"
@@ -8,17 +11,7 @@
       <i data-lucide="arrow-left"></i>
       <span>Retour à l'authentification</span>
     </button>
-
-    <div class="support-logo-box">
-      <img
-        src="/assets/secure_exam_logo.png"
-        alt="ISEN SecureExam"
-        class="support-logo"
-      >
-    </div>
-
-    <div class="support-topbar-spacer"></div>
-  </header>
+  </div>
 
   <div class="support-content">
     <div class="support-card">
@@ -95,24 +88,24 @@
           </div>
         </label>
 
-            <button
-            type="submit"
-            class="support-submit-button"
-            [disabled]="loading"
-            >
-            <i [attr.data-lucide]="loading ? 'loader-circle' : 'send'"></i>
-            {{ loading ? 'Envoi en cours...' : 'Envoyer la demande' }}
-            </button>
+        <button
+          type="submit"
+          class="support-submit-button"
+          [disabled]="loading"
+        >
+          <i [attr.data-lucide]="loading ? 'loader-circle' : 'send'"></i>
+          {{ loading ? 'Envoi en cours...' : 'Envoyer la demande' }}
+        </button>
 
-            <div *ngIf="errorMessage" class="support-error">
-            <i data-lucide="circle-alert"></i>
-            {{ errorMessage }}
-            </div>
+        <div *ngIf="errorMessage" class="support-error">
+          <i data-lucide="circle-alert"></i>
+          {{ errorMessage }}
+        </div>
 
-            <div *ngIf="successMessage" class="support-success">
-            <i data-lucide="circle-check"></i>
-            {{ successMessage }}
-            </div>
+        <div *ngIf="successMessage" class="support-success">
+          <i data-lucide="circle-check"></i>
+          {{ successMessage }}
+        </div>
       </form>
 
       <div class="support-note">
@@ -122,5 +115,6 @@
         </span>
       </div>
     </div>
+  </div>
   </div>
 </section>

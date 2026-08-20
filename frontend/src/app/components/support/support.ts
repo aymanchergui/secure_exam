@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, AfterViewInit, EventEmitter, Output, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { HeaderAuthComponent } from '../header-auth/header-auth';
 import { finalize, timeout } from 'rxjs';
 
 declare global {
@@ -15,7 +16,7 @@ declare global {
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HeaderAuthComponent],
   templateUrl: './support.html',
   styleUrl: './support.css'
 })

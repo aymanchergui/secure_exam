@@ -236,6 +236,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
   }
 
   goToDashboardFromLogo(): void {
+    this.activeSection = 'dashboard';
     this.sectionRequested.emit('dashboard');
   }
 
