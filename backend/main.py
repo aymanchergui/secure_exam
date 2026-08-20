@@ -49,7 +49,9 @@ SUBMISSION_DIR.mkdir(exist_ok=True)
 PROFILE_DIR = BASE_DIR / "profile"
 PROFILE_DIR.mkdir(exist_ok=True)
 
-NIXOS_CONFIG_FILE = PROJECT_DIR / "exam-client" / "var" / "generated" / "exam-configuration.nix"
+NIXOS_GENERATED_DIR = PROJECT_DIR / "exam-client" / "var" / "generated"
+NIXOS_CONFIG_FILE = NIXOS_GENERATED_DIR / "exam-configuration.nix"
+NIXOS_METADATA_FILE = NIXOS_GENERATED_DIR / "exam-metadata.json"
 
 
 def get_required_env(name: str) -> str:
@@ -125,9 +127,6 @@ class TeacherProfile(BaseModel):
 
 class PackageCreate(BaseModel):
     name: str
-    description: str
-    displayName: str | None = None
-    nixName: str | None = None
     description: str
     displayName: str | None = None
     nixName: str | None = None
@@ -562,20 +561,32 @@ def validate_config_filename(filename: str) -> str:
     return safe_filename
 
 
-def get_config_row_by_filename_or_404(filename: str):
+def get_config_row_by_filename_or_404(filename: str, teacher_id: int | None = None):
     safe_filename = validate_config_filename(filename)
 
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute("""
-        SELECT *
-        FROM exam_configs
-        WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
-        ORDER BY updated_at DESC
-    """, (
-        safe_filename,
-    ))
+    if teacher_id is None:
+        cursor.execute("""
+            SELECT *
+            FROM exam_configs
+            WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
+            ORDER BY updated_at DESC
+        """, (
+            safe_filename,
+        ))
+    else:
+        cursor.execute("""
+            SELECT *
+            FROM exam_configs
+            WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
+            AND teacher_id = ?
+            ORDER BY updated_at DESC
+        """, (
+            safe_filename,
+            teacher_id
+        ))
 
     rows = cursor.fetchall()
     connection.close()
@@ -641,6 +652,144 @@ def get_config_row_or_404(exam_id: str, student_id: str, machine_id: str):
         )
 
     return row
+
+
+
+def get_config_row_for_teacher_or_404(
+    exam_id: str,
+    student_id: str,
+    machine_id: str,
+    teacher_id: int
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM exam_configs
+        WHERE exam_id = ?
+        AND student_id = ?
+        AND machine_id = ?
+        AND teacher_id = ?
+        LIMIT 1
+    """, (
+        exam_id,
+        student_id,
+        machine_id,
+        teacher_id
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Configuration introuvable"
+        )
+
+    return row
+
+
+def get_generated_nixos_metadata_or_404() -> dict:
+    if not NIXOS_METADATA_FILE.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Métadonnées NixOS introuvables. Lance start_exam.py pour générer la configuration."
+        )
+
+    try:
+        metadata = json.loads(NIXOS_METADATA_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=500,
+            detail="Métadonnées NixOS invalides."
+        )
+
+    exam_id = metadata.get("exam_id")
+    student_id = metadata.get("student_id")
+    machine_id = metadata.get("machine_id")
+
+    if not exam_id or not student_id or not machine_id:
+        raise HTTPException(
+            status_code=500,
+            detail="Métadonnées NixOS incomplètes."
+        )
+
+    return metadata
+
+
+def ensure_generated_nixos_belongs_to_teacher(current_teacher: dict) -> dict:
+    if not NIXOS_CONFIG_FILE.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Configuration NixOS introuvable. Lance start_exam.py pour la générer."
+        )
+
+    metadata = get_generated_nixos_metadata_or_404()
+
+    get_config_row_for_teacher_or_404(
+        exam_id=metadata["exam_id"],
+        student_id=metadata["student_id"],
+        machine_id=metadata["machine_id"],
+        teacher_id=current_teacher["id"]
+    )
+
+    return metadata
+
+
+def generate_nixos_config_preview(config_data: dict) -> str:
+    packages = config_data.get("nix_packages") or config_data.get("packages") or []
+    allowed_domains = config_data.get("allowed_domains") or []
+    workspace = config_data.get("workspace") or "/home/exam/workspace"
+
+    package_lines = "\n    ".join(
+        f"pkgs.{package}"
+        for package in packages
+    ) or "# Aucun paquet sélectionné"
+
+    sudo_group_line = '"wheel"' if config_data.get("sudo") else "# sudo désactivé"
+
+    domains_lines = "\n  # - ".join(allowed_domains)
+    if domains_lines:
+        domains_lines = f"- {domains_lines}"
+    else:
+        domains_lines = "Aucun domaine spécifique"
+
+    return f"""# Configuration NixOS générée par SecureExam
+# Examen   : {config_data.get("exam_id")}
+# Étudiant : {config_data.get("student_id")}
+# Machine  : {config_data.get("machine_id")}
+
+{{ config, pkgs, ... }}:
+
+{{
+  environment.systemPackages = with pkgs; [
+    {package_lines}
+  ];
+
+  users.users.exam = {{
+    isNormalUser = true;
+    home = "{workspace}";
+    extraGroups = [
+      "users"
+      {sudo_group_line}
+    ];
+  }};
+
+  security.sudo.enable = {str(bool(config_data.get("sudo"))).lower()};
+
+  networking.firewall.enable = true;
+
+  # Politique réseau SecureExam
+  # Internet autorisé : {bool(config_data.get("internet"))}
+  # Accès Educ autorisé : {bool(config_data.get("educ_access"))}
+  # Domaines autorisés :
+  # {domains_lines}
+
+  system.stateVersion = "24.05";
+}}
+"""
 
 
 def save_support_request_to_database(
@@ -2346,7 +2495,9 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
             "workspace": row["workspace"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
-            "download_url": f"/configs/{filename}/download"
+            "download_url": f"/configs/{filename}/download",
+            "nixos_config_url": f"/configs/{filename}/nixos-config",
+            "nixos_config_download_url": f"/configs/{filename}/nixos-config/download"
         })
 
     return {
@@ -2363,7 +2514,10 @@ def download_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    row, safe_filename = get_config_row_by_filename_or_404(filename)
+    row, safe_filename = get_config_row_by_filename_or_404(
+        filename,
+        current_teacher["id"]
+    )
 
     config_data = row_to_config(row)
 
@@ -2387,7 +2541,10 @@ def get_config_by_filename(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    row, _ = get_config_row_by_filename_or_404(filename)
+    row, _ = get_config_row_by_filename_or_404(
+        filename,
+        current_teacher["id"]
+    )
 
     return row_to_config(row)
 
@@ -2397,7 +2554,10 @@ def delete_config(
     filename: str,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    row, safe_filename = get_config_row_by_filename_or_404(filename)
+    row, safe_filename = get_config_row_by_filename_or_404(
+        filename,
+        current_teacher["id"]
+    )
 
     connection = get_connection()
     cursor = connection.cursor()
@@ -2407,10 +2567,12 @@ def delete_config(
         WHERE exam_id = ?
         AND student_id = ?
         AND machine_id = ?
+        AND teacher_id = ?
     """, (
         row["exam_id"],
         row["student_id"],
-        row["machine_id"]
+        row["machine_id"],
+        current_teacher["id"]
     ))
 
     deleted_count = cursor.rowcount
@@ -2854,7 +3016,9 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
             "workspace": row["workspace"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
-            "download_url": f"/configs/{filename}/download"
+            "download_url": f"/configs/{filename}/download",
+            "nixos_config_url": f"/configs/{filename}/nixos-config",
+            "nixos_config_download_url": f"/configs/{filename}/nixos-config/download"
         })
 
     cursor.execute("""
@@ -2933,32 +3097,71 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
 
 
+@app.get("/configs/{filename}/nixos-config")
+def get_nixos_config_for_config(
+    filename: str,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    row, safe_filename = get_config_row_by_filename_or_404(
+        filename,
+        current_teacher["id"]
+    )
+
+    config_data = row_to_config(row)
+    content = generate_nixos_config_preview(config_data)
+
+    return {
+        "filename": f"{Path(safe_filename).stem}_exam-configuration.nix",
+        "source_config": safe_filename,
+        "content": content
+    }
+
+
+@app.get("/configs/{filename}/nixos-config/download")
+def download_nixos_config_for_config(
+    filename: str,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    row, safe_filename = get_config_row_by_filename_or_404(
+        filename,
+        current_teacher["id"]
+    )
+
+    config_data = row_to_config(row)
+    content = generate_nixos_config_preview(config_data)
+    output_filename = f"{Path(safe_filename).stem}_exam-configuration.nix"
+
+    return Response(
+        content=content,
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f'attachment; filename="{output_filename}"'
+        }
+    )
+
+
 @app.get("/nixos-config")
 def get_nixos_config(current_teacher: dict = Depends(get_current_teacher)):
-    if not NIXOS_CONFIG_FILE.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Configuration NixOS introuvable. Lance start_exam.py pour la générer."
-        )
-
+    metadata = ensure_generated_nixos_belongs_to_teacher(current_teacher)
     content = NIXOS_CONFIG_FILE.read_text(encoding="utf-8")
 
     return {
         "filename": NIXOS_CONFIG_FILE.name,
+        "source_config": config_filename(
+            metadata["exam_id"],
+            metadata["student_id"],
+            metadata["machine_id"]
+        ),
         "content": content
     }
 
 
 @app.get("/nixos-config/download")
 def download_nixos_config(current_teacher: dict = Depends(get_current_teacher)):
-    if not NIXOS_CONFIG_FILE.exists():
-        raise HTTPException(
-            status_code=404,
-            detail="Configuration NixOS introuvable. Lance start_exam.py pour la générer."
-        )
+    metadata = ensure_generated_nixos_belongs_to_teacher(current_teacher)
 
     return FileResponse(
         path=NIXOS_CONFIG_FILE,
-        filename=NIXOS_CONFIG_FILE.name,
+        filename=f"{metadata['exam_id']}_{metadata['student_id']}_{metadata['machine_id']}_exam-configuration.nix",
         media_type="text/plain"
     )
