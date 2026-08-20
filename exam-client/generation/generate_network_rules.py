@@ -1,69 +1,109 @@
+from pathlib import Path
+from datetime import datetime
 import json
 import socket
-from datetime import datetime
-from pathlib import Path
+import sys
 
-GENERATED_DIR = Path("generated")
+# Racine du client SecureExam :
+# exam-client/
+CLIENT_ROOT = Path(__file__).resolve().parents[1]
+if str(CLIENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(CLIENT_ROOT))
+
+from config.client_settings import GENERATED_DIR
+from core.logger import write_log
+
 POLICY_FILE = GENERATED_DIR / "network-policy.json"
 NFT_FILE = GENERATED_DIR / "network-rules.nft"
 REPORT_FILE = GENERATED_DIR / "network-policy-report.txt"
 RESOLVED_FILE = GENERATED_DIR / "network-resolved-domains.json"
 
 def load_policy() -> dict:
+    """
+    Charge la politique réseau générée par generation/generate_nixos_config.py.
+    """
     if not POLICY_FILE.exists():
         raise FileNotFoundError(
-            "Politique réseau introuvable. Lancez d'abord start_exam.py ou generate_nixos_config.py."
+            f"Politique réseau introuvable : {POLICY_FILE}\n"
+            "Lance d'abord generation/generate_nixos_config.py."
         )
-    with open(POLICY_FILE, "r", encoding="utf-8") as file:
-        return json.load(file)
+
+    return json.loads(POLICY_FILE.read_text(encoding="utf-8"))
 
 def normalize_decision(value) -> str:
+    """
+    Normalise une valeur booléenne ou textuelle en allowed/blocked.
+    """
     if isinstance(value, bool):
         return "allowed" if value else "blocked"
+
     text = str(value).strip().lower()
+
     if text in ["true", "yes", "allowed", "allow", "enabled"]:
         return "allowed"
+
     if text in ["false", "no", "blocked", "block", "disabled"]:
         return "blocked"
+
     return text
 
 def resolve_domain(domain: str) -> list[str]:
+    """
+    Résout un domaine en adresses IPv4.
+    Limite connue : le filtrage par domaine via nftables reste imparfait,
+    car les règles système filtrent principalement par IP.
+    """
     try:
         results = socket.getaddrinfo(domain, None, proto=socket.IPPROTO_TCP)
     except socket.gaierror:
         return []
+
     ips = []
+
     for result in results:
         ip = result[4][0]
+
+        # On garde uniquement IPv4 pour ce prototype.
         if ":" not in ip and ip not in ips:
             ips.append(ip)
+
     return sorted(ips)
 
 def resolve_domains(domains: list[str]) -> dict:
+    """
+    Résout la liste blanche de domaines demandée par l'enseignant.
+    """
     resolved = {}
+
     for domain in domains:
-        clean_domain = domain.strip().lower()
+        clean_domain = str(domain).strip().lower()
+
         if clean_domain:
             resolved[clean_domain] = resolve_domain(clean_domain)
+
     return resolved
 
 def generate_nft_rules(policy: dict, resolved_domains: dict) -> str:
+    """
+    Génère les règles nftables à partir de la politique réseau.
+    """
     internet = normalize_decision(policy.get("internet", "blocked"))
     educ_access = normalize_decision(policy.get("educ_access", "blocked"))
 
     allowed_ips = []
+
     for ips in resolved_domains.values():
         allowed_ips.extend(ips)
 
     allowed_ips = sorted(set(allowed_ips))
 
-    ip_elements = ", ".join(allowed_ips) if allowed_ips else ""
+    ip_elements = ", ".join(allowed_ips)
     default_policy = "accept" if internet == "allowed" else "drop"
 
     if ip_elements:
         allowed_set = f"elements = {{ {ip_elements} }}"
     else:
-        allowed_set = "elements = { }"
+        allowed_set = "# Liste blanche IP vide : aucun domaine résolu."
 
     return f"""#!/usr/sbin/nft -f
 
@@ -107,6 +147,9 @@ table inet secure_exam {{
 """
 
 def generate_report(policy: dict, resolved_domains: dict) -> str:
+    """
+    Génère un rapport lisible expliquant la politique réseau produite.
+    """
     internet = normalize_decision(policy.get("internet", "blocked"))
     educ_access = normalize_decision(policy.get("educ_access", "blocked"))
     allowed_domains = policy.get("allowed_domains", [])
@@ -153,10 +196,16 @@ def generate_report(policy: dict, resolved_domains: dict) -> str:
 
     return "\n".join(lines) + "\n"
 
-def main():
-    GENERATED_DIR.mkdir(exist_ok=True)
+def main() -> None:
+    GENERATED_DIR.mkdir(parents=True, exist_ok=True)
 
-    policy = load_policy()
+    try:
+        policy = load_policy()
+    except Exception as error:
+        print(error)
+        write_log("NETWORK_ERROR", f"Politique réseau introuvable ou invalide : {error}")
+        sys.exit(1)
+
     allowed_domains = policy.get("allowed_domains", [])
 
     resolved_domains = resolve_domains(allowed_domains)
@@ -165,15 +214,19 @@ def main():
 
     NFT_FILE.write_text(nft_rules, encoding="utf-8")
     REPORT_FILE.write_text(report, encoding="utf-8")
-
-    with open(RESOLVED_FILE, "w", encoding="utf-8") as file:
-        json.dump(resolved_domains, file, indent=2, ensure_ascii=False)
+    RESOLVED_FILE.write_text(
+        json.dumps(resolved_domains, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
 
     print("Règles réseau générées avec succès")
     print(f"Politique source : {POLICY_FILE}")
     print(f"Règles nftables  : {NFT_FILE}")
     print(f"Domaines résolus : {RESOLVED_FILE}")
     print(f"Rapport          : {REPORT_FILE}")
+
+    write_log("NETWORK", f"Règles nftables générées : {NFT_FILE}")
+    write_log("NETWORK", f"Rapport réseau généré : {REPORT_FILE}")
 
 if __name__ == "__main__":
     main()

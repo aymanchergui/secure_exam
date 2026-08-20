@@ -1,0 +1,26 @@
+Rapport de politique réseau - ISEN SecureExam
+================================================
+Date génération : 2026-08-20T11:19:54
+
+Politique demandée par l'enseignant :
+- Internet : blocked
+- Accès Educ : allowed
+- Domaines autorisés : educ.isen.fr
+
+Résolution des domaines :
+- educ.isen.fr -> résolution impossible
+
+Fichiers générés :
+- /home/ayman/secure_exam/exam-client/var/generated/network-rules.nft
+- /home/ayman/secure_exam/exam-client/var/generated/network-resolved-domains.json
+- /home/ayman/secure_exam/exam-client/var/generated/network-policy-report.txt
+
+Note technique :
+Le filtrage par domaine ne peut pas être garanti uniquement avec nftables,
+car un firewall travaille principalement avec des adresses IP.
+Pour une application stricte en établissement, il faut utiliser un DNS contrôlé,
+un proxy, une passerelle réseau, un VLAN examen ou une politique DSI dédiée.
+
+Dans cette version, la plateforme prépare les règles système exploitables
+sans les appliquer automatiquement afin d'éviter de couper la VM, le backend,
+le frontend ou l'accès Git pendant la démonstration.

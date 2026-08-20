@@ -1,0 +1,6 @@
+exam_id=DEMO-PYTHON-2026
+student_id=ETU-DEMO-001
+machine_id=PC01
+internet=blocked
+educ_access=allowed
+allowed_domains=educ.isen.fr

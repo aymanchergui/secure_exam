@@ -1,0 +1,14 @@
+{
+  "exam_id": "DEMO-PYTHON-2026",
+  "student_id": "ETU-DEMO-001",
+  "machine_id": "PC01",
+  "workspace": "/home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace",
+  "archive_confirmed": "DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260820_111954.zip",
+  "network_reset": {
+    "attempted": false,
+    "status": "SKIPPED",
+    "message": "Mode simulation : aucune règle réseau système à retirer."
+  },
+  "reset_at": "2026-08-20T11:19:55",
+  "status": "RESET_DONE"
+}

@@ -11,15 +11,17 @@ except ModuleNotFoundError:
     print("nix-shell -p 'python312.withPackages (ps: [ ps.requests ])' zip unzip curl")
     sys.exit(1)
 
-from client_settings import SERVER_URL, get_config_path
-from logger import write_log
+# Permet d'exécuter ce fichier directement avec :
+# python3 api/submit_archive.py
+CLIENT_ROOT = Path(__file__).resolve().parents[1]
+if str(CLIENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(CLIENT_ROOT))
 
+from config.client_settings import SERVER_URL, get_config_path, ARCHIVE_DIR, SUBMITTED_DIR
+from core.logger import write_log
 
 CONFIG_FILE = get_config_path()
-ARCHIVE_DIR = Path("archives")
-SUBMITTED_DIR = Path("submitted")
 HTTP_TIMEOUT_SECONDS = 10
-
 
 def restore_file_owner_for_user(path: Path) -> None:
     """
@@ -37,8 +39,10 @@ def restore_file_owner_for_user(path: Path) -> None:
     except Exception:
         pass
 
-
 def load_config() -> dict:
+    """
+    Charge la configuration déjà récupérée par api/fetch_config.py.
+    """
     if not CONFIG_FILE.exists():
         print(f"Configuration introuvable : {CONFIG_FILE}")
         write_log("SUBMIT_ERROR", f"Configuration introuvable : {CONFIG_FILE}")
@@ -52,8 +56,10 @@ def load_config() -> dict:
         write_log("SUBMIT_ERROR", f"Configuration JSON invalide : {error}")
         sys.exit(1)
 
-
 def find_latest_archive(config: dict) -> Path:
+    """
+    Sélectionne la dernière archive ZIP correspondant à l'examen courant.
+    """
     archive_pattern = f"{config['exam_id']}_{config['student_id']}_{config['machine_id']}_*.zip"
     archives = list(ARCHIVE_DIR.glob(archive_pattern))
 
@@ -65,8 +71,10 @@ def find_latest_archive(config: dict) -> Path:
 
     return max(archives, key=lambda path: path.stat().st_mtime)
 
-
 def send_archive(config: dict, latest_archive: Path) -> dict:
+    """
+    Envoie l'archive ZIP au backend SecureExam.
+    """
     url = f"{SERVER_URL}/submissions"
 
     data = {
@@ -79,7 +87,7 @@ def send_archive(config: dict, latest_archive: Path) -> dict:
     print(f"Envoi vers le backend : {url}")
 
     try:
-        with open(latest_archive, "rb") as file:
+        with latest_archive.open("rb") as file:
             files = {
                 "archive": (latest_archive.name, file, "application/zip")
             }
@@ -134,9 +142,12 @@ def send_archive(config: dict, latest_archive: Path) -> dict:
         write_log("SUBMIT_ERROR", "Réponse serveur JSON invalide")
         sys.exit(1)
 
-
 def write_submission_marker(config: dict, latest_archive: Path, server_response: dict) -> Path:
-    SUBMITTED_DIR.mkdir(exist_ok=True)
+    """
+    Écrit une preuve locale indiquant que l'archive a été envoyée au serveur.
+    Cette preuve est utilisée par system/reset_exam.py pour autoriser le reset.
+    """
+    SUBMITTED_DIR.mkdir(parents=True, exist_ok=True)
 
     marker_file = SUBMITTED_DIR / "last_submission.json"
 
@@ -156,8 +167,6 @@ def write_submission_marker(config: dict, latest_archive: Path, server_response:
     restore_file_owner_for_user(marker_file)
 
     return marker_file
-
-
 
 def archive_already_submitted(config: dict, latest_archive: Path) -> bool:
     """
@@ -181,7 +190,6 @@ def archive_already_submitted(config: dict, latest_archive: Path) -> bool:
         and marker_data.get("archive") == latest_archive.name
     )
 
-
 def main() -> None:
     config = load_config()
     latest_archive = find_latest_archive(config)
@@ -204,7 +212,6 @@ def main() -> None:
     marker_file = write_submission_marker(config, latest_archive, server_response)
 
     print(f"Preuve d'envoi créée : {marker_file}")
-
 
 if __name__ == "__main__":
     main()

@@ -3,14 +3,20 @@ import json
 import os
 import sys
 
-from client_settings import (
+# Racine du client SecureExam :
+# exam-client/
+CLIENT_ROOT = Path(__file__).resolve().parents[1]
+if str(CLIENT_ROOT) not in sys.path:
+    sys.path.insert(0, str(CLIENT_ROOT))
+
+from config.client_settings import (
+    GENERATED_DIR,
     get_config_path,
     get_execution_mode,
     get_runtime_network_policy_path,
     get_workspace_path
 )
-from logger import write_log
-
+from core.logger import write_log
 
 CONFIG_FILE = get_config_path()
 
@@ -19,6 +25,7 @@ ALLOWED_PACKAGES = {
     "gcc",
     "gdb",
     "make",
+    "gnumake",
     "vim",
     "nano",
     "git",
@@ -27,18 +34,17 @@ ALLOWED_PACKAGES = {
     "zip",
     "unzip",
     "node",
-    "nodejs"
+    "nodejs",
+    "nodejs_22"
 }
-
 
 def is_root() -> bool:
     return hasattr(os, "geteuid") and os.geteuid() == 0
 
-
 def check_exam_user_exists() -> tuple[int, int]:
     """
     Vérifie que l'utilisateur Linux/NixOS exam existe.
-    Cette fonction est appelée uniquement en mode réel.
+    Cette fonction est utilisée uniquement en mode réel.
     """
     if os.name == "nt":
         print("Mode réel indisponible sous Windows.")
@@ -56,13 +62,15 @@ def check_exam_user_exists() -> tuple[int, int]:
     except KeyError:
         print("Utilisateur ou groupe exam introuvable.")
         print("En mode réel, applique d'abord la configuration NixOS générée avec :")
-        print("sudo cp generated/exam-configuration.nix /etc/nixos/exam-configuration.nix")
+        print(f"sudo cp {GENERATED_DIR / 'exam-configuration.nix'} /etc/nixos/exam-configuration.nix")
         print("sudo nixos-rebuild test")
         write_log("APPLY_ERROR", "Utilisateur ou groupe exam introuvable en mode réel")
         sys.exit(1)
 
-
 def load_config() -> dict:
+    """
+    Charge la configuration récupérée depuis le backend.
+    """
     if not CONFIG_FILE.exists():
         print(f"Configuration introuvable : {CONFIG_FILE}")
         write_log("APPLY_ERROR", f"Configuration introuvable : {CONFIG_FILE}")
@@ -76,22 +84,27 @@ def load_config() -> dict:
         write_log("APPLY_ERROR", f"Configuration JSON invalide : {error}")
         sys.exit(1)
 
-
 def validate_packages(config: dict) -> None:
-    requested_packages = set(config["packages"])
+    """
+    Vérifie que les paquets demandés appartiennent au catalogue autorisé côté client.
+    """
+    requested_packages = set(config.get("nix_packages", config.get("packages", [])))
     invalid_packages = requested_packages - ALLOWED_PACKAGES
 
     if invalid_packages:
         print("Paquets non autorisés détectés :")
 
-        for package in invalid_packages:
+        for package in sorted(invalid_packages):
             print(f" - {package}")
 
-        write_log("APPLY_ERROR", f"Paquets non autorisés : {list(invalid_packages)}")
+        write_log("APPLY_ERROR", f"Paquets non autorisés : {sorted(invalid_packages)}")
         sys.exit(1)
 
-
 def write_network_policy_simulation(config: dict) -> Path:
+    """
+    En mode simulation, écrit une politique réseau lisible dans var/runtime/.
+    Aucune règle système réelle n'est appliquée ici.
+    """
     network_policy_file = get_runtime_network_policy_path()
     network_policy_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -102,15 +115,19 @@ def write_network_policy_simulation(config: dict) -> Path:
             f"machine_id={config['machine_id']}",
             f"internet={'allowed' if config['internet'] else 'blocked'}",
             f"educ_access={'allowed' if config['educ_access'] else 'blocked'}",
-            "allowed_domains=" + ",".join(config["allowed_domains"])
+            "allowed_domains=" + ",".join(config.get("allowed_domains", []))
         ]),
         encoding="utf-8"
     )
 
     return network_policy_file
 
-
 def prepare_workspace(config: dict, execution_mode: str) -> Path:
+    """
+    Prépare le workspace étudiant.
+    - simulation : var/runtime/home/exam/<student>/workspace
+    - réel : chemin défini par la configuration, sous /home/exam/
+    """
     workspace = get_workspace_path(config)
 
     if execution_mode == "real":
@@ -118,7 +135,7 @@ def prepare_workspace(config: dict, execution_mode: str) -> Path:
             print("Mode réel détecté.")
             print("La préparation du workspace réel nécessite les droits root.")
             print("Relance avec :")
-            print('sudo -E env "PYTHONPATH=$PYTHONPATH" "$(which python3)" start_exam.py')
+            print('sudo -E env "PYTHONPATH=$PYTHONPATH" "$(which python3)" flows/start_exam.py')
             write_log("APPLY_ERROR", "Mode réel lancé sans droits root")
             sys.exit(1)
 
@@ -131,15 +148,18 @@ def prepare_workspace(config: dict, execution_mode: str) -> Path:
     workspace.mkdir(parents=True, exist_ok=True)
     return workspace
 
-
 def write_workspace_files(config: dict, workspace: Path, execution_mode: str) -> None:
+    """
+    Dépose dans le workspace des fichiers de suivi utiles pour l'étudiant,
+    le surveillant ou la phase de diagnostic.
+    """
     metadata_file = workspace / "exam_metadata.json"
     network_policy_file = workspace / "exam_network_policy.json"
 
     network_policy = {
         "internet": "allowed" if config["internet"] else "blocked",
         "educ_access": "allowed" if config["educ_access"] else "blocked",
-        "allowed_domains": config["allowed_domains"],
+        "allowed_domains": config.get("allowed_domains", []),
         "note": (
             "En mode réel, le filtrage réseau strict doit être appliqué par "
             "l'infrastructure NixOS, un proxy, un DNS contrôlé ou une passerelle réseau."
@@ -166,7 +186,6 @@ def write_workspace_files(config: dict, workspace: Path, execution_mode: str) ->
     print(f"Fichier de suivi créé : {metadata_file}")
     print(f"Politique réseau créée : {network_policy_file}")
 
-
 def main() -> None:
     config = load_config()
     execution_mode = get_execution_mode()
@@ -179,7 +198,7 @@ def main() -> None:
 
     print("Paquets autorisés :")
 
-    for package in config["packages"]:
+    for package in config.get("packages", []):
         print(f" - {package}")
 
     workspace = prepare_workspace(config, execution_mode)
@@ -192,14 +211,14 @@ def main() -> None:
     print("Politique réseau :")
     print(f" - Internet autorisé : {config['internet']}")
     print(f" - Accès Educ autorisé : {config['educ_access']}")
-    print(f" - Domaines autorisés : {config['allowed_domains']}")
+    print(f" - Domaines autorisés : {config.get('allowed_domains', [])}")
 
     if execution_mode == "simulation":
         network_policy_file = write_network_policy_simulation(config)
         print(f"Politique réseau simulée créée : {network_policy_file}")
     else:
-        print("Mode réel : la politique réseau système est générée dans generated/network-policy.json")
-        print("et appliquée côté NixOS via /etc/exam/network-policy.json après nixos-rebuild.")
+        print(f"Mode réel : la politique réseau système est générée dans {GENERATED_DIR / 'network-policy.json'}")
+        print("Elle peut ensuite être appliquée avec system/apply_network_rules.py --apply.")
 
     write_workspace_files(config, workspace, execution_mode)
 
@@ -210,7 +229,6 @@ def main() -> None:
         f"Configuration appliquée en mode {execution_mode} pour "
         f"{config['exam_id']} - {config['student_id']} - {config['machine_id']}"
     )
-
 
 if __name__ == "__main__":
     main()

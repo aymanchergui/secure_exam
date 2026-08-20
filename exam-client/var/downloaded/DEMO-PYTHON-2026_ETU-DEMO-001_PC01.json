@@ -1,0 +1,22 @@
+{
+  "exam_id": "DEMO-PYTHON-2026",
+  "student_id": "ETU-DEMO-001",
+  "machine_id": "PC01",
+  "packages": [
+    "nano",
+    "python3"
+  ],
+  "nix_packages": [
+    "nano",
+    "python3"
+  ],
+  "sudo": false,
+  "internet": false,
+  "educ_access": true,
+  "allowed_domains": [
+    "educ.isen.fr"
+  ],
+  "workspace": "/home/exam/workspace",
+  "created_at": "2026-08-20T11:11:58",
+  "updated_at": "2026-08-20T11:11:58"
+}

@@ -1,0 +1,54 @@
+[2026-08-20 11:13:01] [FLOW] Début étape : FETCH
+[2026-08-20 11:13:01] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-20 11:13:01] [FETCH_ERROR] Erreur récupération configuration : HTTP Error 404: Not Found
+[2026-08-20 11:13:01] [FLOW_ERROR] Échec étape : FETCH
+[2026-08-20 11:13:01] [STATUS] FETCH - ERROR - Échec étape : FETCH
+[2026-08-20 11:19:54] [FLOW] Début étape : FETCH
+[2026-08-20 11:19:54] [STATUS] FETCH - RUNNING - Début étape : FETCH
+[2026-08-20 11:19:54] [FETCH] Configuration récupérée : /home/ayman/secure_exam/exam-client/var/downloaded/DEMO-PYTHON-2026_ETU-DEMO-001_PC01.json
+[2026-08-20 11:19:54] [FLOW] Fin étape : FETCH
+[2026-08-20 11:19:54] [STATUS] FETCH - SUCCESS - Fin étape : FETCH
+[2026-08-20 11:19:54] [FLOW] Début étape : GENERATE_NIX
+[2026-08-20 11:19:54] [STATUS] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX
+[2026-08-20 11:19:54] [NIX] Configuration NixOS générée : /home/ayman/secure_exam/exam-client/var/generated/exam-configuration.nix
+[2026-08-20 11:19:54] [NIX] Métadonnées générées : /home/ayman/secure_exam/exam-client/var/generated/exam-metadata.json
+[2026-08-20 11:19:54] [NIX] Politique réseau générée : /home/ayman/secure_exam/exam-client/var/generated/network-policy.json
+[2026-08-20 11:19:54] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-20 11:19:54] [STATUS] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX
+[2026-08-20 11:19:54] [FLOW] Début étape : GENERATE_NETWORK_RULES
+[2026-08-20 11:19:54] [STATUS] GENERATE_NETWORK_RULES - RUNNING - Début étape : GENERATE_NETWORK_RULES
+[2026-08-20 11:19:54] [NETWORK] Règles nftables générées : /home/ayman/secure_exam/exam-client/var/generated/network-rules.nft
+[2026-08-20 11:19:54] [NETWORK] Rapport réseau généré : /home/ayman/secure_exam/exam-client/var/generated/network-policy-report.txt
+[2026-08-20 11:19:54] [FLOW] Fin étape : GENERATE_NETWORK_RULES
+[2026-08-20 11:19:54] [STATUS] GENERATE_NETWORK_RULES - SUCCESS - Fin étape : GENERATE_NETWORK_RULES
+[2026-08-20 11:19:54] [FLOW] Début étape : APPLY
+[2026-08-20 11:19:54] [STATUS] APPLY - RUNNING - Début étape : APPLY
+[2026-08-20 11:19:54] [APPLY] Configuration appliquée en mode simulation pour DEMO-PYTHON-2026 - ETU-DEMO-001 - PC01
+[2026-08-20 11:19:54] [FLOW] Fin étape : APPLY
+[2026-08-20 11:19:54] [STATUS] APPLY - SUCCESS - Fin étape : APPLY
+[2026-08-20 11:19:54] [FLOW] Début étape : STUDENT_WORK
+[2026-08-20 11:19:54] [STATUS] STUDENT_WORK - RUNNING - Début étape : STUDENT_WORK
+[2026-08-20 11:19:54] [STUDENT_WORK] Travail étudiant simulé dans : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-20 11:19:54] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-20 11:19:54] [STATUS] STUDENT_WORK - SUCCESS - Fin étape : STUDENT_WORK
+[2026-08-20 11:19:54] [FLOW] Début étape : BACKUP
+[2026-08-20 11:19:54] [STATUS] BACKUP - RUNNING - Début étape : BACKUP
+[2026-08-20 11:19:54] [BACKUP] Mode : simulation
+[2026-08-20 11:19:54] [BACKUP] Workspace sauvegardé : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-20 11:19:54] [BACKUP] Archive créée : /home/ayman/secure_exam/exam-client/var/archives/DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260820_111954.zip
+[2026-08-20 11:19:54] [FLOW] Fin étape : BACKUP
+[2026-08-20 11:19:54] [STATUS] BACKUP - SUCCESS - Fin étape : BACKUP
+[2026-08-20 11:19:54] [FLOW] Début étape : SUBMIT
+[2026-08-20 11:19:54] [STATUS] SUBMIT - RUNNING - Début étape : SUBMIT
+[2026-08-20 11:19:55] [SUBMIT] Archive envoyée au serveur : /home/ayman/secure_exam/exam-client/var/archives/DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260820_111954.zip
+[2026-08-20 11:19:55] [FLOW] Fin étape : SUBMIT
+[2026-08-20 11:19:55] [STATUS] SUBMIT - SUCCESS - Fin étape : SUBMIT
+[2026-08-20 11:19:55] [FLOW] Début étape : RESET
+[2026-08-20 11:19:55] [STATUS] RESET - RUNNING - Début étape : RESET
+[2026-08-20 11:19:55] [RESET] Rapport de reset créé : /home/ayman/secure_exam/exam-client/var/submitted/last_reset_report.json
+[2026-08-20 11:19:55] [RESET] Mode : simulation
+[2026-08-20 11:19:55] [RESET] Remise à zéro terminée avec succès après confirmation de l'envoi serveur
+[2026-08-20 11:19:55] [FLOW] Fin étape : RESET
+[2026-08-20 11:19:55] [STATUS] RESET - SUCCESS - Fin étape : RESET
+[2026-08-20 11:19:55] [FLOW] Chaîne complète exécutée avec succès
+[2026-08-20 11:19:55] [STATUS] FLOW - SUCCESS - Chaîne complète exécutée avec succès

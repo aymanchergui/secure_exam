@@ -2,13 +2,34 @@ from pathlib import Path
 import json
 import sys
 
-SETTINGS_FILE = Path("client_settings.json")
+CLIENT_ROOT = Path(__file__).resolve().parents[1]
+CONFIG_DIR = CLIENT_ROOT / "config"
+VAR_DIR = CLIENT_ROOT / "var"
+
+DOWNLOAD_DIR = VAR_DIR / "downloaded"
+GENERATED_DIR = VAR_DIR / "generated"
+ARCHIVE_DIR = VAR_DIR / "archives"
+LOG_DIR = VAR_DIR / "logs"
+RUNTIME_DIR = VAR_DIR / "runtime"
+SUBMITTED_DIR = VAR_DIR / "submitted"
+
+SETTINGS_FILE = CONFIG_DIR / "client_settings.json"
 ALLOWED_EXECUTION_MODES = {"simulation", "real"}
 
+for directory in [
+    DOWNLOAD_DIR,
+    GENERATED_DIR,
+    ARCHIVE_DIR,
+    LOG_DIR,
+    RUNTIME_DIR,
+    SUBMITTED_DIR,
+]:
+    directory.mkdir(parents=True, exist_ok=True)
 
 def load_settings() -> dict:
     if not SETTINGS_FILE.exists():
         print(f"Fichier de paramètres introuvable : {SETTINGS_FILE}")
+        print("Le fichier attendu est : config/client_settings.json")
         sys.exit(1)
 
     try:
@@ -17,7 +38,6 @@ def load_settings() -> dict:
         print(f"Fichier de paramètres invalide : {SETTINGS_FILE}")
         print(error)
         sys.exit(1)
-
 
 settings = load_settings()
 
@@ -32,18 +52,14 @@ if EXECUTION_MODE not in ALLOWED_EXECUTION_MODES:
     print("Valeurs autorisées : simulation ou real")
     sys.exit(1)
 
-
 def get_execution_mode() -> str:
     return EXECUTION_MODE
-
 
 def get_config_filename() -> str:
     return f"{EXAM_ID}_{STUDENT_ID}_{MACHINE_ID}.json"
 
-
 def get_config_path() -> Path:
-    return Path("downloaded") / get_config_filename()
-
+    return DOWNLOAD_DIR / get_config_filename()
 
 def get_workspace_path(config: dict) -> Path:
     if EXECUTION_MODE == "real":
@@ -56,8 +72,7 @@ def get_workspace_path(config: dict) -> Path:
 
         return workspace
 
-    return Path("runtime") / "home" / "exam" / config["student_id"] / "workspace"
-
+    return RUNTIME_DIR / "home" / "exam" / config["student_id"] / "workspace"
 
 def get_runtime_network_policy_path() -> Path:
-    return Path("runtime") / "system" / "network_policy.txt"
+    return RUNTIME_DIR / "system" / "network_policy.txt"

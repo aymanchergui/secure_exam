@@ -1,0 +1,10 @@
+{
+  "exam_id": "DEMO-PYTHON-2026",
+  "student_id": "ETU-DEMO-001",
+  "machine_id": "PC01",
+  "archive": "DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260820_111954.zip",
+  "server_response": {
+    "message": "Archive reçue et enregistrée en base avec succès",
+    "file": "DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260820_111954.zip"
+  }
+}

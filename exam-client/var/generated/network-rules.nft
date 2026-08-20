@@ -1,0 +1,39 @@
+#!/usr/sbin/nft -f
+
+# Règles réseau générées automatiquement par ISEN SecureExam
+# Date génération : 2026-08-20T11:19:54
+# Internet        : blocked
+# Educ            : allowed
+# Attention       : le filtrage par domaine nécessite DNS/proxy contrôlé ou résolution IP.
+
+table inet secure_exam {
+  set allowed_ipv4 {
+    type ipv4_addr
+    flags interval
+    # Liste blanche IP vide : aucun domaine résolu.
+  }
+
+  chain output {
+    type filter hook output priority 0;
+    policy drop;
+
+    # Boucle locale : nécessaire pour les services locaux de la machine.
+    oifname "lo" accept
+
+    # Connexions déjà établies.
+    ct state established,related accept
+
+    # DNS : nécessaire si l'infrastructure autorise une résolution contrôlée.
+    udp dport 53 accept
+    tcp dport 53 accept
+
+    # DHCP : utile si la machine reçoit son adresse automatiquement.
+    udp sport 68 udp dport 67 accept
+
+    # Domaines autorisés convertis en adresses IPv4 au moment de la génération.
+    ip daddr @allowed_ipv4 accept
+
+    # Accès Educ : à adapter selon l'infrastructure DSI.
+    # Dans une version école, ce bloc peut pointer vers les IP/VLAN/proxy Educ.
+  }
+}

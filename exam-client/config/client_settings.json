@@ -1,0 +1,8 @@
+{
+  "server_url": "http://127.0.0.1:8000",
+  "exam_id": "DEMO-PYTHON-2026",
+  "student_id": "ETU-DEMO-001",
+  "machine_id": "PC01",
+  "workspace": "/home/exam/workspace",
+  "execution_mode": "simulation"
+}
