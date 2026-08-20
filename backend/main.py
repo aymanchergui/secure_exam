@@ -49,7 +49,7 @@ SUBMISSION_DIR.mkdir(exist_ok=True)
 PROFILE_DIR = BASE_DIR / "profile"
 PROFILE_DIR.mkdir(exist_ok=True)
 
-NIXOS_CONFIG_FILE = PROJECT_DIR / "exam-client" / "generated" / "exam-configuration.nix"
+NIXOS_CONFIG_FILE = PROJECT_DIR / "exam-client" / "var" / "generated" / "exam-configuration.nix"
 
 
 def get_required_env(name: str) -> str:
@@ -941,21 +941,6 @@ def ensure_teacher_profile_scope():
     current_time = now_iso()
 
     cursor.execute("""
-        SELECT
-            full_name,
-            email,
-            role,
-            department,
-            school,
-            photo_path
-        FROM teacher_profile
-        WHERE id = 1
-        LIMIT 1
-    """)
-
-    old_profile = cursor.fetchone()
-
-    cursor.execute("""
         SELECT id, username
         FROM teachers
         WHERE is_active = 1
@@ -979,21 +964,6 @@ def ensure_teacher_profile_scope():
         if existing_profile is not None:
             continue
 
-        if teacher["id"] == 1 and old_profile is not None:
-            full_name = old_profile["full_name"]
-            email = old_profile["email"]
-            role = old_profile["role"]
-            department = old_profile["department"]
-            school = old_profile["school"]
-            photo_path = old_profile["photo_path"] or ""
-        else:
-            full_name = teacher["username"]
-            email = f"{teacher['username']}@isen.fr"
-            role = "Enseignant"
-            department = "Département informatique"
-            school = "ISEN"
-            photo_path = ""
-
         cursor.execute("""
             INSERT INTO teacher_profiles (
                 teacher_id,
@@ -1009,12 +979,12 @@ def ensure_teacher_profile_scope():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             teacher["id"],
-            full_name,
-            email,
-            role,
-            department,
-            school,
-            photo_path,
+            teacher["username"],
+            f"{teacher['username']}@isen.fr",
+            "Enseignant",
+            "Département informatique",
+            "ISEN",
+            "",
             current_time,
             current_time
         ))
@@ -1993,7 +1963,7 @@ def get_database_stats(current_teacher: dict = Depends(get_current_teacher)):
 
     tables = {
         "teachers": "Enseignants",
-        "teacher_profile": "Profil professeur",
+        "teacher_profiles": "Profils professeurs",
         "package_catalog": "Catalogue logiciels",
         "support_requests": "Demandes support",
         "exam_configs": "Configurations d'examen",
