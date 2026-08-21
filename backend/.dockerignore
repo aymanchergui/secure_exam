@@ -1,0 +1,17 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+database/*.db-*
+
+submissions/
+profile/
+
+*.bak*
+backup/
