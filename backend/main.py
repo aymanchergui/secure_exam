@@ -3159,6 +3159,7 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
     machine_rows = cursor.fetchall()
     connection.close()
+    
 
     machine_statuses = []
 

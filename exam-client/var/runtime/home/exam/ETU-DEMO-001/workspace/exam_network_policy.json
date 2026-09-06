@@ -1,0 +1,8 @@
+{
+  "internet": "blocked",
+  "educ_access": "allowed",
+  "allowed_domains": [
+    "educ.isen.fr"
+  ],
+  "note": "En mode réel, le filtrage réseau strict doit être appliqué par l'infrastructure NixOS, un proxy, un DNS contrôlé ou une passerelle réseau."
+}

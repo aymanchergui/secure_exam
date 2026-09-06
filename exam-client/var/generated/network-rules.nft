@@ -1,7 +1,7 @@
 #!/usr/sbin/nft -f
 
 # Règles réseau générées automatiquement par ISEN SecureExam
-# Date génération : 2026-08-20T11:19:54
+# Date génération : 2026-08-28T17:57:39
 # Internet        : blocked
 # Educ            : allowed
 # Attention       : le filtrage par domaine nécessite DNS/proxy contrôlé ou résolution IP.

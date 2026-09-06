@@ -145,6 +145,12 @@ type LucideWindow = Window & {
   styleUrl: './app.css'
 })
 export class App implements OnInit, AfterViewInit {
+
+  showCreateConfigConfirmModal = false;
+  pendingCreateConfigPreview: any = {};
+
+
+
   dashboard?: Dashboard;
 
   selectedConfig?: ExamConfigDetail;
@@ -1150,7 +1156,9 @@ export class App implements OnInit, AfterViewInit {
     return fallback;
   }
 
-  createConfig(): void {
+
+
+  executeCreateConfig(): void {
     this.error = '';
     this.success = '';
 
@@ -1840,6 +1848,452 @@ export class App implements OnInit, AfterViewInit {
 
   getPackagePaginationEnd(): number {
     return Math.min(this.packagePage * this.packagePageSize, this.displayedPackages.length);
+  }
+
+
+
+  createConfig(): void {
+    this.openCreateConfigConfirmation();
+  }
+
+
+  openCreateConfigConfirmation(formValue?: any): void {
+    this.pendingCreateConfigPreview = this.getCreateConfigSnapshot(formValue);
+    this.showCreateConfigConfirmModal = true;
+    this.refreshCreateConfigModalIcons();
+    (this as any).refreshView?.();
+  }
+
+  closeCreateConfigConfirmation(): void {
+    this.showCreateConfigConfirmModal = false;
+    this.pendingCreateConfigPreview = {};
+    (this as any).refreshView?.();
+  }
+
+  confirmCreateConfigCreation(): void {
+    this.showCreateConfigConfirmModal = false;
+    (this as any).refreshView?.();
+    this.executeCreateConfig();
+  }
+
+  refreshCreateConfigModalIcons(): void {
+    setTimeout(() => {
+      (window as any).lucide?.createIcons?.();
+    }, 50);
+  }
+
+  getCreateConfigPreviewValue(...keys: string[]): string {
+    for (const key of keys) {
+      const value = this.pendingCreateConfigPreview?.[key];
+
+      if (Array.isArray(value) && value.length > 0) {
+        return value.join(', ');
+      }
+
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        return String(value).trim();
+      }
+    }
+
+    return 'Non renseigné';
+  }
+
+  getCreateConfigPreviewBoolean(...keys: string[]): string {
+    for (const key of keys) {
+      const value = this.pendingCreateConfigPreview?.[key];
+
+      if (value === true || value === 'true' || value === 'on' || value === '1') {
+        return 'Oui';
+      }
+
+      if (value === false || value === 'false' || value === undefined || value === null || value === '') {
+        return 'Non';
+      }
+    }
+
+    return 'Non';
+  }
+
+  getCreateConfigPreviewDomainsList(): string[] {
+    const raw =
+      this.pendingCreateConfigPreview?.allowed_domains ??
+      this.pendingCreateConfigPreview?.allowedDomains ??
+      this.pendingCreateConfigPreview?.authorized_domains ??
+      this.pendingCreateConfigPreview?.domains ??
+      this.pendingCreateConfigPreview?.domain ??
+      this.pendingCreateConfigPreview?.domaines ??
+      this.pendingCreateConfigPreview?.domaines_autorises ??
+      this.getCreateConfigDomainInputFromDom();
+
+    if (Array.isArray(raw)) {
+      return raw
+        .map((item: any) => String(item).trim())
+        .filter(Boolean);
+    }
+
+    return String(raw || '')
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  getCreateConfigPreviewDomains(): string {
+    const domains = this.getCreateConfigPreviewDomainsList();
+    return domains.length ? domains.join(', ') : 'Aucun domaine';
+  }
+
+
+
+  getCreateConfigDomainInputFromDom(): string {
+    const normalize = (value: string): string => {
+      return String(value || '').trim();
+    };
+
+    const isValidDomainValue = (value: string): boolean => {
+      const cleanValue = normalize(value);
+
+      if (!cleanValue) {
+        return false;
+      }
+
+      const lower = cleanValue.toLowerCase();
+
+      if (
+        lower.startsWith('exam-') ||
+        lower.includes('/home/exam') ||
+        lower.startsWith('etu') ||
+        lower.startsWith('pc')
+      ) {
+        return false;
+      }
+
+      return true;
+    };
+
+    const getFieldValue = (field: Element | null): string => {
+      const input = field as HTMLInputElement | HTMLTextAreaElement | null;
+      const value = normalize(input?.value || '');
+      return isValidDomainValue(value) ? value : '';
+    };
+
+    const labels = Array.from(document.querySelectorAll('label'));
+
+    for (const label of labels) {
+      const labelText = normalize(label.textContent || '').toLowerCase();
+
+      if (
+        labelText.includes('domaines autorisés') ||
+        labelText.includes('domaines autorises') ||
+        labelText.includes('domaine') ||
+        labelText.includes('domain')
+      ) {
+        const htmlFor = label.getAttribute('for');
+
+        if (htmlFor) {
+          const linkedField = document.getElementById(htmlFor);
+          const linkedValue = getFieldValue(linkedField);
+
+          if (linkedValue) {
+            return linkedValue;
+          }
+        }
+
+        let sibling = label.nextElementSibling;
+        let safety = 0;
+
+        while (sibling && safety < 6) {
+          const directValue = getFieldValue(sibling);
+
+          if (directValue) {
+            return directValue;
+          }
+
+          const nestedField = sibling.querySelector('input, textarea');
+          const nestedValue = getFieldValue(nestedField);
+
+          if (nestedValue) {
+            return nestedValue;
+          }
+
+          sibling = sibling.nextElementSibling;
+          safety += 1;
+        }
+
+        const parent = label.parentElement;
+        const parentFields = Array.from(parent?.querySelectorAll('input, textarea') || []);
+
+        for (const field of parentFields) {
+          const relation = label.compareDocumentPosition(field);
+
+          if (relation & Node.DOCUMENT_POSITION_FOLLOWING) {
+            const value = getFieldValue(field);
+
+            if (value) {
+              return value;
+            }
+          }
+        }
+      }
+    }
+
+    const preciseSelectors = [
+      'input[name="allowed_domains"]',
+      'textarea[name="allowed_domains"]',
+      'input[name="allowedDomains"]',
+      'textarea[name="allowedDomains"]',
+      'input[name="authorized_domains"]',
+      'textarea[name="authorized_domains"]',
+      'input[name="domains"]',
+      'textarea[name="domains"]',
+      'input[name="domaines"]',
+      'textarea[name="domaines"]',
+      'input[name="domaines_autorises"]',
+      'textarea[name="domaines_autorises"]',
+      'input[ng-reflect-name="allowed_domains"]',
+      'textarea[ng-reflect-name="allowed_domains"]',
+      'input[ng-reflect-name="domains"]',
+      'textarea[ng-reflect-name="domains"]',
+      'input[placeholder*="domaine" i]',
+      'textarea[placeholder*="domaine" i]',
+      'input[placeholder*="domain" i]',
+      'textarea[placeholder*="domain" i]'
+    ];
+
+    for (const selector of preciseSelectors) {
+      const field = document.querySelector(selector);
+      const value = getFieldValue(field);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+
+
+  findCreateConfigPackageDetails(packageValue: any): any {
+    const rawName =
+      typeof packageValue === 'string'
+        ? packageValue
+        : (
+            packageValue?.nixName ??
+            packageValue?.nix_name ??
+            packageValue?.name ??
+            packageValue?.displayName ??
+            packageValue?.display_name ??
+            packageValue?.package ??
+            ''
+          );
+
+    const cleanName = String(rawName || '').trim().toLowerCase();
+
+    const catalogs = [
+      (this as any).packageCatalog,
+      (this as any).packages,
+      (this as any).availablePackages,
+      (this as any).catalogPackages,
+      (this as any).filteredPackages,
+      (this as any).paginatedPackages,
+      (this as any).activePackages,
+      (this as any).dashboard?.packages
+    ];
+
+    const flatCatalog = catalogs
+      .filter(Array.isArray)
+      .flat();
+
+    if (!cleanName) {
+      return typeof packageValue === 'object' ? packageValue : {};
+    }
+
+    const found = flatCatalog.find((item: any) => {
+      const candidates = [
+        item?.nixName,
+        item?.nix_name,
+        item?.name,
+        item?.displayName,
+        item?.display_name,
+        item?.package
+      ].map((value) => String(value || '').trim().toLowerCase());
+
+      return candidates.includes(cleanName);
+    });
+
+    return found || (typeof packageValue === 'object' ? packageValue : { nixName: rawName, name: rawName });
+  }
+
+  getCreateConfigPackageDisplayName(packageValue: any): string {
+    const details = this.findCreateConfigPackageDetails(packageValue);
+
+    return String(
+      details?.displayName ??
+      details?.display_name ??
+      details?.label ??
+      details?.title ??
+      details?.name ??
+      details?.nixName ??
+      details?.nix_name ??
+      packageValue ??
+      'Paquet'
+    ).trim();
+  }
+
+  getCreateConfigPackageVersionLabel(packageValue: any): string {
+    const details = this.findCreateConfigPackageDetails(packageValue);
+
+    const nixName = String(
+      details?.nixName ??
+      details?.nix_name ??
+      details?.name ??
+      packageValue ??
+      ''
+    ).trim();
+
+    const versionMap = (this as any).packageVersionByNixName || {};
+
+    const version =
+      details?.version ??
+      details?.packageVersion ??
+      details?.package_version ??
+      details?.latestVersion ??
+      details?.latest_version ??
+      versionMap[nixName] ??
+      versionMap[nixName.toLowerCase()] ??
+      '';
+
+    const cleanVersion = String(version || '').trim();
+
+    return cleanVersion || 'Non renseignée';
+  }
+
+  getCreateConfigPreviewPackagesList(): Array<{ displayName: string; nixName: string; version: string }> {
+    const possibleLists = [
+      this.pendingCreateConfigPreview?.packages,
+      (this as any).selectedPackages,
+      (this as any).selectedPackageNames,
+      (this as any).newConfig?.packages,
+      (this as any).config?.packages,
+      (this as any).examConfig?.packages,
+      (this as any).currentConfig?.packages
+    ];
+
+    let selectedPackages: any[] = [];
+
+    for (const list of possibleLists) {
+      if (Array.isArray(list) && list.length > 0) {
+        selectedPackages = list;
+        break;
+      }
+    }
+
+    const normalized = selectedPackages
+      .map((packageValue: any) => {
+        const details = this.findCreateConfigPackageDetails(packageValue);
+
+        const nixName = String(
+          details?.nixName ??
+          details?.nix_name ??
+          details?.name ??
+          packageValue ??
+          ''
+        ).trim();
+
+        return {
+          displayName: this.getCreateConfigPackageDisplayName(packageValue),
+          nixName: nixName || this.getCreateConfigPackageDisplayName(packageValue),
+          version: this.getCreateConfigPackageVersionLabel(packageValue)
+        };
+      })
+      .filter((item) => item.displayName && item.displayName !== 'Paquet');
+
+    const seen = new Set<string>();
+
+    return normalized.filter((item) => {
+      const key = `${item.displayName}|${item.nixName}`.toLowerCase();
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }
+
+  getSelectedPackagesCountForPreview(): number {
+    return this.getCreateConfigPreviewPackagesList().length;
+  }
+
+  getCreateConfigSnapshot(formValue?: any): any {
+    const sources = [
+      formValue,
+      (this as any).newConfig,
+      (this as any).config,
+      (this as any).examConfig,
+      (this as any).currentConfig,
+      (this as any)
+    ].filter(Boolean);
+
+    const pick = (...keys: string[]): any => {
+      for (const source of sources) {
+        for (const key of keys) {
+          const value = source?.[key];
+
+          if (Array.isArray(value) && value.length > 0) {
+            return value;
+          }
+
+          if (typeof value === 'boolean') {
+            return value;
+          }
+
+          if (value !== undefined && value !== null && String(value).trim() !== '') {
+            return value;
+          }
+        }
+      }
+
+      return '';
+    };
+
+    const domainsFromDom =
+      typeof this.getCreateConfigDomainInputFromDom === 'function'
+        ? this.getCreateConfigDomainInputFromDom()
+        : '';
+
+    const domainFromData = pick(
+      'allowed_domains',
+      'allowedDomains',
+      'authorized_domains',
+      'authorizedDomains',
+      'domains',
+      'domain',
+      'domaines',
+      'domaines_autorises',
+      'allowedDomainsInput',
+      'allowedDomainsText',
+      'domainsInput',
+      'domainsText'
+    );
+
+    const packages =
+      pick('packages', 'selectedPackages', 'selected_packages') ||
+      (this as any).selectedPackages ||
+      [];
+
+    return {
+      exam_id: pick('exam_id', 'examId', 'exam'),
+      student_id: pick('student_id', 'studentId', 'student'),
+      machine_id: pick('machine_id', 'machineId', 'machine'),
+      workspace: pick('workspace'),
+      sudo: pick('sudo', 'sudo_allowed', 'sudoAllowed'),
+      internet: pick('internet', 'internet_allowed', 'internetAllowed'),
+      educ_access: pick('educ_access', 'educAccess', 'educ', 'educ_enabled'),
+      allowed_domains: domainsFromDom || domainFromData || '',
+      packages: Array.isArray(packages) ? packages : []
+    };
   }
 
 }

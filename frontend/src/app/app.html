@@ -392,7 +392,7 @@
           <input [(ngModel)]="newConfig.allowed_domains_text" type="text">
         </label>
 
-        <button class="btn-create-action" type="button" (click)="createConfig()">
+        <button class="btn-create-action" type="button" (click)="openCreateConfigConfirmation()">
           <i data-lucide="plus" class="btn-icon"></i>
           Créer la configuration
         </button>
@@ -860,3 +860,240 @@
     </div>
   </div>
 </div>
+
+<!-- Confirmation création configuration -->
+<div
+  class="create-config-modal-backdrop"
+  *ngIf="showCreateConfigConfirmModal"
+  (click)="closeCreateConfigConfirmation()"
+>
+  <div class="create-config-modal" (click)="$event.stopPropagation()">
+    <div class="create-config-modal-header">
+      <div class="create-config-modal-icon">
+        <i data-lucide="shield-check"></i>
+      </div>
+
+      <div>
+        <h2>Confirmer la création</h2>
+        <p>Vérifiez les informations avant de générer la configuration d'examen.</p>
+      </div>
+
+      <button type="button" class="create-config-modal-close" (click)="closeCreateConfigConfirmation()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="create-config-summary-grid">
+      <div class="create-config-summary-item">
+        <span>Examen</span>
+        <strong>{{ getCreateConfigPreviewValue('exam_id', 'examId', 'exam') }}</strong>
+      </div>
+
+      <div class="create-config-summary-item">
+        <span>Étudiant</span>
+        <strong>{{ getCreateConfigPreviewValue('student_id', 'studentId', 'student') }}</strong>
+      </div>
+
+      <div class="create-config-summary-item">
+        <span>Machine</span>
+        <strong>{{ getCreateConfigPreviewValue('machine_id', 'machineId', 'machine') }}</strong>
+      </div>
+
+      <div class="create-config-summary-item">
+        <span>Workspace</span>
+        <strong>{{ getCreateConfigPreviewValue('workspace') }}</strong>
+      </div>
+    </div>
+
+    <div class="create-config-options-summary">
+      <div class="create-config-option-pill">
+        <span>Sudo</span>
+        <strong>{{ getCreateConfigPreviewBoolean('sudo', 'sudo_allowed', 'sudoAllowed') }}</strong>
+      </div>
+
+      <div class="create-config-option-pill">
+        <span>Internet</span>
+        <strong>{{ getCreateConfigPreviewBoolean('internet', 'internet_allowed', 'internetAllowed') }}</strong>
+      </div>
+
+      <div class="create-config-option-pill">
+        <span>Educ</span>
+        <strong>{{ getCreateConfigPreviewBoolean('educ_access', 'educAccess') }}</strong>
+      </div>
+
+      <div class="create-config-option-pill">
+        <span>Paquets</span>
+        <strong>{{ getSelectedPackagesCountForPreview() }}</strong>
+      </div>
+    </div>
+
+    <div class="create-config-domains-box">
+      <span>Domaines autorisés</span>
+      <strong>{{ getCreateConfigPreviewDomains() }}</strong>
+    </div>
+
+    <div class="create-config-warning">
+      <i data-lucide="info"></i>
+      <span>Après confirmation, la configuration sera enregistrée et disponible pour la machine d'examen.</span>
+    </div>
+
+    <div class="create-config-modal-actions">
+      <button type="button" class="create-config-cancel-black-final create-config-cancel-btn" (click)="closeCreateConfigConfirmation()">
+        Annuler
+      </button>
+
+      <button type="button" class="create-config-confirm-btn" (click)="confirmCreateConfigCreation()">
+        <i data-lucide="check"></i>
+        Confirmer la création
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation création configuration -->
+<div
+  class="create-config-modal-backdrop"
+  *ngIf="showCreateConfigConfirmModal"
+  (click)="closeCreateConfigConfirmation()"
+>
+  <div class="create-config-modal" (click)="$event.stopPropagation()">
+    <div class="create-config-modal-header">
+      <div class="create-config-modal-heading">
+        <div class="create-config-modal-icon">
+          <i data-lucide="shield-check"></i>
+        </div>
+
+        <div>
+          <h2>Confirmer la création</h2>
+          <p>Vérifiez les informations avant de générer la configuration d'examen.</p>
+        </div>
+      </div>
+
+      <button type="button" class="create-config-modal-close" (click)="closeCreateConfigConfirmation()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="create-config-modal-body">
+      <div class="create-config-summary-grid">
+        <div class="create-config-summary-item">
+          <span>Examen</span>
+          <strong>{{ getCreateConfigPreviewValue('exam_id', 'examId', 'exam') }}</strong>
+        </div>
+
+        <div class="create-config-summary-item">
+          <span>Étudiant</span>
+          <strong>{{ getCreateConfigPreviewValue('student_id', 'studentId', 'student') }}</strong>
+        </div>
+
+        <div class="create-config-summary-item">
+          <span>Machine</span>
+          <strong>{{ getCreateConfigPreviewValue('machine_id', 'machineId', 'machine') }}</strong>
+        </div>
+
+        <div class="create-config-summary-item">
+          <span>Workspace</span>
+          <strong>{{ getCreateConfigPreviewValue('workspace') }}</strong>
+        </div>
+      </div>
+
+      <div class="create-config-options-summary">
+        <div class="create-config-option-pill">
+          <div class="create-config-option-icon">
+            <i data-lucide="shield"></i>
+          </div>
+          <span>Sudo</span>
+          <strong>{{ getCreateConfigPreviewBoolean('sudo', 'sudo_allowed', 'sudoAllowed') }}</strong>
+        </div>
+
+        <div class="create-config-option-pill">
+          <div class="create-config-option-icon">
+            <i data-lucide="globe"></i>
+          </div>
+          <span>Internet</span>
+          <strong>{{ getCreateConfigPreviewBoolean('internet', 'internet_allowed', 'internetAllowed') }}</strong>
+        </div>
+
+        <div class="create-config-option-pill">
+          <div class="create-config-option-icon">
+            <i data-lucide="graduation-cap"></i>
+          </div>
+          <span>Educ</span>
+          <strong>{{ getCreateConfigPreviewBoolean('educ_access', 'educAccess', 'educ', 'educ_enabled') }}</strong>
+        </div>
+
+        <div class="create-config-option-pill">
+          <div class="create-config-option-icon">
+            <i data-lucide="package"></i>
+          </div>
+          <span>Paquets</span>
+          <strong>{{ getSelectedPackagesCountForPreview() }}</strong>
+        </div>
+      </div>
+
+
+      <div class="create-config-packages-box">
+        <div class="create-config-packages-header">
+          <span>Paquets choisis</span>
+          <strong>{{ getCreateConfigPreviewPackagesList().length }} paquet(s)</strong>
+        </div>
+
+        <ng-container *ngIf="getCreateConfigPreviewPackagesList().length > 0; else noCreateConfigPackage">
+          <div class="create-config-package-list">
+            <div class="create-config-package-chip" *ngFor="let packageItem of getCreateConfigPreviewPackagesList()">
+              <div class="create-config-package-icon">
+                <i data-lucide="package-check"></i>
+              </div>
+
+              <div class="create-config-package-info">
+                <strong>{{ packageItem.displayName }}</strong>
+                <span>NixOS : {{ packageItem.nixName }}</span>
+                <span>Version : {{ packageItem.version }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #noCreateConfigPackage>
+          <div class="create-config-empty-packages">
+            Aucun paquet sélectionné
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="create-config-domains-box">
+        <span>Domaines autorisés</span>
+
+        <ng-container *ngIf="getCreateConfigPreviewDomainsList().length > 0; else noCreateConfigDomain">
+          <div class="create-config-domain-list">
+            <span class="create-config-domain-chip" *ngFor="let domain of getCreateConfigPreviewDomainsList()">
+              <i data-lucide="globe-2"></i>
+              {{ domain }}
+            </span>
+          </div>
+        </ng-container>
+
+        <ng-template #noCreateConfigDomain>
+          <strong>Aucun domaine</strong>
+        </ng-template>
+      </div>
+
+      <div class="create-config-warning">
+        <i data-lucide="info"></i>
+        <span>Après confirmation, la configuration sera enregistrée et disponible pour la machine d'examen.</span>
+      </div>
+    </div>
+
+    <div class="create-config-modal-actions">
+      <button type="button" class="create-config-cancel-black-final create-config-cancel-btn" (click)="closeCreateConfigConfirmation()">
+        Annuler
+      </button>
+
+      <button type="button" class="create-config-confirm-btn" (click)="confirmCreateConfigCreation()">
+        <i data-lucide="check"></i>
+        Confirmer la création
+      </button>
+    </div>
+  </div>
+</div>
+

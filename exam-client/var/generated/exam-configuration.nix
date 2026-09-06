@@ -7,7 +7,7 @@
 # Examen   : DEMO-PYTHON-2026
 # Étudiant : ETU-DEMO-001
 # Machine  : PC01
-# Générée  : 2026-08-20 11:19:54
+# Générée  : 2026-08-28 17:57:39
 #
 # Ce fichier traduit les choix de l'enseignant en configuration système NixOS.
 # Il peut être importé dans /etc/nixos/configuration.nix sur une machine cible.
@@ -139,7 +139,7 @@ in
   "allowed_domains": [
     "educ.isen.fr"
   ],
-  "generated_at": "2026-08-20 11:19:54"
+  "generated_at": "2026-08-28 17:57:39"
 }
   '';
 }

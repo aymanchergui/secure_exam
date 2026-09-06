@@ -52,3 +52,53 @@
 [2026-08-20 11:19:55] [STATUS] RESET - SUCCESS - Fin étape : RESET
 [2026-08-20 11:19:55] [FLOW] Chaîne complète exécutée avec succès
 [2026-08-20 11:19:55] [STATUS] FLOW - SUCCESS - Chaîne complète exécutée avec succès
+[2026-08-28 17:47:45] [FETCH] Configuration récupérée : /home/ayman/secure_exam/exam-client/var/downloaded/DEMO-PYTHON-2026_ETU-DEMO-001_PC01.json
+[2026-08-28 17:48:38] [NIX] Configuration NixOS générée : /home/ayman/secure_exam/exam-client/var/generated/exam-configuration.nix
+[2026-08-28 17:48:38] [NIX] Métadonnées générées : /home/ayman/secure_exam/exam-client/var/generated/exam-metadata.json
+[2026-08-28 17:48:38] [NIX] Politique réseau générée : /home/ayman/secure_exam/exam-client/var/generated/network-policy.json
+[2026-08-28 17:50:01] [NETWORK] Règles nftables générées : /home/ayman/secure_exam/exam-client/var/generated/network-rules.nft
+[2026-08-28 17:50:01] [NETWORK] Rapport réseau généré : /home/ayman/secure_exam/exam-client/var/generated/network-policy-report.txt
+[2026-08-28 17:53:50] [APPLY] Configuration appliquée en mode simulation pour DEMO-PYTHON-2026 - ETU-DEMO-001 - PC01
+[2026-08-28 17:54:28] [STUDENT_WORK] Travail étudiant simulé dans : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-28 17:54:52] [BACKUP] Mode : simulation
+[2026-08-28 17:54:52] [BACKUP] Workspace sauvegardé : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-28 17:54:52] [BACKUP] Archive créée : /home/ayman/secure_exam/exam-client/var/archives/DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260828_175452.zip
+[2026-08-28 17:57:39] [FLOW] Début étape : FETCH
+[2026-08-28 17:57:39] [STATUS_SKIPPED] FETCH - RUNNING - Début étape : FETCH | module requests absent
+[2026-08-28 17:57:39] [FETCH] Configuration récupérée : /home/ayman/secure_exam/exam-client/var/downloaded/DEMO-PYTHON-2026_ETU-DEMO-001_PC01.json
+[2026-08-28 17:57:39] [FLOW] Fin étape : FETCH
+[2026-08-28 17:57:39] [STATUS_SKIPPED] FETCH - SUCCESS - Fin étape : FETCH | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : GENERATE_NIX
+[2026-08-28 17:57:39] [STATUS_SKIPPED] GENERATE_NIX - RUNNING - Début étape : GENERATE_NIX | module requests absent
+[2026-08-28 17:57:39] [NIX] Configuration NixOS générée : /home/ayman/secure_exam/exam-client/var/generated/exam-configuration.nix
+[2026-08-28 17:57:39] [NIX] Métadonnées générées : /home/ayman/secure_exam/exam-client/var/generated/exam-metadata.json
+[2026-08-28 17:57:39] [NIX] Politique réseau générée : /home/ayman/secure_exam/exam-client/var/generated/network-policy.json
+[2026-08-28 17:57:39] [FLOW] Fin étape : GENERATE_NIX
+[2026-08-28 17:57:39] [STATUS_SKIPPED] GENERATE_NIX - SUCCESS - Fin étape : GENERATE_NIX | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : GENERATE_NETWORK_RULES
+[2026-08-28 17:57:39] [STATUS_SKIPPED] GENERATE_NETWORK_RULES - RUNNING - Début étape : GENERATE_NETWORK_RULES | module requests absent
+[2026-08-28 17:57:39] [NETWORK] Règles nftables générées : /home/ayman/secure_exam/exam-client/var/generated/network-rules.nft
+[2026-08-28 17:57:39] [NETWORK] Rapport réseau généré : /home/ayman/secure_exam/exam-client/var/generated/network-policy-report.txt
+[2026-08-28 17:57:39] [FLOW] Fin étape : GENERATE_NETWORK_RULES
+[2026-08-28 17:57:39] [STATUS_SKIPPED] GENERATE_NETWORK_RULES - SUCCESS - Fin étape : GENERATE_NETWORK_RULES | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : APPLY
+[2026-08-28 17:57:39] [STATUS_SKIPPED] APPLY - RUNNING - Début étape : APPLY | module requests absent
+[2026-08-28 17:57:39] [APPLY] Configuration appliquée en mode simulation pour DEMO-PYTHON-2026 - ETU-DEMO-001 - PC01
+[2026-08-28 17:57:39] [FLOW] Fin étape : APPLY
+[2026-08-28 17:57:39] [STATUS_SKIPPED] APPLY - SUCCESS - Fin étape : APPLY | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : STUDENT_WORK
+[2026-08-28 17:57:39] [STATUS_SKIPPED] STUDENT_WORK - RUNNING - Début étape : STUDENT_WORK | module requests absent
+[2026-08-28 17:57:39] [STUDENT_WORK] Travail étudiant simulé dans : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-28 17:57:39] [FLOW] Fin étape : STUDENT_WORK
+[2026-08-28 17:57:39] [STATUS_SKIPPED] STUDENT_WORK - SUCCESS - Fin étape : STUDENT_WORK | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : BACKUP
+[2026-08-28 17:57:39] [STATUS_SKIPPED] BACKUP - RUNNING - Début étape : BACKUP | module requests absent
+[2026-08-28 17:57:39] [BACKUP] Mode : simulation
+[2026-08-28 17:57:39] [BACKUP] Workspace sauvegardé : /home/ayman/secure_exam/exam-client/var/runtime/home/exam/ETU-DEMO-001/workspace
+[2026-08-28 17:57:39] [BACKUP] Archive créée : /home/ayman/secure_exam/exam-client/var/archives/DEMO-PYTHON-2026_ETU-DEMO-001_PC01_20260828_175739.zip
+[2026-08-28 17:57:39] [FLOW] Fin étape : BACKUP
+[2026-08-28 17:57:39] [STATUS_SKIPPED] BACKUP - SUCCESS - Fin étape : BACKUP | module requests absent
+[2026-08-28 17:57:39] [FLOW] Début étape : SUBMIT
+[2026-08-28 17:57:39] [STATUS_SKIPPED] SUBMIT - RUNNING - Début étape : SUBMIT | module requests absent
+[2026-08-28 17:57:39] [FLOW_ERROR] Échec étape : SUBMIT
+[2026-08-28 17:57:39] [STATUS_SKIPPED] SUBMIT - ERROR - Échec étape : SUBMIT | module requests absent
