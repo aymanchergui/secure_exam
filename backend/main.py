@@ -8,7 +8,7 @@ import ssl
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import jwt
 from dotenv import load_dotenv
@@ -53,6 +53,10 @@ NIXOS_GENERATED_DIR = PROJECT_DIR / "exam-client" / "var" / "generated"
 NIXOS_CONFIG_FILE = NIXOS_GENERATED_DIR / "exam-configuration.nix"
 NIXOS_METADATA_FILE = NIXOS_GENERATED_DIR / "exam-metadata.json"
 
+GLOBAL_STUDENT_ID = "GLOBAL"
+GLOBAL_MACHINE_ID = "ALL_MACHINES"
+GLOBAL_WORKSPACE = "/home/exam/workspace"
+
 
 def get_required_env(name: str) -> str:
     value = os.getenv(name)
@@ -65,14 +69,14 @@ def get_required_env(name: str) -> str:
     return value
 
 
-SECRET_KEY = get_required_env("JWT_SECRET_KEY")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "secureexam-dev-secret-key-2026")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "120")
 )
 
-TEACHER_USERNAME = get_required_env("TEACHER_USERNAME")
-TEACHER_PASSWORD = get_required_env("TEACHER_PASSWORD")
+TEACHER_USERNAME = os.getenv("TEACHER_USERNAME", "prof")
+TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD", "1234")
 
 
 password_hash = PasswordHash.recommended()
@@ -81,14 +85,17 @@ security = HTTPBearer()
 
 class ExamConfig(BaseModel):
     exam_id: str
-    student_id: str
-    machine_id: str
     packages: List[str]
     sudo: bool
     internet: bool
     educ_access: bool
     allowed_domains: List[str]
-    workspace: str
+    exam_name: Optional[str] = None
+    exam_date: Optional[str] = None
+    exam_time: Optional[str] = None
+    student_id: Optional[str] = None
+    machine_id: Optional[str] = None
+    workspace: Optional[str] = None
 
 
 class MachineStatus(BaseModel):
@@ -544,8 +551,13 @@ def update_teacher_photo_path(photo_path: str, teacher_id: int):
 
 
 
-def config_filename(exam_id: str, student_id: str, machine_id: str) -> str:
-    return f"{exam_id}_{student_id}_{machine_id}.json"
+def config_filename(
+    exam_id: str,
+    *_ignored
+) -> str:
+    return f"{exam_id}.json"
+
+
 
 
 def validate_config_filename(filename: str) -> str:
@@ -566,49 +578,105 @@ def validate_config_filename(filename: str) -> str:
     return safe_filename
 
 
-def get_config_row_by_filename_or_404(filename: str, teacher_id: int | None = None):
-    safe_filename = validate_config_filename(filename)
+def get_config_row_by_filename_or_404(
+    filename: str,
+    teacher_id: int | None = None
+):
+    safe_filename = validate_config_filename(
+        filename
+    )
+
+    stem = Path(
+        safe_filename
+    ).stem
+
+    # -----------------------------------------------------
+    # FORMAT ACTUEL
+    # -----------------------------------------------------
+    #
+    # EXAM-C-2026.json
+    #
+    # => exam_id = EXAM-C-2026
+    #
+    # -----------------------------------------------------
+    # COMPATIBILITE ANCIEN FORMAT
+    # -----------------------------------------------------
+    #
+    # EXAM-C-2026_GLOBAL_ALL_MACHINES.json
+    #
+    # => exam_id = EXAM-C-2026
+    #
+
+    legacy_suffix = (
+        "_GLOBAL_ALL_MACHINES"
+    )
+
+    if stem.endswith(
+        legacy_suffix
+    ):
+        exam_id = stem[
+            :-len(legacy_suffix)
+        ]
+    else:
+        exam_id = stem
+
 
     connection = get_connection()
     cursor = connection.cursor()
 
+
     if teacher_id is None:
+
         cursor.execute("""
             SELECT *
             FROM exam_configs
-            WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
+            WHERE exam_id = ?
             ORDER BY updated_at DESC
+            LIMIT 1
         """, (
-            safe_filename,
+            exam_id,
         ))
+
     else:
+
         cursor.execute("""
             SELECT *
             FROM exam_configs
-            WHERE exam_id || '_' || student_id || '_' || machine_id || '.json' = ?
+            WHERE exam_id = ?
             AND teacher_id = ?
             ORDER BY updated_at DESC
+            LIMIT 1
         """, (
-            safe_filename,
+            exam_id,
             teacher_id
         ))
 
-    rows = cursor.fetchall()
+
+    row = cursor.fetchone()
+
     connection.close()
 
-    if not rows:
+
+    if row is None:
         raise HTTPException(
             status_code=404,
-            detail="Configuration introuvable"
+            detail=(
+                "Configuration introuvable "
+                f"pour l'examen {exam_id}"
+            )
         )
 
-    if len(rows) > 1:
-        raise HTTPException(
-            status_code=409,
-            detail="Nom de fichier ambigu. Utilisez des identifiants sans collision."
-        )
 
-    return rows[0], safe_filename
+    # Toujours retourner le nouveau nom propre.
+    clean_filename = config_filename(
+        row["exam_id"]
+    )
+
+    return (
+        row,
+        clean_filename
+    )
+
 
 
 def row_to_config(row):
@@ -617,6 +685,9 @@ def row_to_config(row):
 
     return {
         "exam_id": row["exam_id"],
+        "exam_name": row["exam_name"] if "exam_name" in row.keys() and row["exam_name"] else row["exam_id"],
+        "exam_date": row["exam_date"] if "exam_date" in row.keys() else "",
+        "exam_time": row["exam_time"] if "exam_time" in row.keys() else "",
         "student_id": row["student_id"],
         "machine_id": row["machine_id"],
         "packages": package_names,
@@ -658,8 +729,6 @@ def get_config_row_or_404(exam_id: str, student_id: str, machine_id: str):
 
     return row
 
-
-
 def get_config_row_for_teacher_or_404(
     exam_id: str,
     student_id: str,
@@ -694,7 +763,6 @@ def get_config_row_for_teacher_or_404(
         )
 
     return row
-
 
 def get_generated_nixos_metadata_or_404() -> dict:
     if not NIXOS_METADATA_FILE.exists():
@@ -743,59 +811,1261 @@ def ensure_generated_nixos_belongs_to_teacher(current_teacher: dict) -> dict:
     return metadata
 
 
-def generate_nixos_config_preview(config_data: dict) -> str:
-    packages = config_data.get("nix_packages") or config_data.get("packages") or []
-    allowed_domains = config_data.get("allowed_domains") or []
-    workspace = config_data.get("workspace") or "/home/exam/workspace"
 
-    package_lines = "\n    ".join(
-        f"pkgs.{package}"
-        for package in packages
-    ) or "# Aucun paquet sélectionné"
+def _secureexam_add_sandbox_v4(
+    nix_text: str,
+    package_lines: list[str]
+) -> str:
 
-    sudo_group_line = '"wheel"' if config_data.get("sudo") else "# sudo désactivé"
+    module_marker = (
+        "{ config, pkgs, ... }:\n\n{"
+    )
 
-    domains_lines = "\n  # - ".join(allowed_domains)
-    if domains_lines:
-        domains_lines = f"- {domains_lines}"
-    else:
-        domains_lines = "Aucun domaine spécifique"
+    if module_marker not in nix_text:
+        raise RuntimeError(
+            "En-tête module NixOS introuvable."
+        )
 
-    return f"""# Configuration NixOS générée par SecureExam
-# Examen   : {config_data.get("exam_id")}
-# Étudiant : {config_data.get("student_id")}
-# Machine  : {config_data.get("machine_id")}
+    package_block = "\n".join(
+        "    " + line.strip()
+        for line in package_lines
+        if line.strip()
+    )
 
-{{ config, pkgs, ... }}:
+    sandbox_header = r"""
+{ config, pkgs, ... }:
 
-{{
-  environment.systemPackages = with pkgs; [
-    {package_lines}
+let
+
+  secureExamPackages = [
+__SECUREEXAM_PACKAGES__
   ];
 
-  users.users.exam = {{
-    isNormalUser = true;
-    home = "{workspace}";
-    extraGroups = [
-      "users"
-      {sudo_group_line}
+  secureExamBasePackages = [
+    pkgs.bashInteractive
+    pkgs.coreutils
+    pkgs.cacert
+  ];
+
+  secureExamEnv = pkgs.buildEnv {
+    name = "secureexam-env";
+
+    paths =
+      secureExamBasePackages
+      ++ secureExamPackages;
+
+    pathsToLink = [
+      "/bin"
+      "/share"
     ];
-  }};
 
-  security.sudo.enable = {str(bool(config_data.get("sudo"))).lower()};
+    ignoreCollisions = true;
+  };
 
-  networking.firewall.enable = true;
+  secureExamClosure = pkgs.closureInfo {
+    rootPaths = [
+      secureExamEnv
+    ];
+  };
 
-  # Politique réseau SecureExam
-  # Internet autorisé : {bool(config_data.get("internet"))}
-  # Accès Educ autorisé : {bool(config_data.get("educ_access"))}
-  # Domaines autorisés :
-  # {domains_lines}
+  secureExamLauncher =
+    pkgs.writeShellScriptBin
+      "secureexam-session"
+      ''
 
-  system.stateVersion = "24.05";
-}}
+        set -euo pipefail
+
+        uid="$(
+          ${pkgs.coreutils}/bin/id -u
+        )"
+
+        gid="$(
+          ${pkgs.coreutils}/bin/id -g
+        )"
+
+        if [ "$uid" != "1500" ]; then
+          echo "SecureExam: accès refusé." >&2
+          exit 1
+        fi
+
+
+        resolv="$(
+          ${pkgs.coreutils}/bin/mktemp
+        )"
+
+        ${pkgs.coreutils}/bin/cat \
+          /etc/resolv.conf \
+          > "$resolv"
+
+        ${pkgs.coreutils}/bin/chmod \
+          0444 \
+          "$resolv"
+
+
+        cleanup() {
+          ${pkgs.coreutils}/bin/rm \
+            -f \
+            "$resolv"
+        }
+
+        trap cleanup EXIT INT TERM
+
+
+        storeArgs=()
+
+        while IFS= read -r storePath; do
+
+          if [ -n "$storePath" ]; then
+
+            storeArgs+=(
+              --ro-bind
+              "$storePath"
+              "$storePath"
+            )
+
+          fi
+
+        done < ${secureExamClosure}/store-paths
+
+
+        term="''${TERM:-xterm-256color}"
+
+
+        ${pkgs.bubblewrap}/bin/bwrap \
+          --die-with-parent \
+          --new-session \
+          --unshare-user \
+          --uid "$uid" \
+          --gid "$gid" \
+          --disable-userns \
+          --unshare-pid \
+          --unshare-ipc \
+          --unshare-uts \
+          --unshare-cgroup-try \
+          --cap-drop ALL \
+          --clearenv \
+          --dir /nix \
+          --dir /nix/store \
+          --dir /etc \
+          --dir /opt \
+          --dir /home \
+          --dir /home/exam \
+          --dir /run \
+          --proc /proc \
+          --dev /dev \
+          --tmpfs /tmp \
+          --bind \
+            /home/exam/workspace \
+            /home/exam/workspace \
+          "''${storeArgs[@]}" \
+          --ro-bind \
+            ${secureExamEnv} \
+            /opt/secureexam \
+          --ro-bind \
+            "$resolv" \
+            /etc/resolv.conf \
+          --ro-bind \
+            /etc/hosts \
+            /etc/hosts \
+          --ro-bind \
+            /etc/passwd \
+            /etc/passwd \
+          --ro-bind \
+            /etc/group \
+            /etc/group \
+          --ro-bind \
+            /etc/nsswitch.conf \
+            /etc/nsswitch.conf \
+          --setenv \
+            HOME \
+            /home/exam \
+          --setenv \
+            USER \
+            exam \
+          --setenv \
+            LOGNAME \
+            exam \
+          --setenv \
+            SHELL \
+            /opt/secureexam/bin/bash \
+          --setenv \
+            PATH \
+            /opt/secureexam/bin \
+          --setenv \
+            TERM \
+            "$term" \
+          --setenv \
+            LANG \
+            C.UTF-8 \
+          --setenv \
+            LC_ALL \
+            C.UTF-8 \
+          --setenv \
+            SSL_CERT_FILE \
+            ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt \
+          --chdir \
+            /home/exam/workspace \
+          /opt/secureexam/bin/bash \
+            --noprofile \
+            --norc
+
+
+        status=$?
+
+        cleanup
+
+        trap - EXIT INT TERM
+
+        exit "$status"
+
+      '';
+
+in
+
+{
 """
 
+    sandbox_header = (
+        sandbox_header
+        .replace(
+            "__SECUREEXAM_PACKAGES__",
+            package_block
+        )
+        .strip("\n")
+    )
+
+    nix_text = nix_text.replace(
+        module_marker,
+        sandbox_header,
+        1
+    )
+
+
+    shell_marker = (
+        '    createHome = true;\n'
+    )
+
+    if shell_marker not in nix_text:
+        raise RuntimeError(
+            "createHome introuvable."
+        )
+
+    nix_text = nix_text.replace(
+        shell_marker,
+        (
+            '    createHome = true;\n'
+            '\n'
+            '    shell = '
+            '"${secureExamLauncher}'
+            '/bin/secureexam-session";\n'
+        ),
+        1
+    )
+
+
+    workspace_marker = (
+        "  systemd.tmpfiles.rules = ["
+    )
+
+    if workspace_marker not in nix_text:
+        raise RuntimeError(
+            "Bloc workspace introuvable."
+        )
+
+    nix_text = nix_text.replace(
+        workspace_marker,
+        (
+            "  environment.systemPackages = [\n"
+            "    secureExamLauncher\n"
+            "  ];\n"
+            "\n"
+            + workspace_marker
+        ),
+        1
+    )
+
+
+    return nix_text
+
+
+
+def _secureexam_finalize_nix_v4(
+    nix_text: str,
+    package_lines: list[str]
+) -> str:
+
+    nix_text = nix_text.replace(
+        "# SecureExam STRICT POLICY v3",
+        "# SecureExam STRICT POLICY v4",
+        1
+    )
+
+
+    # UID dynamique :
+    # la sécurité cible maintenant le compte "exam"
+    # et non plus un UID numérique fixe.
+
+    nix_text = nix_text.replace(
+        "    uid = 1500;\n",
+        "",
+        1
+    )
+
+
+    nix_text = nix_text.replace(
+        '        if [ "$uid" != "1500" ]; then',
+        '        if [ "$(${pkgs.coreutils}/bin/id -un)" != "exam" ]; then',
+        1
+    )
+
+
+    nix_text = nix_text.replace(
+        "meta skuid 1500",
+        'meta skuid "exam"'
+    )
+
+
+    # Le bundle CA doit être réellement visible
+    # dans la sandbox pour HTTPS.
+
+    closure_old = (
+        "  secureExamClosure = pkgs.closureInfo {\n"
+        "    rootPaths = [\n"
+        "      secureExamEnv\n"
+        "    ];\n"
+        "  };"
+    )
+
+    closure_new = (
+        "  secureExamClosure = pkgs.closureInfo {\n"
+        "    rootPaths = [\n"
+        "      secureExamEnv\n"
+        "      pkgs.cacert\n"
+        "    ];\n"
+        "  };"
+    )
+
+    if closure_old in nix_text:
+        nix_text = nix_text.replace(
+            closure_old,
+            closure_new,
+            1
+        )
+
+
+    # Les logiciels ne doivent pas être installés
+    # dans le profil normal de l'utilisateur exam.
+    # Ils sont exposés uniquement dans la sandbox.
+
+    user_packages_block = (
+        "    packages = [\n"
+    )
+
+    if package_lines:
+        user_packages_block += (
+            "\n".join(package_lines)
+            + "\n"
+        )
+
+    user_packages_block += (
+        "    ];\n"
+    )
+
+    nix_text = nix_text.replace(
+        user_packages_block,
+        "",
+        1
+    )
+
+
+    # Normalisation automatique du workspace.
+    # Les fichiers déjà présents deviennent
+    # utilisables par le compte exam.
+
+    workspace_rule = (
+        "  systemd.tmpfiles.rules = [\n"
+        '    "d /home/exam/workspace 0700 exam users -"\n'
+        "  ];\n"
+    )
+
+    workspace_service = (
+        workspace_rule
+        + "\n"
+        + "  systemd.services.secureexam-workspace-permissions = {\n"
+        + '    description = "SecureExam workspace permissions";\n'
+        + "\n"
+        + "    after = [\n"
+        + '      "systemd-tmpfiles-setup.service"\n'
+        + "    ];\n"
+        + "\n"
+        + "    before = [\n"
+        + '      "display-manager.service"\n'
+        + "    ];\n"
+        + "\n"
+        + "    wantedBy = [\n"
+        + '      "multi-user.target"\n'
+        + "    ];\n"
+        + "\n"
+        + "    serviceConfig = {\n"
+        + '      Type = "oneshot";\n'
+        + "    };\n"
+        + "\n"
+        + "    script = ''\n"
+        + "      ${pkgs.coreutils}/bin/chown -R exam:users /home/exam/workspace\n"
+        + "      ${pkgs.coreutils}/bin/chmod 0700 /home/exam/workspace\n"
+        + "    '';\n"
+        + "  };\n"
+    )
+
+    if (
+        workspace_rule in nix_text
+        and
+        "secureexam-workspace-permissions"
+        not in nix_text
+    ):
+        nix_text = nix_text.replace(
+            workspace_rule,
+            workspace_service,
+            1
+        )
+
+
+    return nix_text
+
+
+def generate_nixos_config_preview(config_data: dict) -> str:
+
+    exam_id = str(
+        config_data.get("exam_id")
+        or ""
+    ).strip()
+
+    exam_name = str(
+        config_data.get("exam_name")
+        or exam_id
+    ).strip()
+
+    exam_date = str(
+        config_data.get("exam_date")
+        or config_data.get("scheduled_date")
+        or ""
+    ).strip()
+
+    exam_time = str(
+        config_data.get("exam_time")
+        or config_data.get("scheduled_time")
+        or ""
+    ).strip()
+
+    sudo_allowed = bool(
+        config_data.get("sudo")
+    )
+
+    internet_allowed = bool(
+        config_data.get("internet")
+    )
+
+    educ_access = bool(
+        config_data.get("educ_access")
+    )
+
+    workspace = "/home/exam/workspace"
+
+    packages = (
+        config_data.get("nix_packages")
+        or config_data.get("packages")
+        or []
+    )
+
+
+    def nix_package_expression(
+        package_name: str
+    ) -> str:
+
+        parts = [
+            part.strip()
+            for part in str(
+                package_name
+            ).split(".")
+            if part.strip()
+        ]
+
+        if not parts:
+            raise HTTPException(
+                status_code=400,
+                detail="Nom de paquet NixOS invalide."
+            )
+
+        for part in parts:
+
+            if not re.fullmatch(
+                r"[A-Za-z0-9_+\-]+",
+                part
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "Nom de paquet NixOS invalide : "
+                        + str(package_name)
+                    )
+                )
+
+        return (
+            "pkgs"
+            + "".join(
+                "."
+                + json.dumps(part)
+                for part in parts
+            )
+        )
+
+
+    package_lines = [
+        "      "
+        + nix_package_expression(package)
+        for package in packages
+    ]
+
+
+    raw_domains = (
+        config_data.get("allowed_domains")
+        or []
+    )
+
+    allowed_domains = []
+
+
+    for raw_domain in raw_domains:
+
+        domain = str(
+            raw_domain
+        ).strip().lower().rstrip(".")
+
+        if not domain:
+            continue
+
+        if not re.fullmatch(
+            r"[a-z0-9]"
+            r"(?:[a-z0-9.-]*[a-z0-9])?",
+            domain
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Domaine invalide : "
+                    + domain
+                )
+            )
+
+        if (
+            ".." in domain
+            or domain.startswith(".")
+            or domain.endswith(".")
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Domaine invalide : "
+                    + domain
+                )
+            )
+
+        if domain not in allowed_domains:
+            allowed_domains.append(
+                domain
+            )
+
+
+    if (
+        educ_access
+        and "educ.isen-mediterranee.fr"
+        not in allowed_domains
+    ):
+        allowed_domains.append(
+            "educ.isen-mediterranee.fr"
+        )
+
+
+    lines = []
+
+    lines.append(
+        "# SecureExam STRICT POLICY v4"
+    )
+
+    lines.append(
+        "# "
+        + exam_id
+        + " | "
+        + exam_name
+        + " | "
+        + exam_date
+        + " "
+        + exam_time
+    )
+
+    lines.append("")
+    lines.append(
+        "{ config, pkgs, ... }:"
+    )
+    lines.append("")
+    lines.append("{")
+    lines.append("")
+
+
+    # =====================================================
+    # USER
+    # =====================================================
+
+    lines.append(
+        "  users.users.exam = {"
+    )
+
+    lines.append(
+        "    isNormalUser = true;"
+    )
+
+    lines.append(
+        "    uid = 1500;"
+    )
+
+    lines.append(
+        '    home = "/home/exam";'
+    )
+
+    lines.append(
+        "    createHome = true;"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "    extraGroups = ["
+    )
+
+    lines.append(
+        '      "users"'
+    )
+
+    if sudo_allowed:
+        lines.append(
+            '      "wheel"'
+        )
+
+    lines.append(
+        "    ];"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "    packages = ["
+    )
+
+    if package_lines:
+        lines.extend(
+            package_lines
+        )
+
+    lines.append(
+        "    ];"
+    )
+
+    lines.append(
+        "  };"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # WORKSPACE
+    # =====================================================
+
+    lines.append(
+        "  systemd.tmpfiles.rules = ["
+    )
+
+    lines.append(
+        '    "d '
+        + workspace
+        + ' 0700 exam users -"'
+    )
+
+    lines.append(
+        "  ];"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # SUDO
+    # =====================================================
+
+    lines.append(
+        "  security.sudo.enable = true;"
+    )
+
+    if sudo_allowed:
+
+        lines.append("")
+
+        lines.append(
+            "  security.sudo.extraRules = ["
+        )
+
+        lines.append(
+            "    {"
+        )
+
+        lines.append(
+            '      users = [ "exam" ];'
+        )
+
+        lines.append(
+            "      commands = ["
+        )
+
+        lines.append(
+            "        {"
+        )
+
+        lines.append(
+            '          command = "ALL";'
+        )
+
+        lines.append(
+            '          options = [ "NOPASSWD" ];'
+        )
+
+        lines.append(
+            "        }"
+        )
+
+        lines.append(
+            "      ];"
+        )
+
+        lines.append(
+            "    }"
+        )
+
+        lines.append(
+            "  ];"
+        )
+
+    lines.append("")
+
+
+    # =====================================================
+    # NIX ACCESS
+    # =====================================================
+
+    lines.append(
+        "  nix.settings.allowed-users = ["
+    )
+
+    lines.append(
+        '    "root"'
+    )
+
+    lines.append(
+        '    "@wheel"'
+    )
+
+    lines.append(
+        "  ];"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # POLKIT
+    # =====================================================
+
+    lines.append(
+        "  security.polkit.enable = true;"
+    )
+
+    lines.append("")
+
+    lines.append(
+        "  security.polkit.extraConfig = ''"
+    )
+
+    lines.append(
+        "    polkit.addRule(function(action, subject) {"
+    )
+
+    lines.append(
+        '      if (subject.user === "exam") {'
+    )
+
+    lines.append(
+        "        return polkit.Result.NO;"
+    )
+
+    lines.append(
+        "      }"
+    )
+
+    lines.append(
+        "    });"
+    )
+
+    lines.append(
+        "  '';"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # SSH
+    # =====================================================
+
+    lines.append(
+        "  services.openssh.settings.DenyUsers = ["
+    )
+
+    lines.append(
+        '    "exam"'
+    )
+
+    lines.append(
+        "  ];"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # NETWORK BASE
+    # =====================================================
+
+    lines.append(
+        "  networking.firewall.enable = true;"
+    )
+
+    lines.append(
+        "  networking.nftables.enable = true;"
+    )
+
+    lines.append("")
+
+
+    # =====================================================
+    # INTERNET COMPLET
+    # =====================================================
+
+    if internet_allowed:
+
+        pass
+
+
+    # =====================================================
+    # INTERNET OFF + DOMAINES AUTORISES
+    # =====================================================
+
+    elif allowed_domains:
+
+        lines.append(
+            "  services.resolved.enable = true;"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "  networking.nftables.ruleset = ''"
+        )
+
+        lines.append(
+            "    table inet secureexam {"
+        )
+
+        lines.append(
+            "      set allowed_v4 {"
+        )
+
+        lines.append(
+            "        type ipv4_addr"
+        )
+
+        lines.append(
+            "      }"
+        )
+
+        lines.append(
+            "      set allowed_v6 {"
+        )
+
+        lines.append(
+            "        type ipv6_addr"
+        )
+
+        lines.append(
+            "      }"
+        )
+
+        lines.append(
+            "      chain output {"
+        )
+
+        lines.append(
+            "        type filter hook output priority -50;"
+        )
+
+        lines.append(
+            "        policy accept;"
+        )
+
+        lines.append(
+            '        meta skuid 1500 '
+            'oifname "lo" accept'
+        )
+
+        lines.append(
+            "        meta skuid 1500 "
+            "ip daddr @allowed_v4 "
+            "tcp dport { 80, 443 } accept"
+        )
+
+        lines.append(
+            "        meta skuid 1500 "
+            "ip6 daddr @allowed_v6 "
+            "tcp dport { 80, 443 } accept"
+        )
+
+        lines.append(
+            "        meta skuid 1500 reject"
+        )
+
+        lines.append(
+            "      }"
+        )
+
+        lines.append(
+            "    }"
+        )
+
+        lines.append(
+            "  '';"
+        )
+
+        lines.append("")
+
+
+        shell_domains = " ".join(
+            json.dumps(domain)
+            for domain in allowed_domains
+        )
+
+
+        lines.append(
+            "  systemd.services."
+            "secureexam-refresh-allowlist = {"
+        )
+
+        lines.append(
+            "    after = ["
+        )
+
+        lines.append(
+            '      "network-online.target"'
+        )
+
+        lines.append(
+            '      "nftables.service"'
+        )
+
+        lines.append(
+            '      "systemd-resolved.service"'
+        )
+
+        lines.append(
+            "    ];"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    wants = ["
+        )
+
+        lines.append(
+            '      "network-online.target"'
+        )
+
+        lines.append(
+            "    ];"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    wantedBy = ["
+        )
+
+        lines.append(
+            '      "multi-user.target"'
+        )
+
+        lines.append(
+            "    ];"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    path = ["
+        )
+
+        lines.append(
+            "      pkgs.nftables"
+        )
+
+        lines.append(
+            "      pkgs.dnsutils"
+        )
+
+        lines.append(
+            "      pkgs.gnugrep"
+        )
+
+        lines.append(
+            "      pkgs.coreutils"
+        )
+
+        lines.append(
+            "    ];"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    serviceConfig = {"
+        )
+
+        lines.append(
+            '      Type = "oneshot";'
+        )
+
+        lines.append(
+            "    };"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    script = ''"
+        )
+
+        lines.append(
+            "      set -eu"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "      nft flush set "
+            "inet secureexam allowed_v4 "
+            "|| true"
+        )
+
+        lines.append(
+            "      nft flush set "
+            "inet secureexam allowed_v6 "
+            "|| true"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "      for domain in "
+            + shell_domains
+            + "; do"
+        )
+
+        lines.append(
+            '        for ip in $('
+        )
+
+        lines.append(
+            '          dig +short A "$domain"'
+        )
+
+        lines.append(
+            "          | grep -E "
+            "'^[0-9]+(\\.[0-9]+){3}$'"
+        )
+
+        lines.append(
+            "          || true"
+        )
+
+        lines.append(
+            "        ); do"
+        )
+
+        lines.append(
+            "          nft add element "
+            "inet secureexam allowed_v4 "
+            '"{ $ip }" || true'
+        )
+
+        lines.append(
+            "        done"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "        for ip in $("
+        )
+
+        lines.append(
+            '          dig +short AAAA "$domain"'
+        )
+
+        lines.append(
+            "          | grep ':'"
+        )
+
+        lines.append(
+            "          || true"
+        )
+
+        lines.append(
+            "        ); do"
+        )
+
+        lines.append(
+            "          nft add element "
+            "inet secureexam allowed_v6 "
+            '"{ $ip }" || true'
+        )
+
+        lines.append(
+            "        done"
+        )
+
+        lines.append(
+            "      done"
+        )
+
+        lines.append(
+            "    '';"
+        )
+
+        lines.append(
+            "  };"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "  systemd.timers."
+            "secureexam-refresh-allowlist = {"
+        )
+
+        lines.append(
+            "    wantedBy = ["
+        )
+
+        lines.append(
+            '      "timers.target"'
+        )
+
+        lines.append(
+            "    ];"
+        )
+
+        lines.append("")
+
+        lines.append(
+            "    timerConfig = {"
+        )
+
+        lines.append(
+            '      OnBootSec = "5s";'
+        )
+
+        lines.append(
+            '      OnUnitActiveSec = "2min";'
+        )
+
+        lines.append(
+            "    };"
+        )
+
+        lines.append(
+            "  };"
+        )
+
+
+    # =====================================================
+    # INTERNET OFF TOTAL
+    # =====================================================
+
+    else:
+
+        lines.append(
+            "  networking.nftables.ruleset = ''"
+        )
+
+        lines.append(
+            "    table inet secureexam {"
+        )
+
+        lines.append(
+            "      chain output {"
+        )
+
+        lines.append(
+            "        type filter hook output priority -50;"
+        )
+
+        lines.append(
+            "        policy accept;"
+        )
+
+        lines.append(
+            '        meta skuid 1500 '
+            'oifname "lo" accept'
+        )
+
+        lines.append(
+            "        meta skuid 1500 reject"
+        )
+
+        lines.append(
+            "      }"
+        )
+
+        lines.append(
+            "    }"
+        )
+
+        lines.append(
+            "  '';"
+        )
+
+
+    lines.append("")
+    lines.append("}")
+
+    nix_text = "\n".join(lines) + "\n"
+
+    nix_text = _secureexam_add_sandbox_v4(
+        nix_text,
+        package_lines
+    )
+
+    return _secureexam_finalize_nix_v4(
+        nix_text,
+        package_lines
+    )
 
 def save_support_request_to_database(
     request: SupportRequest,
@@ -1067,10 +2337,46 @@ def ensure_exam_configs_teacher_scope():
             ADD COLUMN teacher_id INTEGER
         """)
 
+    if "exam_name" not in columns:
+        cursor.execute("""
+            ALTER TABLE exam_configs
+            ADD COLUMN exam_name TEXT
+        """)
+
+    if "exam_date" not in columns:
+        cursor.execute("""
+            ALTER TABLE exam_configs
+            ADD COLUMN exam_date TEXT
+        """)
+
+    if "exam_time" not in columns:
+        cursor.execute("""
+            ALTER TABLE exam_configs
+            ADD COLUMN exam_time TEXT
+        """)
+
     cursor.execute("""
         UPDATE exam_configs
         SET teacher_id = 1
         WHERE teacher_id IS NULL
+    """)
+
+    cursor.execute("""
+        UPDATE exam_configs
+        SET exam_name = exam_id
+        WHERE exam_name IS NULL OR TRIM(exam_name) = ''
+    """)
+
+    cursor.execute("""
+        UPDATE exam_configs
+        SET exam_date = ''
+        WHERE exam_date IS NULL
+    """)
+
+    cursor.execute("""
+        UPDATE exam_configs
+        SET exam_time = ''
+        WHERE exam_time IS NULL
     """)
 
     connection.commit()
@@ -1199,32 +2505,33 @@ def health():
 
 @app.post("/auth/login", response_model=TokenResponse)
 def login(login_request: LoginRequest):
-    teacher = get_teacher_by_username(login_request.username)
+    username = (login_request.username or "").strip()
+    password = login_request.password or ""
+
+    teacher = get_teacher_by_username(username)
 
     if teacher is None:
         raise HTTPException(
             status_code=401,
-            detail="Identifiants incorrects"
+            detail="Identifiant enseignant incorrect."
         )
 
     if not bool(teacher["is_active"]):
         raise HTTPException(
             status_code=401,
-            detail="Compte désactivé"
+            detail="Compte désactivé."
         )
 
-    if not verify_password(
-        login_request.password,
-        teacher["password_hash"]
-    ):
+    if not verify_password(password, teacher["password_hash"]):
         raise HTTPException(
             status_code=401,
-            detail="Identifiants incorrects"
+            detail="Mot de passe enseignant incorrect."
         )
 
     access_token = create_access_token(
         data={
             "sub": teacher["username"],
+            "username": teacher["username"],
             "role": teacher["role"]
         }
     )
@@ -2428,7 +3735,15 @@ def create_config(
     config: ExamConfig,
     current_teacher: dict = Depends(get_current_teacher)
 ):
-    requested_packages = set(config.packages)
+    exam_id = (config.exam_id or "").strip()
+
+    if not exam_id:
+        raise HTTPException(
+            status_code=400,
+            detail="L'identifiant de l'examen est obligatoire."
+        )
+
+    requested_packages = set(config.packages or [])
     allowed_packages = get_active_package_names()
     invalid_packages = requested_packages - allowed_packages
 
@@ -2443,6 +3758,16 @@ def create_config(
 
     teacher_id = current_teacher["id"]
 
+    # Configuration globale : le professeur ne choisit pas étudiant / machine / workspace.
+    # Ces informations seront identifiées au lancement de l'examen.
+    student_id = GLOBAL_STUDENT_ID
+    machine_id = GLOBAL_MACHINE_ID
+    workspace = GLOBAL_WORKSPACE
+
+    exam_name = (config.exam_name or exam_id).strip() or exam_id
+    exam_date = (config.exam_date or "").strip()
+    exam_time = (config.exam_time or "").strip()
+
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -2451,14 +3776,10 @@ def create_config(
         FROM exam_configs
         WHERE teacher_id = ?
         AND exam_id = ?
-        AND student_id = ?
-        AND machine_id = ?
         LIMIT 1
     """, (
         teacher_id,
-        config.exam_id,
-        config.student_id,
-        config.machine_id
+        exam_id
     ))
 
     existing_config = cursor.fetchone()
@@ -2467,7 +3788,7 @@ def create_config(
         connection.close()
         raise HTTPException(
             status_code=409,
-            detail="Cette configuration existe déjà dans votre espace. Pour la recréer, supprimez d’abord l’ancienne configuration."
+            detail="Une configuration globale existe déjà pour cet examen. Supprimez l'ancienne configuration avant d'en recréer une."
         )
 
     created_at = now_iso()
@@ -2477,6 +3798,9 @@ def create_config(
         INSERT INTO exam_configs (
             teacher_id,
             exam_id,
+            exam_name,
+            exam_date,
+            exam_time,
             student_id,
             machine_id,
             packages,
@@ -2488,18 +3812,21 @@ def create_config(
             created_at,
             updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         teacher_id,
-        config.exam_id,
-        config.student_id,
-        config.machine_id,
-        json.dumps(config.packages, ensure_ascii=False),
+        exam_id,
+        exam_name,
+        exam_date,
+        exam_time,
+        student_id,
+        machine_id,
+        json.dumps(config.packages or [], ensure_ascii=False),
         int(config.sudo),
         int(config.internet),
         int(config.educ_access),
-        json.dumps(config.allowed_domains, ensure_ascii=False),
-        config.workspace,
+        json.dumps(config.allowed_domains or [], ensure_ascii=False),
+        workspace,
         created_at,
         updated_at
     ))
@@ -2508,21 +3835,20 @@ def create_config(
     connection.close()
 
     filename = config_filename(
-        config.exam_id,
-        config.student_id,
-        config.machine_id
+        exam_id,
+        student_id,
+        machine_id
     )
 
     return {
-        "message": "Configuration enregistrée en base avec succès",
+        "message": "Configuration globale d'examen enregistrée avec succès.",
         "file": filename,
         "created_at": created_at
     }
 
 
 
-
-@app.get("/configs/{exam_id}/{student_id}/{machine_id}")
+@app.get("/runtime/configs/{exam_id}/{student_id}/{machine_id}")
 def get_config(exam_id: str, student_id: str, machine_id: str):
     row = get_config_row_or_404(
         exam_id=exam_id,
@@ -2541,6 +3867,9 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
     cursor.execute("""
         SELECT
             exam_id,
+            exam_name,
+            exam_date,
+            exam_time,
             student_id,
             machine_id,
             workspace,
@@ -2570,6 +3899,10 @@ def list_configs(current_teacher: dict = Depends(get_current_teacher)):
 
         configs_details.append({
             "filename": filename,
+            "exam_id": row["exam_id"],
+            "exam_name": row["exam_name"] if "exam_name" in row.keys() and row["exam_name"] else row["exam_id"],
+            "exam_date": row["exam_date"] if "exam_date" in row.keys() else "",
+            "exam_time": row["exam_time"] if "exam_time" in row.keys() else "",
             "workspace": row["workspace"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
@@ -2744,8 +4077,6 @@ def list_submissions(current_teacher: dict = Depends(get_current_teacher)):
         FROM submissions s
         INNER JOIN exam_configs c
             ON c.exam_id = s.exam_id
-            AND c.student_id = s.student_id
-            AND c.machine_id = s.machine_id
         WHERE c.teacher_id = ?
         ORDER BY s.created_at DESC
     """, (
@@ -2975,8 +4306,6 @@ def list_machine_status(current_teacher: dict = Depends(get_current_teacher)):
         FROM machine_status m
         INNER JOIN exam_configs c
             ON c.exam_id = m.exam_id
-            AND c.student_id = m.student_id
-            AND c.machine_id = m.machine_id
         WHERE c.teacher_id = ?
         ORDER BY m.created_at DESC
     """, (
@@ -3066,6 +4395,9 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
     cursor.execute("""
         SELECT
             exam_id,
+            exam_name,
+            exam_date,
+            exam_time,
             student_id,
             machine_id,
             workspace,
@@ -3091,6 +4423,10 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
 
         configs.append({
             "filename": filename,
+            "exam_id": row["exam_id"],
+            "exam_name": row["exam_name"] if "exam_name" in row.keys() and row["exam_name"] else row["exam_id"],
+            "exam_date": row["exam_date"] if "exam_date" in row.keys() else "",
+            "exam_time": row["exam_time"] if "exam_time" in row.keys() else "",
             "workspace": row["workspace"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
@@ -3112,8 +4448,6 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
         FROM submissions s
         INNER JOIN exam_configs c
             ON c.exam_id = s.exam_id
-            AND c.student_id = s.student_id
-            AND c.machine_id = s.machine_id
         WHERE c.teacher_id = ?
         ORDER BY c.created_at DESC, s.created_at DESC
     """, (
@@ -3149,8 +4483,6 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
         FROM machine_status m
         INNER JOIN exam_configs c
             ON c.exam_id = m.exam_id
-            AND c.student_id = m.student_id
-            AND c.machine_id = m.machine_id
         WHERE c.teacher_id = ?
         ORDER BY m.created_at DESC
     """, (
@@ -3229,6 +4561,32 @@ def download_nixos_config_for_config(
     )
 
 
+
+
+# =========================================================
+# SECUREEXAM_LEGACY_CONFIG_ROUTE_AFTER_NIXOS
+# Compatibilité ancien exam-client.
+#
+# Cette route DOIT rester après :
+# /configs/{filename}/nixos-config
+# /configs/{filename}/nixos-config/download
+# =========================================================
+
+@app.get(
+    "/configs/{exam_id}/{student_id}/{machine_id}"
+)
+def get_config_legacy(
+    exam_id: str,
+    student_id: str,
+    machine_id: str
+):
+    return get_config(
+        exam_id=exam_id,
+        student_id=student_id,
+        machine_id=machine_id
+    )
+
+
 @app.get("/nixos-config")
 def get_nixos_config(current_teacher: dict = Depends(get_current_teacher)):
     metadata = ensure_generated_nixos_belongs_to_teacher(current_teacher)
@@ -3254,3 +4612,800 @@ def download_nixos_config(current_teacher: dict = Depends(get_current_teacher)):
         filename=f"{metadata['exam_id']}_{metadata['student_id']}_{metadata['machine_id']}_exam-configuration.nix",
         media_type="text/plain"
     )
+
+# =========================================================
+# SECUREEXAM SUPERVISOR AUTH
+# =========================================================
+
+from pydantic import BaseModel as _SupervisorBaseModel
+from fastapi import HTTPException as _SupervisorHTTPException
+import os as _supervisor_os
+from datetime import datetime as _SupervisorDateTime, timedelta as _SupervisorTimedelta
+
+class SupervisorLoginRequest(_SupervisorBaseModel):
+    username: str
+    password: str
+
+@app.post("/supervisor/login")
+def supervisor_login(payload: SupervisorLoginRequest):
+    supervisor_username = _supervisor_os.getenv("SUPERVISOR_USERNAME", "surveillant")
+    supervisor_password = _supervisor_os.getenv("SUPERVISOR_PASSWORD", "1234")
+
+    entered_username = (payload.username or "").strip()
+    entered_password = payload.password or ""
+
+    if entered_username != supervisor_username:
+        raise _SupervisorHTTPException(
+            status_code=401,
+            detail="Identifiant surveillant incorrect."
+        )
+
+    if entered_password != supervisor_password:
+        raise _SupervisorHTTPException(
+            status_code=401,
+            detail="Mot de passe surveillant incorrect."
+        )
+
+    token_data = {
+        "sub": supervisor_username,
+        "username": supervisor_username,
+        "role": "supervisor"
+    }
+
+    if "create_access_token" in globals():
+        access_token = globals()["create_access_token"](data=token_data)
+    else:
+        expire = _SupervisorDateTime.utcnow() + _SupervisorTimedelta(hours=8)
+        token_data.update({"exp": expire})
+        access_token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": "supervisor",
+        "username": supervisor_username
+    }
+
+
+# =========================================================
+# SECUREEXAM SUPERVISOR PROFILE SUPPORT
+# =========================================================
+
+from pathlib import Path as _SupervisorPath
+import sqlite3 as _supervisor_sqlite3
+from datetime import datetime as _SupervisorDateTime
+from typing import Optional as _SupervisorOptional
+from fastapi import Header as _SupervisorHeader, Depends as _SupervisorDepends, HTTPException as _SupervisorHTTPException
+from pydantic import BaseModel as _SupervisorBaseModel
+
+
+def _supervisor_database_path():
+    database_path = globals().get("DATABASE_PATH") or globals().get("DB_PATH")
+
+    if database_path:
+        return _SupervisorPath(database_path)
+
+    return _SupervisorPath(__file__).resolve().parent / "database" / "secure_exam.db"
+
+
+def _supervisor_connect():
+    database_path = _supervisor_database_path()
+    database_path.parent.mkdir(parents=True, exist_ok=True)
+
+    connection = _supervisor_sqlite3.connect(str(database_path))
+    connection.row_factory = _supervisor_sqlite3.Row
+    return connection
+
+
+def _supervisor_init_tables():
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS supervisor_profiles (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            full_name TEXT NOT NULL DEFAULT 'Surveillant',
+            email TEXT NOT NULL DEFAULT '',
+            phone TEXT NOT NULL DEFAULT '',
+            room TEXT NOT NULL DEFAULT '',
+            notes TEXT NOT NULL DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS supervisor_support_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            category TEXT NOT NULL,
+            priority TEXT NOT NULL,
+            message TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'OUVERT',
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    now = _SupervisorDateTime.utcnow().isoformat(timespec="seconds")
+
+    cursor.execute("""
+        INSERT OR IGNORE INTO supervisor_profiles (
+            id, full_name, email, phone, room, notes, created_at, updated_at
+        )
+        VALUES (
+            1,
+            'Surveillant',
+            'surveillant@isen.fr',
+            '',
+            '',
+            'Compte surveillant utilisé pour la récupération des configurations NixOS.',
+            ?,
+            ?
+        )
+    """, (now, now))
+
+    connection.commit()
+    connection.close()
+
+
+def _get_current_supervisor(authorization: _SupervisorOptional[str] = _SupervisorHeader(default=None)):
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise _SupervisorHTTPException(status_code=401, detail="Token surveillant manquant.")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[globals().get("ALGORITHM", "HS256")]
+        )
+    except Exception:
+        raise _SupervisorHTTPException(status_code=401, detail="Token surveillant invalide.")
+
+    if payload.get("role") != "supervisor":
+        raise _SupervisorHTTPException(status_code=403, detail="Accès réservé au surveillant.")
+
+    return payload
+
+
+class SupervisorProfilePayload(_SupervisorBaseModel):
+    full_name: str
+    email: str = ""
+    phone: str = ""
+    room: str = ""
+    notes: str = ""
+
+
+class SupervisorSupportPayload(_SupervisorBaseModel):
+    subject: str
+    category: str
+    priority: str
+    message: str
+
+
+@app.get("/supervisor/profile")
+def get_supervisor_profile(current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)):
+    _supervisor_init_tables()
+
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM supervisor_profiles WHERE id = 1")
+    row = cursor.fetchone()
+
+    connection.close()
+
+    if not row:
+        raise _SupervisorHTTPException(status_code=404, detail="Profil surveillant introuvable.")
+
+    return dict(row)
+
+
+@app.put("/supervisor/profile")
+def update_supervisor_profile(
+    payload: SupervisorProfilePayload,
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    _supervisor_init_tables()
+
+    now = _SupervisorDateTime.utcnow().isoformat(timespec="seconds")
+
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE supervisor_profiles
+        SET full_name = ?,
+            email = ?,
+            phone = ?,
+            room = ?,
+            notes = ?,
+            updated_at = ?
+        WHERE id = 1
+    """, (
+        payload.full_name.strip() or "Surveillant",
+        payload.email.strip(),
+        payload.phone.strip(),
+        payload.room.strip(),
+        payload.notes.strip(),
+        now
+    ))
+
+    connection.commit()
+
+    cursor.execute("SELECT * FROM supervisor_profiles WHERE id = 1")
+    row = cursor.fetchone()
+
+    connection.close()
+
+    return dict(row)
+
+
+@app.get("/supervisor/support")
+def list_supervisor_support_requests(current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)):
+    _supervisor_init_tables()
+
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id, username, subject, category, priority, message, status, created_at
+        FROM supervisor_support_requests
+        ORDER BY id DESC
+    """)
+
+    rows = [dict(row) for row in cursor.fetchall()]
+    connection.close()
+
+    return rows
+
+
+@app.post("/supervisor/support")
+def create_supervisor_support_request(
+    payload: SupervisorSupportPayload,
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    _supervisor_init_tables()
+
+    subject = payload.subject.strip()
+    message = payload.message.strip()
+
+    if not subject or not message:
+        raise _SupervisorHTTPException(
+            status_code=400,
+            detail="Le sujet et le message sont obligatoires."
+        )
+
+    now = _SupervisorDateTime.utcnow().isoformat(timespec="seconds")
+    username = current_supervisor.get("username") or current_supervisor.get("sub") or "surveillant"
+
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO supervisor_support_requests (
+            username, subject, category, priority, message, status, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, 'OUVERT', ?)
+    """, (
+        username,
+        subject,
+        payload.category.strip() or "Général",
+        payload.priority.strip() or "Normale",
+        message,
+        now
+    ))
+
+    connection.commit()
+    request_id = cursor.lastrowid
+
+    cursor.execute("""
+        SELECT id, username, subject, category, priority, message, status, created_at
+        FROM supervisor_support_requests
+        WHERE id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    return dict(row)
+
+# =========================================================
+# SECUREEXAM SUPERVISOR PUBLIC SUPPORT
+# =========================================================
+
+@app.post("/supervisor/support/public")
+def create_public_supervisor_support_request(payload: SupervisorSupportPayload):
+    _supervisor_init_tables()
+
+    subject = payload.subject.strip()
+    message = payload.message.strip()
+
+    if not subject or not message:
+        raise _SupervisorHTTPException(
+            status_code=400,
+            detail="Le sujet et le message sont obligatoires."
+        )
+
+    now = _SupervisorDateTime.utcnow().isoformat(timespec="seconds")
+
+    connection = _supervisor_connect()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO supervisor_support_requests (
+            username, subject, category, priority, message, status, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, 'OUVERT', ?)
+    """, (
+        "visiteur_non_connecte",
+        subject,
+        payload.category.strip() or "Connexion",
+        payload.priority.strip() or "Normale",
+        message,
+        now
+    ))
+
+    connection.commit()
+    request_id = cursor.lastrowid
+
+    cursor.execute("""
+        SELECT id, username, subject, category, priority, message, status, created_at
+        FROM supervisor_support_requests
+        WHERE id = ?
+    """, (request_id,))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    return dict(row)
+
+
+# =========================================================
+# SECUREEXAM SUPERVISOR CONFIGS
+# =========================================================
+
+@app.get("/supervisor/configs")
+def list_supervisor_configs(
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            id,
+            teacher_id,
+            exam_id,
+            exam_name,
+            exam_date,
+            exam_time,
+            student_id,
+            machine_id,
+            workspace,
+            created_at,
+            updated_at
+        FROM exam_configs
+        ORDER BY updated_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    configs = []
+
+    for row in rows:
+        filename = config_filename(
+            row["exam_id"],
+            row["student_id"],
+            row["machine_id"]
+        )
+
+        configs.append({
+            "id": row["id"],
+            "teacher_id": row["teacher_id"],
+            "filename": filename,
+            "exam_id": row["exam_id"],
+            "exam_name": row["exam_name"] if "exam_name" in row.keys() and row["exam_name"] else row["exam_id"],
+            "exam_date": row["exam_date"] if "exam_date" in row.keys() else "",
+            "exam_time": row["exam_time"] if "exam_time" in row.keys() else "",
+            "workspace": row["workspace"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+            "json_download_url": f"/supervisor/configs/{row['id']}/download",
+            "nixos_config_url": f"/supervisor/configs/{row['id']}/nixos-config",
+            "nixos_config_download_url": f"/supervisor/configs/{row['id']}/nixos-config/download"
+        })
+
+    return {
+        "count": len(configs),
+        "configs": configs
+    }
+
+
+@app.get("/supervisor/configs/{config_id}/download")
+def download_supervisor_config(
+    config_id: int,
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    row = get_config_row_by_id_or_404(config_id)
+    config_data = row_to_config(row)
+
+    filename = config_filename(
+        row["exam_id"],
+        row["student_id"],
+        row["machine_id"]
+    )
+
+    return Response(
+        content=json.dumps(config_data, indent=2, ensure_ascii=False),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )
+
+
+@app.get("/supervisor/configs/{config_id}/nixos-config")
+def get_supervisor_nixos_config(
+    config_id: int,
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    row = get_config_row_by_id_or_404(config_id)
+    config_data = row_to_config(row)
+    filename = config_filename(
+        row["exam_id"],
+        row["student_id"],
+        row["machine_id"]
+    )
+
+    return {
+        "filename": f"{Path(filename).stem}_exam-configuration.nix",
+        "source_config": filename,
+        "content": generate_nixos_config_preview(config_data)
+    }
+
+
+@app.get("/supervisor/configs/{config_id}/nixos-config/download")
+def download_supervisor_nixos_config(
+    config_id: int,
+    current_supervisor: dict = _SupervisorDepends(_get_current_supervisor)
+):
+    row = get_config_row_by_id_or_404(config_id)
+    config_data = row_to_config(row)
+
+    filename = config_filename(
+        row["exam_id"],
+        row["student_id"],
+        row["machine_id"]
+    )
+
+    output_filename = f"{Path(filename).stem}_exam-configuration.nix"
+
+    return Response(
+        content=generate_nixos_config_preview(config_data),
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f'attachment; filename="{output_filename}"'
+        }
+    )
+
+# =========================================================
+# SECUREEXAM RUNTIME IDENTIFICATION
+# =========================================================
+
+class ExamRuntimeIdentificationRequest(BaseModel):
+    exam_id: str
+    student_id: str
+    machine_id: str
+    workspace: Optional[str] = None
+
+
+def ensure_exam_runtime_sessions_table():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS exam_runtime_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            exam_id TEXT NOT NULL,
+            student_id TEXT NOT NULL,
+            machine_id TEXT NOT NULL,
+            workspace TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'IDENTIFIED',
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+
+@app.post("/exam-runtime/identify")
+def identify_exam_runtime(payload: ExamRuntimeIdentificationRequest):
+    ensure_exam_runtime_sessions_table()
+
+    exam_id = payload.exam_id.strip()
+    student_id = payload.student_id.strip()
+    machine_id = payload.machine_id.strip()
+
+    if not exam_id or not student_id or not machine_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Examen, étudiant et machine sont obligatoires au lancement de l'examen."
+        )
+
+    workspace = payload.workspace or f"/home/exam/{student_id}/workspace"
+    created_at = now_iso()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO exam_runtime_sessions (
+            exam_id,
+            student_id,
+            machine_id,
+            workspace,
+            status,
+            created_at
+        )
+        VALUES (?, ?, ?, ?, 'IDENTIFIED', ?)
+    """, (
+        exam_id,
+        student_id,
+        machine_id,
+        workspace,
+        created_at
+    ))
+
+    connection.commit()
+    session_id = cursor.lastrowid
+
+    cursor.execute("""
+        SELECT id, exam_id, student_id, machine_id, workspace, status, created_at
+        FROM exam_runtime_sessions
+        WHERE id = ?
+    """, (
+        session_id,
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    return dict(row)
+
+
+@app.get("/exam-runtime/sessions/{exam_id}")
+def list_exam_runtime_sessions(
+    exam_id: str,
+    current_teacher: dict = Depends(get_current_teacher)
+):
+    ensure_exam_runtime_sessions_table()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id, exam_id, student_id, machine_id, workspace, status, created_at
+        FROM exam_runtime_sessions
+        WHERE exam_id = ?
+        ORDER BY id DESC
+    """, (
+        exam_id,
+    ))
+
+    rows = [dict(row) for row in cursor.fetchall()]
+    connection.close()
+
+    return {
+        "count": len(rows),
+        "sessions": rows
+    }
+
+
+# =========================================================
+# SECUREEXAM_SUPERVISOR_NIXOS_V1
+# =========================================================
+
+def _supervisor_get_exam_config_or_404(
+    config_id: int
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            ec.*,
+            COALESCE(
+                tp.full_name,
+                t.username,
+                'Professeur'
+            ) AS professor_name
+        FROM exam_configs ec
+        LEFT JOIN teacher_profiles tp
+            ON tp.teacher_id = ec.teacher_id
+        LEFT JOIN teachers t
+            ON t.id = ec.teacher_id
+        WHERE ec.id = ?
+        LIMIT 1
+    """, (
+        config_id,
+    ))
+
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        raise _SupervisorHTTPException(
+            status_code=404,
+            detail="Configuration d'examen introuvable."
+        )
+
+    return row
+
+
+@app.get("/supervisor/nixos-configs")
+def list_supervisor_nixos_configs(
+    current_supervisor: dict = _SupervisorDepends(
+        _get_current_supervisor
+    )
+):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            ec.*,
+            COALESCE(
+                tp.full_name,
+                t.username,
+                'Professeur'
+            ) AS professor_name
+        FROM exam_configs ec
+        LEFT JOIN teacher_profiles tp
+            ON tp.teacher_id = ec.teacher_id
+        LEFT JOIN teachers t
+            ON t.id = ec.teacher_id
+        ORDER BY
+            ec.updated_at DESC,
+            ec.id DESC
+    """)
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    result = []
+
+    for row in rows:
+
+        keys = row.keys()
+
+        exam_id = str(
+            row["exam_id"] or ""
+        ).strip()
+
+        exam_name = (
+            row["exam_name"]
+            if (
+                "exam_name" in keys
+                and row["exam_name"]
+            )
+            else exam_id
+        )
+
+        exam_date = (
+            row["exam_date"]
+            if "exam_date" in keys
+            else ""
+        )
+
+        exam_time = (
+            row["exam_time"]
+            if "exam_time" in keys
+            else ""
+        )
+
+        result.append({
+            "id": row["id"],
+            "exam_id": exam_id,
+            "exam_name": exam_name,
+            "exam_date": exam_date or "",
+            "exam_time": exam_time or "",
+            "nix_filename":
+                f"{exam_id}_exam-configuration.nix",
+            "created_at":
+                row["created_at"]
+                if "created_at" in keys
+                else None,
+            "updated_at":
+                row["updated_at"]
+                if "updated_at" in keys
+                else None
+        })
+
+    return result
+
+
+@app.get(
+    "/supervisor/nixos-configs/{config_id}"
+)
+def get_supervisor_nixos_config(
+    config_id: int,
+    current_supervisor: dict = _SupervisorDepends(
+        _get_current_supervisor
+    )
+):
+    row = _supervisor_get_exam_config_or_404(
+        config_id
+    )
+
+    config_data = row_to_config(row)
+
+    content = generate_nixos_config_preview(
+        config_data
+    )
+
+    exam_id = config_data.get(
+        "exam_id"
+    ) or f"exam-{config_id}"
+
+    return {
+        "id": config_id,
+        "exam_id": exam_id,
+        "exam_name":
+            config_data.get("exam_name")
+            or exam_id,
+        "professor_name": (
+            row["professor_name"]
+            if (
+                "professor_name" in row.keys()
+                and row["professor_name"]
+            )
+            else "Professeur"
+        ),
+        "filename":
+            f"{exam_id}_exam-configuration.nix",
+        "content": content
+    }
+
+
+@app.get(
+    "/supervisor/nixos-configs/{config_id}/download"
+)
+def download_supervisor_nixos_config(
+    config_id: int,
+    current_supervisor: dict = _SupervisorDepends(
+        _get_current_supervisor
+    )
+):
+    row = _supervisor_get_exam_config_or_404(
+        config_id
+    )
+
+    config_data = row_to_config(row)
+
+    content = generate_nixos_config_preview(
+        config_data
+    )
+
+    exam_id = config_data.get(
+        "exam_id"
+    ) or f"exam-{config_id}"
+
+    output_filename = (
+        f"{exam_id}_exam-configuration.nix"
+    )
+
+    return Response(
+        content=content,
+        media_type="text/plain",
+        headers={
+            "Content-Disposition":
+                f'attachment; filename="{output_filename}"'
+        }
+    )
+
+

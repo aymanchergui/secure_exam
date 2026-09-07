@@ -1,0 +1,2970 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
+
+import { HeaderComponent } from '../header/header';
+import { AuthenticationComponent } from '../login/authentication';
+import { SupportComponent } from '../../../components/support/support';
+import { ProfileComponent } from '../profil/profile';
+
+interface Submission {
+  filename: string;
+  size_kb: number;
+  created_at: string;
+  download_url: string;
+  exam_id?: string;
+  student_id?: string;
+  machine_id?: string;
+  exam_created_at?: string;
+  exam_updated_at?: string;
+}
+
+interface MachineStatus {
+  exam_id: string;
+  exam_name?: string;
+  exam_date?: string;
+  exam_time?: string;
+  student_id?: string;
+  machine_id?: string;
+  step: string;
+  status: string;
+  message: string;
+  created_at?: string;
+}
+
+interface ExamConfigFile {
+  filename: string;
+  download_url: string;
+
+  exam_id?: string;
+  exam_name?: string;
+  exam_date?: string;
+  exam_time?: string;
+
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface ExamConfigDetail {
+  exam_id: string;
+
+  exam_name?: string;
+  exam_date?: string;
+  exam_time?: string;
+
+  packages: string[];
+  nix_packages?: string[];
+
+  sudo: boolean;
+  internet: boolean;
+  educ_access: boolean;
+
+  allowed_domains: string[];
+
+  created_at?: string;
+  updated_at?: string;
+
+  // Conservés uniquement pour compatibilité backend.
+  student_id?: string;
+  machine_id?: string;
+  workspace?: string;
+}
+
+interface NixosConfig {
+  filename: string;
+  content: string;
+}
+
+interface PackageCatalogItem {
+  id: number;
+  name: string;
+  nixName: string;
+  displayName: string;
+  description: string;
+  isActive: boolean;
+  version?: string;
+  verifiedNixPackage?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PackageCatalogResponse {
+  count: number;
+  packages: PackageCatalogItem[];
+}
+
+interface PackageCreateResponse {
+  message: string;
+  verifiedNixPackage?: string;
+  package: PackageCatalogItem;
+}
+
+interface PackageVerificationResponse {
+  exists: boolean;
+  catalogExists: boolean;
+  name: string;
+  nixName: string;
+  displayName: string;
+  verifiedNixPackage: string;
+}
+
+interface PackageSearchCandidate {
+  name: string;
+  nixName: string;
+  displayName: string;
+  version: string;
+  description: string;
+  verifiedNixPackage: string;
+  catalogExists: boolean;
+}
+
+interface PackageSearchResponse {
+  query: string;
+  count: number;
+  candidates: PackageSearchCandidate[];
+}
+
+interface PackageManagementItem extends PackageCatalogItem {
+  usageCount: number;
+  canDelete: boolean;
+}
+
+interface PackageManagementResponse {
+  count: number;
+  packages: PackageManagementItem[];
+}
+
+
+interface Dashboard {
+  configs_count: number;
+  submissions_count: number;
+  machines_count: number;
+  configs: ExamConfigFile[];
+  submissions: Submission[];
+  machine_statuses: MachineStatus[];
+}
+
+type PackageFilter = 'all' | 'active' | 'inactive';
+
+type LucideWindow = Window & {
+  lucide?: {
+    createIcons: () => void;
+  };
+};
+
+@Component({
+  selector: 'app-professeur-space',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    HeaderComponent,
+    AuthenticationComponent,
+    SupportComponent,
+    ProfileComponent
+  ],
+  templateUrl: './professeur-space.html',
+  styleUrl: './professeur-space.css'
+})
+export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
+
+  private setProfessorUrl(path: string): void {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+  }
+
+
+  openSupervisorSupportFromLogin(): void {
+    sessionStorage.setItem('secureexam_open_general_support', '1');
+    window.location.href = '/espace_prof/login?support=1';
+  }
+
+
+  isSupervisorAuthenticated = localStorage.getItem('secureexam_supervisor_token') !== null;
+
+  isSupervisorPublicSupport =
+    window.location.pathname.toLowerCase().startsWith('/espace_surveillant/support')
+    && localStorage.getItem('secureexam_supervisor_token') === null;
+
+  openSupervisorSpace(): void {
+    this.isSupervisorPublicSupport = false;
+    this.setSecureExamSpace('/espace_surveillant/login', 'supervisor');
+  }
+
+
+  handleSupervisorAuthenticated(): void {
+    this.isSupervisorAuthenticated = true;
+    this.isSupervisorPublicSupport = false;
+    this.secureExamSpace = 'supervisor';
+
+    if (window.location.pathname !== '/espace_surveillant/dashboard') {
+      window.history.pushState({}, '', '/espace_surveillant/dashboard');
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  logoutSupervisor(): void {
+    localStorage.removeItem('secureexam_supervisor_token');
+    localStorage.removeItem('secureexam_supervisor_username');
+
+    this.isSupervisorAuthenticated = false;
+    this.isSupervisorPublicSupport = false;
+    this.secureExamSpace = 'supervisor';
+
+    if (window.location.pathname !== '/espace_surveillant/login') {
+      window.history.pushState({}, '', '/espace_surveillant/login');
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  backToMainDashboard(): void {
+    this.isSupervisorPublicSupport = false;
+    this.setSecureExamSpace('/accueil', 'dashboard');
+  }
+
+
+
+
+
+  private findProfessorSectionByText(labels: string[]): HTMLElement | null {
+    const candidates = Array.from(
+      document.querySelectorAll('h1, h2, h3, h4, .panel-title, .section-title, .card-title')
+    ) as HTMLElement[];
+
+    for (const label of labels) {
+      const lowerLabel = label.toLowerCase();
+
+      const title = candidates.find((element) =>
+        element.textContent?.toLowerCase().includes(lowerLabel)
+      );
+
+      if (title) {
+        return title.closest('.panel, .submission-exam-group, .card, section, article, div') as HTMLElement || title;
+      }
+    }
+
+    return null;
+  }
+
+  private scrollToProfessorSection(section: string, behavior: ScrollBehavior = 'smooth'): void {
+    const key = String(section || 'dashboard').toLowerCase();
+
+    const textTargets: Record<string, string[]> = {
+      dashboard: ['Configurations', 'Rendus reçus', 'Machines suivies'],
+      configurations: ['Créer une configuration', 'Paquets autorisés', 'Configurations générées'],
+      nixos: ['Configuration NixOS', 'NixOS générée', 'Fichier NixOS'],
+      machines: ['Suivi des machines', 'Machines suivies', 'Machines'],
+      rendus: ['Rendus étudiants', 'Rendus reçus', 'Rendus'],
+      profile: ['Profil professeur', 'Profil'],
+      profil: ['Profil professeur', 'Profil'],
+      support: ['Support', 'Assistance']
+    };
+
+    let target = this.findProfessorSectionByText(textTargets[key] || []);
+
+    if (!target) {
+      const fallbackSelectors: Record<string, string[]> = {
+        dashboard: ['.stats-grid', '.cards-grid', '.dashboard-cards', '.card'],
+        configurations: ['.panel'],
+        nixos: ['.nixos-section', '.nixos-panel'],
+        machines: ['.machines-section'],
+        rendus: ['.submissions-section', '.submission-exam-group'],
+        profile: ['.profile-section'],
+        profil: ['.profile-section'],
+        support: ['.support-section']
+      };
+
+      for (const selector of fallbackSelectors[key] || []) {
+        const element = document.querySelector(selector) as HTMLElement | null;
+
+        if (element) {
+          target = element;
+          break;
+        }
+      }
+    }
+
+    if (!target || key === 'dashboard') {
+      window.scrollTo({ top: 0, behavior });
+      return;
+    }
+
+    const headerOffset = 118;
+    const top = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+
+    window.scrollTo({
+      top: Math.max(top, 0),
+      behavior
+    });
+  }
+
+  handleProfessorSectionRequested(section: string): void {
+    (this as any).activeSection = section;
+    this.secureExamSpace = 'professor';
+
+    const nextPath = this.getProfessorPathFromSection(section);
+
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+    }
+
+    setTimeout(() => {
+      this.scrollToProfessorSection(section);
+    }, 80);
+  }
+
+  @HostListener('window:popstate')
+  onSecureExamPopState(): void {
+    this.secureExamSpace = this.resolveSecureExamSpaceFromPath();
+    this.isSupervisorPublicSupport =
+      window.location.pathname.toLowerCase().startsWith('/espace_surveillant/support')
+      && localStorage.getItem('secureexam_supervisor_token') === null;
+
+    if (this.secureExamSpace === 'professor') {
+      const section = this.getProfessorSectionFromPath();
+      (this as any).activeSection = section;
+
+      setTimeout(() => {
+        this.scrollToProfessorSection(section, 'auto');
+      }, 80);
+
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+
+  secureExamSpace: 'dashboard' | 'professor' | 'supervisor' = this.resolveSecureExamSpaceFromPath();
+
+  private getProfessorPathFromSection(section: string): string {
+    const key = String(section || 'dashboard').toLowerCase();
+
+    const routes: Record<string, string> = {
+      dashboard: '/espace_prof/dashboard',
+      configurations: '/espace_prof/configurations',
+      configuration: '/espace_prof/configurations',
+      config: '/espace_prof/configurations',
+      configs: '/espace_prof/configurations',
+      nixos: '/espace_prof/nixos',
+      machines: '/espace_prof/machines',
+      rendus: '/espace_prof/rendus',
+      submissions: '/espace_prof/rendus',
+      profile: '/espace_prof/profil',
+      profil: '/espace_prof/profil',
+      support: '/espace_prof/support'
+    };
+
+    return routes[key] || '/espace_prof/dashboard';
+  }
+
+  private getProfessorSectionFromPath(): string {
+    const path = window.location.pathname.toLowerCase();
+
+    if (path.startsWith('/espace_prof/configurations')) {
+      return 'configurations';
+    }
+
+    if (path.startsWith('/espace_prof/nixos')) {
+      return 'nixos';
+    }
+
+    if (path.startsWith('/espace_prof/machines')) {
+      return 'machines';
+    }
+
+    if (path.startsWith('/espace_prof/rendus')) {
+      return 'rendus';
+    }
+
+    if (path.startsWith('/espace_prof/profil') || path.startsWith('/espace_prof/profile')) {
+      return 'profile';
+    }
+
+    if (path.startsWith('/espace_prof/support')) {
+      return 'support';
+    }
+
+    return 'dashboard';
+  }
+
+  private resolveSecureExamSpaceFromPath(): 'dashboard' | 'professor' | 'supervisor' {
+    const path = window.location.pathname.toLowerCase();
+
+    if (path === '/' || path === '') {
+      window.history.replaceState({}, '', '/accueil');
+      return 'dashboard';
+    }
+
+    if (path.startsWith('/accueil')) {
+      return 'dashboard';
+    }
+
+    if (path.startsWith('/espace_prof')) {
+      return 'professor';
+    }
+
+    if (path.startsWith('/espace_surveillant')) {
+      return 'supervisor';
+    }
+
+    window.history.replaceState({}, '', '/accueil');
+    return 'dashboard';
+  }
+
+  private setSecureExamSpace(path: string, space: 'dashboard' | 'professor' | 'supervisor'): void {
+    this.secureExamSpace = space;
+
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+    }
+
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  openProfessorSpace(): void {
+    this.setSecureExamSpace('/espace_prof/login', 'professor');
+  }
+
+
+  handleProfessorAuthenticated(): void {
+    (this as any).isAuthenticated = true;
+    (this as any).authenticated = true;
+    (this as any).activeSection = 'dashboard';
+
+    this.setSecureExamSpace('/espace_prof/dashboard', 'professor');
+  }
+
+
+
+
+  private isProfessorPath(path: string): boolean {
+    const professorPaths = [
+      '/espace_prof',
+      '/espace_prof/login',
+      '/espace_prof/dashboard',
+      '/espace_prof/configurations',
+      '/espace_prof/nixos',
+      '/espace_prof/machines',
+      '/espace_prof/rendus',
+      '/espace_prof/profile',
+      '/espace_prof/profil',
+      '/espace_prof/support',
+
+      // Sécurité pour les anciens chemins internes
+      '/dashboard',
+      '/configurations',
+      '/nixos',
+      '/machines',
+      '/rendus',
+      '/profile',
+      '/profil'
+    ];
+
+    return professorPaths.some(professorPath => path.startsWith(professorPath));
+  }
+
+
+
+
+
+
+
+
+
+
+
+  showCreateConfigConfirmModal = false;
+  pendingCreateConfigPreview: any = {};
+
+
+
+  dashboard?: Dashboard;
+
+  selectedConfig?: ExamConfigDetail;
+  selectedConfigFilename = '';
+
+  statusHistory: MachineStatus[] = [];
+  statusHistoryTitle = '';
+
+  nixosConfig?: NixosConfig;
+
+  loading = false;
+  packagesLoading = false;
+  packageCreating = false;
+  packageActionLoadingId = 0;
+
+  error = '';
+  success = '';
+
+  isAuthenticated = false;
+
+  publicPage: 'authentication' | 'support' = 'authentication';
+  authenticatedPage: 'dashboard' | 'profile' = 'dashboard';
+
+  loginUsername = 'prof';
+  loginPassword = '';
+  loginError = '';
+  accessToken = '';
+
+  private apiUrl = `http://${window.location.hostname}:8000`;
+  headerTeacherFullName = localStorage.getItem('secure_exam_teacher_full_name') || 'Professeur';
+
+  availablePackages: PackageCatalogItem[] = [];
+  packageFilter: PackageFilter = 'all';
+  packagePage = 1;
+  packagePageSize = 9;
+  packageVersionByNixName: Record<string, string> = {};
+  showPackageCreationForm = false;
+
+  packageVerificationStatus: 'idle' | 'checking' | 'valid' | 'invalid' = 'idle';
+  packageVerificationMessage = '';
+  verifiedPackageName = '';
+  verifiedPackageDisplayName = '';
+  verifiedPackageNixName = '';
+  packageSearchCandidates: PackageSearchCandidate[] = [];
+  selectedPackageCandidateNixName = '';
+
+  showPackageDeleteModal = false;
+  packageManagementLoading = false;
+  packageManagementItems: PackageManagementItem[] = [];
+  selectedPackageIdsToDelete = new Set<number>();
+  private packageVerificationTimer?: number;
+
+  newPackage = {
+    name: '',
+    description: ''
+  };
+
+  newConfig = {
+    exam_id: 'EXAM-PYTHON-2026',
+        exam_name: '',
+        exam_date: '',
+        exam_time: '',
+    student_id: 'GLOBAL',
+    machine_id: 'ALL_MACHINES',
+    packages: [] as string[],
+    sudo: false,
+    internet: false,
+    educ_access: true,
+    allowed_domains_text: 'educ.isen.fr',
+    workspace: '/home/exam/workspace'
+  };
+
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    const savedToken = localStorage.getItem('accessToken');
+
+    if (savedToken) {
+      this.accessToken = savedToken;
+      this.isAuthenticated = true;
+        this.setProfessorUrl('/espace_prof/dashboard');
+        setTimeout(() => this.refreshHeaderTeacherName(), 80);
+        setTimeout(() => this.refreshHeaderTeacherName(), 350);
+      this.publicPage = 'authentication';
+      this.authenticatedPage = 'dashboard';
+
+      setTimeout(() => {
+        this.loadActivePackages();
+        this.loadDashboard();
+      }, 100);
+    } else {
+      this.refreshLucideIcons();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.refreshLucideIcons();
+  }
+
+  refreshLucideIcons(): void {
+    setTimeout(() => {
+      const lucide = (window as LucideWindow).lucide;
+
+      if (lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }, 100);
+  }
+
+  refreshView(): void {
+    this.cdr.detectChanges();
+    this.refreshLucideIcons();
+  }
+  openSupportPage(): void {
+    window.location.href = '/support';
+  }
+
+
+
+  openAuthenticationPage(): void {
+    this.setProfessorUrl('/espace_prof/login');
+    this.publicPage = 'authentication';
+    this.refreshView();
+  }
+
+  openProfilePage(): void {
+    this.setProfessorUrl('/espace_prof/profil');
+    this.authenticatedPage = 'profile';
+    this.error = '';
+    this.success = '';
+    this.refreshView();
+  }
+
+  openDashboardPage(): void {
+    this.setProfessorUrl('/espace_prof/dashboard');
+    this.authenticatedPage = 'dashboard';
+    this.error = '';
+    this.success = '';
+    this.refreshView();
+  }
+
+  openDashboardSection(section: string): void {
+    this.setProfessorUrl(this.getProfessorPathFromSection(section));
+    this.authenticatedPage = 'dashboard';
+    this.error = '';
+    this.success = '';
+
+    if (!this.dashboard) {
+      this.loadDashboard();
+    }
+
+    this.refreshView();
+
+    setTimeout(() => {
+      window.location.hash = section;
+
+      const element = document.getElementById(section);
+
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }
+
+      this.refreshLucideIcons();
+    }, 180);
+  }
+
+  onAuthenticationRequested(credentials: { username: string; password: string }): void {
+    this.loginUsername = credentials.username;
+    this.loginPassword = credentials.password;
+
+    this.login();
+  }
+
+  getTeacherHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      Authorization: `Bearer ${this.accessToken}`
+    });
+  }
+  login(): void {
+    this.loginError = '';
+    this.error = '';
+    this.success = '';
+    this.loading = false;
+
+    const cleanUsername = this.loginUsername.trim();
+    const cleanPassword = this.loginPassword.trim();
+
+    if (!cleanUsername) {
+      this.loginError = 'Veuillez renseigner votre identifiant.';
+      this.refreshView();
+      return;
+    }
+
+    if (!cleanPassword) {
+      this.loginError = 'Veuillez renseigner votre mot de passe.';
+      this.refreshView();
+      return;
+    }
+
+    this.loading = true;
+    this.refreshView();
+
+    const securityTimeout = window.setTimeout(() => {
+      if (!this.loading) {
+        return;
+      }
+
+      this.loading = false;
+      this.loginError = 'Serveur injoignable. Vérifiez que le backend FastAPI est lancé.';
+      this.refreshView();
+    }, 8000);
+
+    const payload = {
+      username: cleanUsername,
+      password: cleanPassword
+    };
+
+    this.http.post<{ access_token: string; token_type: string }>(
+      `${this.apiUrl}/auth/login`,
+      payload
+    ).subscribe({
+      next: (data) => {
+        window.clearTimeout(securityTimeout);
+
+        this.accessToken = data.access_token;
+        this.isAuthenticated = true;
+        this.loading = false;
+
+        this.setProfessorUrl('/espace_prof/dashboard');
+
+        setTimeout(() => this.refreshHeaderTeacherName(), 80);
+        setTimeout(() => this.refreshHeaderTeacherName(), 350);
+
+        this.publicPage = 'authentication';
+        this.authenticatedPage = 'dashboard';
+
+        localStorage.setItem('accessToken', data.access_token);
+        setTimeout(() => this.refreshHeaderTeacherName(), 120);
+
+        this.syncHeaderTeacherNameAfterLogin(data.access_token);
+        window.dispatchEvent(new Event('secure-exam-authenticated'));
+
+        this.loadActivePackages();
+        this.loadDashboard();
+        this.refreshView();
+      },
+      error: (err) => {
+        window.clearTimeout(securityTimeout);
+
+        console.error(err);
+
+        this.loading = false;
+
+        if (err?.status === 0) {
+          this.loginError = 'Connexion au serveur impossible. Vérifiez que le backend est lancé.';
+        } else {
+          this.loginError =
+            err?.error?.detail || 'Connexion enseignant impossible.';
+        }
+
+        this.loginPassword = '';
+        this.refreshView();
+      }
+    });
+  }
+
+
+
+
+  syncHeaderTeacherNameAfterLogin(token: string): void {
+    if (!token) {
+      return;
+    }
+
+    setTimeout(() => {
+      fetch(`${this.apiUrl}/teacher-profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Profil professeur non chargé');
+          }
+
+          return response.json();
+        })
+        .then(profile => {
+          if (!profile?.fullName) {
+            return;
+          }
+
+          localStorage.setItem('secure_exam_teacher_full_name', profile.fullName);
+
+          window.dispatchEvent(
+            new CustomEvent('secure-exam-teacher-name-updated', {
+              detail: {
+                fullName: profile.fullName
+              }
+            })
+          );
+        })
+        .catch(() => {});
+    }, 150);
+  }
+
+
+  getHeaderAuthToken(): string {
+    const possibleKeys = [
+      'token',
+      'access_token',
+      'authToken',
+      'auth_token',
+      'secure_exam_token',
+      'secure_exam_access_token'
+    ];
+
+    for (const key of possibleKeys) {
+      const value = localStorage.getItem(key);
+
+      if (value && value.split('.').length === 3) {
+        return value;
+      }
+    }
+
+    for (let index = 0; index < localStorage.length; index++) {
+      const key = localStorage.key(index);
+
+      if (!key) {
+        continue;
+      }
+
+      const value = localStorage.getItem(key);
+
+      if (value && value.split('.').length === 3) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+  applyHeaderTeacherFullName(fullName: string): void {
+    const cleanName = fullName.trim();
+
+    if (!cleanName) {
+      return;
+    }
+
+    this.headerTeacherFullName = cleanName;
+    localStorage.setItem('secure_exam_teacher_full_name', cleanName);
+
+    const applyDom = () => {
+      document.querySelectorAll('.profile-name').forEach((element) => {
+        element.textContent = cleanName;
+      });
+    };
+
+    applyDom();
+    setTimeout(applyDom, 50);
+    setTimeout(applyDom, 200);
+    setTimeout(applyDom, 600);
+  }
+
+  refreshHeaderTeacherName(): void {
+    const token = this.getHeaderAuthToken();
+
+    if (!token) {
+      this.headerTeacherFullName = 'Professeur';
+      localStorage.removeItem('secure_exam_teacher_full_name');
+      return;
+    }
+
+    fetch(`${this.apiUrl}/teacher-profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Profil professeur non chargé');
+        }
+
+        return response.json();
+      })
+      .then((profile) => {
+        if (profile?.fullName) {
+          this.applyHeaderTeacherFullName(profile.fullName);
+        }
+      })
+      .catch(() => {});
+  }
+
+  logout(): void {
+    this.accessToken = '';
+    this.isAuthenticated = false;
+    this.setProfessorUrl('/espace_prof/login');
+    this.headerTeacherFullName = 'Professeur';
+    localStorage.removeItem('secure_exam_teacher_full_name');
+    this.publicPage = 'authentication';
+    this.authenticatedPage = 'dashboard';
+
+    this.dashboard = undefined;
+    this.selectedConfig = undefined;
+    this.selectedConfigFilename = '';
+
+    this.statusHistory = [];
+    this.statusHistoryTitle = '';
+
+    this.nixosConfig = undefined;
+    this.availablePackages = [];
+
+    this.newPackage = {
+      name: '',
+      description: ''
+    };
+
+    this.newConfig.packages = [];
+
+    this.packageFilter = 'all';
+    this.showPackageCreationForm = false;
+
+    this.loginPassword = '';
+    this.loginError = '';
+
+    this.error = '';
+    this.success = '';
+    this.loading = false;
+    this.packagesLoading = false;
+    this.packageCreating = false;
+    this.packageActionLoadingId = 0;
+
+    localStorage.removeItem('accessToken');
+
+    this.refreshView();
+  }
+
+  loadDashboard(): void {
+    this.loading = true;
+    this.error = '';
+
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<Dashboard>(`${this.apiUrl}/dashboard`, { headers })
+      .subscribe({
+        next: (data) => {
+          this.dashboard = data;
+          this.loading = false;
+          this.refreshView();
+        },
+        error: (err) => {
+          console.error(err);
+
+          this.error = 'Accès refusé ou session expirée. Reconnecte-toi.';
+          this.loading = false;
+
+          this.logout();
+          this.refreshView();
+        }
+      });
+  }
+
+  loadActivePackages(): void {
+    this.packagesLoading = true;
+
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<PackageCatalogResponse>(
+      `${this.apiUrl}/packages`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.availablePackages = data.packages;
+        this.newConfig.packages = this.getActivePackageNames();
+        this.enrichPackageVersions();
+
+        this.packagesLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = 'Impossible de charger le catalogue logiciel.';
+        this.packagesLoading = false;
+
+        this.refreshView();
+      }
+    });
+  }
+
+  getActivePackageNames(): string[] {
+    return this.availablePackages
+      .filter(packageItem => packageItem.isActive)
+      .map(packageItem => packageItem.name);
+  }
+
+  get displayedPackages(): PackageCatalogItem[] {
+    if (this.packageFilter === 'active') {
+      return this.availablePackages.filter(packageItem => packageItem.isActive);
+    }
+
+    if (this.packageFilter === 'inactive') {
+      return this.availablePackages.filter(packageItem => !packageItem.isActive);
+    }
+
+    return this.availablePackages;
+  }
+
+  setPackageFilter(filter: PackageFilter): void {
+    this.packageFilter = filter;
+    this.packagePage = 1;
+    this.refreshView();
+  }
+
+  openPackageDeleteModal(): void {
+    this.showPackageDeleteModal = true;
+    document.body.style.overflow = 'hidden';
+    this.selectedPackageIdsToDelete.clear();
+    this.loadPackageManagementItems();
+    this.refreshView();
+  }
+
+  closePackageDeleteModal(): void {
+    this.showPackageDeleteModal = false;
+    document.body.style.overflow = '';
+    this.selectedPackageIdsToDelete.clear();
+    this.refreshView();
+  }
+
+  loadPackageManagementItems(): void {
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.get<PackageManagementResponse>(
+      `${this.apiUrl}/packages/management`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.packageManagementItems = data.packages;
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = "Erreur lors du chargement des paquets.";
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  isPackageSelectedForDeletion(packageId: number): boolean {
+    return this.selectedPackageIdsToDelete.has(packageId);
+  }
+
+  togglePackageManagementSelection(packageId: number, checked: boolean): void {
+    if (checked) {
+      this.selectedPackageIdsToDelete.add(packageId);
+    } else {
+      this.selectedPackageIdsToDelete.delete(packageId);
+    }
+
+    this.refreshView();
+  }
+
+  getSelectedPackageDeleteCount(): number {
+    return this.selectedPackageIdsToDelete.size;
+  }
+
+  deletePackageManagementItem(packageItem: PackageManagementItem): void {
+    this.error = '';
+    this.success = '';
+
+    if (!packageItem.canDelete) {
+      this.error = "Ce paquet est utilisé dans une configuration. Désactive-le au lieu de le supprimer.";
+      this.refreshView();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Supprimer définitivement le paquet "${packageItem.displayName}" du catalogue ?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.delete<{ message: string }>(
+      `${this.apiUrl}/packages/${packageItem.id}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.selectedPackageIdsToDelete.delete(packageItem.id);
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (err.status === 409 && err.error?.detail?.message) {
+          this.error = err.error.detail.message;
+        } else if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else {
+          this.error = "Suppression impossible.";
+        }
+
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  deleteSelectedPackages(): void {
+    const selectedPackages = this.packageManagementItems.filter(
+      packageItem =>
+        this.selectedPackageIdsToDelete.has(packageItem.id) &&
+        packageItem.canDelete
+    );
+
+    if (selectedPackages.length === 0) {
+      this.error = "Sélectionne au moins un paquet supprimable.";
+      this.refreshView();
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Supprimer définitivement ${selectedPackages.length} paquet(s) du catalogue ?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    const deleteNext = (index: number): void => {
+      if (index >= selectedPackages.length) {
+        this.success = "Paquets sélectionnés supprimés avec succès.";
+        this.selectedPackageIdsToDelete.clear();
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+        return;
+      }
+
+      const packageItem = selectedPackages[index];
+
+      this.http.delete<{ message: string }>(
+        `${this.apiUrl}/packages/${packageItem.id}`,
+        { headers }
+      ).subscribe({
+        next: () => {
+          deleteNext(index + 1);
+        },
+        error: (err) => {
+          console.error(err);
+          this.error = `Suppression interrompue sur ${packageItem.displayName}.`;
+          this.packageManagementLoading = false;
+          this.refreshView();
+        }
+      });
+    };
+
+    deleteNext(0);
+  }
+
+  disablePackageManagementItem(packageItem: PackageManagementItem): void {
+    const headers = this.getTeacherHeaders();
+
+    this.packageManagementLoading = true;
+
+    this.http.patch<{ message: string }>(
+      `${this.apiUrl}/packages/${packageItem.id}/disable`,
+      {},
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.loadActivePackages();
+        this.loadPackageManagementItems();
+        this.packageManagementLoading = false;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+        this.error = "Désactivation impossible.";
+        this.packageManagementLoading = false;
+        this.refreshView();
+      }
+    });
+  }
+
+
+  togglePackageCreationForm(): void {
+    this.showPackageCreationForm = !this.showPackageCreationForm;
+
+    if (!this.showPackageCreationForm) {
+      this.resetPackageVerification();
+    }
+
+    this.refreshView();
+  }
+
+  resetPackageVerification(): void {
+    if (this.packageVerificationTimer) {
+      window.clearTimeout(this.packageVerificationTimer);
+      this.packageVerificationTimer = undefined;
+    }
+
+    this.packageVerificationStatus = 'idle';
+    this.packageVerificationMessage = '';
+    this.verifiedPackageName = '';
+    this.verifiedPackageDisplayName = '';
+    this.verifiedPackageNixName = '';
+    this.packageSearchCandidates = [];
+    this.selectedPackageCandidateNixName = '';
+  }
+
+  onPackageNameChanged(): void {
+    const packageName = this.newPackage.name.trim().toLowerCase();
+
+    if (this.packageVerificationTimer) {
+      window.clearTimeout(this.packageVerificationTimer);
+      this.packageVerificationTimer = undefined;
+    }
+
+    this.packageSearchCandidates = [];
+    this.selectedPackageCandidateNixName = '';
+    this.verifiedPackageName = '';
+    this.verifiedPackageDisplayName = '';
+    this.verifiedPackageNixName = '';
+
+    if (!packageName) {
+      this.packageVerificationStatus = 'idle';
+      this.packageVerificationMessage = '';
+      this.refreshView();
+      return;
+    }
+
+    if (packageName.length < 2) {
+      this.packageVerificationStatus = 'idle';
+      this.packageVerificationMessage = 'Saisis au moins 2 caractères.';
+      this.refreshView();
+      return;
+    }
+
+    this.packageVerificationStatus = 'checking';
+    this.packageVerificationMessage = 'Vérification du paquet et chargement des versions...';
+    this.refreshView();
+
+    this.packageVerificationTimer = window.setTimeout(() => {
+      this.searchPackageCandidates(packageName);
+    }, 700);
+  }
+
+  searchPackageCandidates(packageName: string): void {
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<PackageSearchResponse>(
+      `${this.apiUrl}/packages/search/${encodeURIComponent(packageName)}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        const currentPackageName = this.newPackage.name.trim().toLowerCase();
+
+        if (currentPackageName !== packageName) {
+          return;
+        }
+
+        this.packageSearchCandidates = data.candidates;
+
+        if (data.candidates.length === 0) {
+          this.packageVerificationStatus = 'invalid';
+          this.packageVerificationMessage = 'Paquet introuvable.';
+          this.refreshView();
+          return;
+        }
+
+        const firstAvailable = data.candidates.find(candidate => !candidate.catalogExists);
+        const selectedCandidate = firstAvailable || data.candidates[0];
+
+        this.selectedPackageCandidateNixName = selectedCandidate.nixName;
+        this.applySelectedPackageCandidate();
+
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.packageVerificationStatus = 'invalid';
+        this.packageVerificationMessage = typeof err.error?.detail === 'string'
+          ? err.error.detail
+          : 'Paquet introuvable.';
+
+        this.packageSearchCandidates = [];
+        this.selectedPackageCandidateNixName = '';
+        this.verifiedPackageName = '';
+        this.verifiedPackageDisplayName = '';
+        this.verifiedPackageNixName = '';
+
+        this.refreshView();
+      }
+    });
+  }
+
+  getSelectedPackageCandidate(): PackageSearchCandidate | undefined {
+    return this.packageSearchCandidates.find(
+      candidate => candidate.nixName === this.selectedPackageCandidateNixName
+    );
+  }
+
+  getPackageCandidateLabel(candidate: PackageSearchCandidate): string {
+    const versionText = candidate.version ? candidate.version : candidate.verifiedNixPackage;
+    const status = candidate.catalogExists ? 'déjà présent' : 'disponible';
+
+    return `${versionText} — ${candidate.nixName} (${status})`;
+  }
+
+  onPackageCandidateSelected(): void {
+    this.applySelectedPackageCandidate();
+    this.refreshView();
+  }
+
+  applySelectedPackageCandidate(): void {
+    const selectedCandidate = this.getSelectedPackageCandidate();
+
+    if (!selectedCandidate) {
+      this.packageVerificationStatus = 'invalid';
+      this.packageVerificationMessage = 'Choisis une version disponible.';
+      this.verifiedPackageName = '';
+      this.verifiedPackageDisplayName = '';
+      this.verifiedPackageNixName = '';
+      return;
+    }
+
+    this.verifiedPackageName = selectedCandidate.name;
+    this.verifiedPackageDisplayName = selectedCandidate.displayName;
+    this.verifiedPackageNixName = selectedCandidate.nixName;
+
+    if (selectedCandidate.catalogExists) {
+      this.packageVerificationStatus = 'invalid';
+      this.packageVerificationMessage = 'Cette version existe déjà dans le catalogue.';
+    } else {
+      this.packageVerificationStatus = 'valid';
+      this.packageVerificationMessage = `Version sélectionnée : ${selectedCandidate.verifiedNixPackage}`;
+    }
+  }
+
+  getPackageDisplayFieldValue(): string {
+    if (this.packageVerificationStatus === 'checking') {
+      return 'Vérification en cours...';
+    }
+
+    if (this.packageVerificationStatus === 'valid') {
+      return this.verifiedPackageDisplayName;
+    }
+
+    if (this.packageVerificationStatus === 'invalid') {
+      return 'Paquet introuvable';
+    }
+
+    return '';
+  }
+
+  getGeneratedPackageDisplayName(): string {
+    const packageName = this.newPackage.name.trim().toLowerCase();
+
+    const displayNames: Record<string, string> = {
+      gcc: 'GCC',
+      gdb: 'GDB',
+      git: 'Git',
+      gnumake: 'Make',
+      htop: 'Htop',
+      make: 'Make',
+      nano: 'Nano',
+      python3: 'Python 3',
+      vim: 'Vim'
+    };
+
+    if (!packageName) {
+      return '';
+    }
+
+    if (displayNames[packageName]) {
+      return displayNames[packageName];
+    }
+
+    return packageName
+      .replace(/[-_.]+/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 0)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  createPackage(): void {
+    this.error = '';
+    this.success = '';
+
+    const description = this.newPackage.description.trim();
+    const selectedCandidate = this.getSelectedPackageCandidate();
+
+    if (!description) {
+      this.error = 'La description du paquet est obligatoire.';
+      this.refreshView();
+      return;
+    }
+
+    if (
+      this.packageVerificationStatus !== 'valid' ||
+      !selectedCandidate ||
+      selectedCandidate.catalogExists
+    ) {
+      this.error = 'Choisis une version valide avant ajout.';
+      this.refreshView();
+      return;
+    }
+
+    const payload = {
+      name: selectedCandidate.name,
+      nixName: selectedCandidate.nixName,
+      displayName: selectedCandidate.displayName,
+      description: description
+    };
+
+    const headers = this.getTeacherHeaders();
+
+    this.packageCreating = true;
+
+    this.http.post<PackageCreateResponse>(
+      `${this.apiUrl}/packages`,
+      payload,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.verifiedNixPackage
+          ? `${data.message} Paquet NixOS vérifié : ${data.verifiedNixPackage}`
+          : data.message;
+
+        this.newPackage = {
+          name: '',
+          description: ''
+        };
+
+        this.resetPackageVerification();
+
+        this.packageCreating = false;
+        this.showPackageCreationForm = false;
+        this.packageFilter = 'all';
+
+        this.loadActivePackages();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (err.status === 409) {
+          this.error = 'Ce paquet existe déjà dans le catalogue.';
+        } else if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else if (err.error?.detail?.message) {
+          this.error = `${err.error.detail.message} ${err.error.detail.nixName || ''}`.trim();
+        } else {
+          this.error = "Erreur lors de l'ajout du paquet logiciel.";
+        }
+
+        this.packageCreating = false;
+        this.refreshView();
+      }
+    });
+  }
+
+  togglePackageActivation(packageItem: PackageCatalogItem): void {
+    this.error = '';
+    this.success = '';
+    this.packageActionLoadingId = packageItem.id;
+
+    const headers = this.getTeacherHeaders();
+    const action = packageItem.isActive ? 'disable' : 'enable';
+
+    this.http.patch<PackageCreateResponse>(
+      `${this.apiUrl}/packages/${packageItem.id}/${action}`,
+      {},
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.success = data.message;
+        this.packageActionLoadingId = 0;
+
+        this.loadActivePackages();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        if (typeof err.error?.detail === 'string') {
+          this.error = err.error.detail;
+        } else {
+          this.error = "Erreur lors du changement d'état du paquet logiciel.";
+        }
+
+        this.packageActionLoadingId = 0;
+        this.refreshView();
+      }
+    });
+  }
+
+
+  formatConfigDate(config: any): string {
+    const rawDate = config?.created_at || config?.createdAt || config?.updated_at || config?.updatedAt;
+
+    if (!rawDate) {
+      return '—';
+    }
+
+    const parsedDate = new Date(rawDate);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return rawDate;
+    }
+
+    return parsedDate.toLocaleString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getApiErrorMessage(err: any, fallback: string): string {
+    if (typeof err?.error?.detail === 'string') {
+      return err.error.detail;
+    }
+
+    if (err?.error?.detail?.message) {
+      return err.error.detail.message;
+    }
+
+    return fallback;
+  }
+
+
+
+  executeCreateConfig(): void {
+    this.error = '';
+    this.success = '';
+
+    const activePackageNames = this.getActivePackageNames();
+
+    if (activePackageNames.length === 0) {
+      this.error = 'Aucun paquet logiciel actif disponible.';
+      this.refreshView();
+      return;
+    }
+
+    const headers = this.getTeacherHeaders();
+
+    const payload = {
+      exam_id: this.newConfig.exam_id,
+        exam_name: this.newConfig.exam_name || this.newConfig.exam_id,
+        exam_date: this.newConfig.exam_date,
+        exam_time: this.newConfig.exam_time,
+      packages: activePackageNames,
+      sudo: this.newConfig.sudo,
+      internet: this.newConfig.internet,
+      educ_access: this.newConfig.educ_access,
+      allowed_domains: this.newConfig.allowed_domains_text
+        .split(',')
+        .map(domain => domain.trim())
+        .filter(domain => domain.length > 0),
+    };
+
+    this.http.post(`${this.apiUrl}/configs`, payload, { headers })
+      .subscribe({
+        next: () => {
+          this.success = 'Configuration créée avec succès.';
+          this.loadDashboard();
+          this.refreshView();
+        },
+        error: (err) => {
+          console.error(err);
+
+        const configErrorMessage = this.getApiErrorMessage(
+          err,
+          "Erreur lors de la création de la configuration."
+        );
+
+        if (err.status === 409) {
+          window.alert(configErrorMessage);
+        }
+
+        this.error = configErrorMessage;
+
+          if (err.error?.detail?.message === 'Paquets non autorisés') {
+            const invalidPackages = err.error.detail.invalid_packages?.join(', ') || '';
+            this.error = `Paquets non autorisés : ${invalidPackages}`;
+          } else {
+            this.error = this.getApiErrorMessage(err, "Erreur lors de la création de la configuration.");
+          }
+
+          this.refreshView();
+        }
+      });
+  }
+
+  viewConfig(config: ExamConfigFile): void {
+    this.error = '';
+
+    const headers = this.getTeacherHeaders();
+
+    this.http.get<ExamConfigDetail>(
+      `${this.apiUrl}/configs-file/${encodeURIComponent(config.filename)}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.selectedConfig = data;
+        this.selectedConfigFilename = config.filename;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = 'Impossible de charger le détail de la configuration.';
+        this.refreshView();
+      }
+    });
+  }
+
+  closeConfigDetails(): void {
+    this.selectedConfig = undefined;
+    this.selectedConfigFilename = '';
+    this.refreshLucideIcons();
+  }
+
+  viewStatusHistory(machine: MachineStatus): void {
+    this.error = '';
+
+    const headers = this.getTeacherHeaders();
+
+    const examId = encodeURIComponent(machine.exam_id);
+    const studentId = encodeURIComponent(machine.student_id || 'GLOBAL');
+    const machineId = encodeURIComponent(machine.machine_id || 'ALL_MACHINES');
+
+    this.http.get<MachineStatus[]>(
+      `${this.apiUrl}/machine-status-history/${examId}/${studentId}/${machineId}`,
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        this.statusHistory = data;
+        this.statusHistoryTitle = `${machine.exam_id} / ${machine.student_id} / ${machine.machine_id}`;
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = "Impossible de charger l'historique de la machine.";
+        this.refreshView();
+      }
+    });
+  }
+
+  closeStatusHistory(): void {
+    this.statusHistory = [];
+    this.statusHistoryTitle = '';
+    this.refreshLucideIcons();
+  }
+
+
+
+  private getNixosTargetConfig(): ExamConfigFile | undefined {
+
+    const configs =
+      this.dashboard?.configs || [];
+
+    if (configs.length === 0) {
+      return undefined;
+    }
+
+    /*
+     * Le dashboard renvoie les configurations
+     * de la plus récente à la plus ancienne.
+     *
+     * La section NixOS travaille donc sur
+     * la dernière configuration générée.
+     */
+    return configs[0];
+  }
+
+
+  viewNixosConfig(): void {
+
+    this.error = '';
+
+    const config =
+      this.getNixosTargetConfig();
+
+    if (!config) {
+
+      this.error =
+        'Aucune configuration d’examen disponible.';
+
+      this.refreshView();
+
+      return;
+    }
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const filename =
+      encodeURIComponent(
+        config.filename
+      );
+
+    this.http.get<NixosConfig>(
+      `${this.apiUrl}/configs/${filename}/nixos-config`,
+      {
+        headers
+      }
+    ).subscribe({
+
+      next: (data) => {
+
+        this.nixosConfig = data;
+
+        this.refreshView();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible de générer la configuration NixOS pour cet examen.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+  closeNixosConfig(): void {
+
+    this.nixosConfig = undefined;
+
+    this.refreshLucideIcons();
+  }
+
+
+
+
+
+  // ======================================================
+  // TÉLÉCHARGER CONFIGURATION JSON
+  // ======================================================
+
+  downloadConfig(
+    config: ExamConfigFile
+  ): void {
+
+    this.error = '';
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const filename =
+      encodeURIComponent(
+        config.filename
+      );
+
+    this.http.get(
+      `${this.apiUrl}/configs/${filename}/download`,
+      {
+        headers,
+        responseType: 'blob'
+      }
+    ).subscribe({
+
+      next: (blob) => {
+
+        this.saveBlob(
+          blob,
+          config.filename
+        );
+
+        this.refreshLucideIcons();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible de télécharger la configuration.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+  // ======================================================
+  // TÉLÉCHARGER CONFIGURATION NIXOS
+  // ======================================================
+
+  downloadNixosConfig(): void {
+
+    this.error = '';
+
+    const configs =
+      this.dashboard?.configs || [];
+
+    if (configs.length === 0) {
+
+      this.error =
+        'Aucune configuration d’examen disponible.';
+
+      this.refreshView();
+
+      return;
+    }
+
+    /*
+     * La liste des configurations est triée
+     * de la plus récente à la plus ancienne.
+     */
+    const config = configs[0];
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const filename =
+      encodeURIComponent(
+        config.filename
+      );
+
+    this.http.get(
+      `${this.apiUrl}/configs/${filename}/nixos-config/download`,
+      {
+        headers,
+        responseType: 'blob'
+      }
+    ).subscribe({
+
+      next: (blob) => {
+
+        const nixFilename =
+          config.filename
+            .replace(
+              /\.json$/i,
+              ''
+            )
+          + '_exam-configuration.nix';
+
+        this.saveBlob(
+          blob,
+          nixFilename
+        );
+
+        this.refreshLucideIcons();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible de télécharger la configuration NixOS.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+  // ======================================================
+  // TÉLÉCHARGER UNE SOUMISSION
+  // ======================================================
+
+  downloadSubmission(
+    submission: any
+  ): void {
+
+    this.error = '';
+
+    const filename =
+      submission?.filename;
+
+    if (!filename) {
+
+      this.error =
+        'Fichier de soumission introuvable.';
+
+      this.refreshView();
+
+      return;
+    }
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const safeFilename =
+      encodeURIComponent(
+        filename
+      );
+
+    this.http.get(
+      `${this.apiUrl}/submissions/${safeFilename}/download`,
+      {
+        headers,
+        responseType: 'blob'
+      }
+    ).subscribe({
+
+      next: (blob) => {
+
+        this.saveBlob(
+          blob,
+          filename
+        );
+
+        this.refreshLucideIcons();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible de télécharger la soumission.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  // ======================================================
+  // NIXOS_LIST_PER_EXAM_V1
+  // ======================================================
+
+  getNixosFilename(
+    config: ExamConfigFile
+  ): string {
+
+    return config.filename
+      .replace(
+        /\.json$/i,
+        ''
+      )
+      + '_exam-configuration.nix';
+  }
+
+
+  viewNixosConfigFor(
+    config: ExamConfigFile
+  ): void {
+
+    this.error = '';
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const filename =
+      encodeURIComponent(
+        config.filename
+      );
+
+    this.http.get<NixosConfig>(
+      `${this.apiUrl}/configs/${filename}/nixos-config`,
+      {
+        headers
+      }
+    ).subscribe({
+
+      next: (data) => {
+
+        this.nixosConfig = data;
+
+        this.refreshView();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible d’afficher la configuration NixOS.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+  downloadNixosConfigFor(
+    config: ExamConfigFile
+  ): void {
+
+    this.error = '';
+
+    const headers =
+      this.getTeacherHeaders();
+
+    const filename =
+      encodeURIComponent(
+        config.filename
+      );
+
+    this.http.get(
+      `${this.apiUrl}/configs/${filename}/nixos-config/download`,
+      {
+        headers,
+        responseType: 'blob'
+      }
+    ).subscribe({
+
+      next: (blob) => {
+
+        this.saveBlob(
+          blob,
+          this.getNixosFilename(
+            config
+          )
+        );
+
+        this.refreshLucideIcons();
+      },
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.error =
+          'Impossible de télécharger la configuration NixOS.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+  saveBlob(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    link.click();
+
+    window.URL.revokeObjectURL(url);
+  }
+
+  deleteSubmission(submission: Submission): void {
+    const confirmed = confirm(
+      `Voulez-vous vraiment supprimer définitivement ce rendu ?\n\n${submission.filename}`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.error = '';
+    this.success = '';
+
+    const headers = this.getTeacherHeaders();
+
+    this.http.delete(
+      `${this.apiUrl}/submissions/${encodeURIComponent(submission.filename)}`,
+      { headers }
+    ).subscribe({
+      next: () => {
+        this.success = 'Rendu supprimé avec succès.';
+        this.loadDashboard();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = 'Erreur lors de la suppression du rendu.';
+        this.refreshView();
+      }
+    });
+  }
+
+  deleteConfig(config: ExamConfigFile): void {
+    const confirmed = confirm(
+      `Voulez-vous vraiment supprimer définitivement cette configuration ?\n\n${config.filename}`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.error = '';
+    this.success = '';
+
+    const headers = this.getTeacherHeaders();
+
+    this.http.delete(
+      `${this.apiUrl}/configs/${encodeURIComponent(config.filename)}`,
+      { headers }
+    ).subscribe({
+      next: () => {
+        this.success = 'Configuration supprimée avec succès.';
+
+        if (this.selectedConfigFilename === config.filename) {
+          this.closeConfigDetails();
+        }
+
+        this.loadDashboard();
+        this.refreshView();
+      },
+      error: (err) => {
+        console.error(err);
+
+        this.error = this.getApiErrorMessage(err, "Erreur lors de la création de la configuration.");
+        this.refreshView();
+      }
+    });
+  }
+
+  getExamIdFromArchiveName(filename: string): string {
+    if (!filename) {
+      return 'Examen inconnu';
+    }
+
+    const parts = filename.split('_');
+
+    return parts[0] || 'Examen inconnu';
+  }
+
+  formatDashboardDate(value: any): string {
+    if (!value) {
+      return 'Date non disponible';
+    }
+
+    const normalizedValue = String(value).replace(' ', 'T');
+    const date = new Date(normalizedValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return String(value);
+    }
+
+    return date.toLocaleString('fr-FR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+
+  profileSupportModalOpen = false;
+  profileSupportLoading = false;
+  profileSupportError = '';
+  profileSupportSuccess = '';
+
+  profileSupportRequest = {
+    fullName: '',
+    email: '',
+    subject: 'Problème de connexion',
+    message: ''
+  };
+
+  openProfileSupportModal(): void {
+    const self = this as any;
+
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+
+    this.profileSupportRequest = {
+      fullName:
+        self.teacherProfile?.fullName ||
+        self.profile?.fullName ||
+        self.profileForm?.fullName ||
+        '',
+      email:
+        self.teacherProfile?.email ||
+        self.profile?.email ||
+        self.profileForm?.email ||
+        '',
+      subject: 'Problème de connexion',
+      message: ''
+    };
+
+    this.profileSupportModalOpen = true;
+
+    setTimeout(() => {
+      if (typeof self.refreshIcons === 'function') {
+        self.refreshIcons();
+      }
+
+      if (typeof self.initializeIcons === 'function') {
+        self.initializeIcons();
+      }
+
+      if ((window as any).lucide) {
+        (window as any).lucide.createIcons();
+      }
+    }, 50);
+  }
+
+  closeProfileSupportModal(): void {
+    if (this.profileSupportLoading) {
+      return;
+    }
+
+    this.profileSupportModalOpen = false;
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+  }
+
+  async submitProfileSupportRequest(): Promise<void> {
+    this.profileSupportError = '';
+    this.profileSupportSuccess = '';
+
+    const request = {
+      fullName: this.profileSupportRequest.fullName.trim(),
+      email: this.profileSupportRequest.email.trim(),
+      subject: this.profileSupportRequest.subject.trim(),
+      message: this.profileSupportRequest.message.trim()
+    };
+
+    if (!request.fullName || !request.email || !request.message) {
+      this.profileSupportError = 'Veuillez remplir le nom, l’email et le message.';
+      this.refreshProfileSupportIcons();
+      return;
+    }
+
+    const token =
+      (this as any).accessToken ||
+      localStorage.getItem('secure_exam_access_token') ||
+      localStorage.getItem('secure_exam_token') ||
+      '';
+
+    if (!token) {
+      this.profileSupportError = 'Session expirée. Reconnectez-vous.';
+      this.refreshProfileSupportIcons();
+      return;
+    }
+
+    this.profileSupportLoading = true;
+    this.refreshProfileSupportIcons();
+
+    try {
+      const response = await fetch(`${this.getProfileSupportApiUrl()}/teacher-support-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(request)
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        let message = 'Impossible d’envoyer la demande support.';
+
+        try {
+          const data = JSON.parse(responseText);
+          message = data?.detail || message;
+        } catch {
+          message = responseText || message;
+        }
+
+        throw new Error(message);
+      }
+
+      this.profileSupportLoading = false;
+      this.profileSupportSuccess = 'Demande support envoyée avec succès.';
+      this.profileSupportRequest.message = '';
+
+      const self = this as any;
+
+      if (typeof self.loadSupportRequests === 'function') {
+        self.loadSupportRequests();
+      }
+
+      this.refreshProfileSupportIcons();
+
+      setTimeout(() => {
+        this.closeProfileSupportModal();
+      }, 1200);
+    } catch (error: any) {
+      this.profileSupportLoading = false;
+      this.profileSupportError =
+        error?.message || 'Impossible d’envoyer la demande support.';
+      this.refreshProfileSupportIcons();
+    }
+  }
+
+
+  getProfileSupportApiUrl(): string {
+    return this.apiUrl || `http://${window.location.hostname}:8000`;
+  }
+
+  refreshProfileSupportIcons(): void {
+    setTimeout(() => {
+      const lucide = (window as any).lucide;
+
+      if (lucide && typeof lucide.createIcons === 'function') {
+        lucide.createIcons();
+      }
+    }, 50);
+  }
+
+
+  submissionExamFilter = 'all';
+  submissionDateFilter = '';
+
+  getSubmissionExamOptions(): string[] {
+    const submissions = this.dashboard?.submissions || [];
+    const exams = new Set<string>();
+
+    for (const submission of submissions as any[]) {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+
+      if (examId) {
+        exams.add(examId);
+      }
+    }
+
+    return Array.from(exams).sort((a, b) => a.localeCompare(b));
+  }
+
+  getFilteredSubmissions(): any[] {
+    const submissions = this.dashboard?.submissions || [];
+
+    return (submissions as any[]).filter((submission) => {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+
+      const matchExam =
+        this.submissionExamFilter === 'all' ||
+        examId === this.submissionExamFilter;
+
+      const matchDate =
+        !this.submissionDateFilter ||
+        this.getDateOnly(submission.created_at) === this.submissionDateFilter ||
+        this.getDateOnly(submission.exam_created_at) === this.submissionDateFilter ||
+        this.getDateOnly(submission.exam_updated_at) === this.submissionDateFilter;
+
+      return matchExam && matchDate;
+    });
+  }
+
+  getGroupedSubmissions(): any[] {
+    const submissions = this.getFilteredSubmissions();
+    const groups: Record<string, any> = {};
+
+    for (const submission of submissions) {
+      const examId = submission.exam_id || this.getExamIdFromArchiveName(submission.filename);
+      const examDate =
+        submission.exam_created_at ||
+        submission.exam_updated_at ||
+        submission.created_at ||
+        '';
+
+      const key = `${examId}__${examDate}`;
+
+      if (!groups[key]) {
+        groups[key] = {
+          exam_id: examId,
+          exam_created_at: examDate,
+          submissions: []
+        };
+      }
+
+      groups[key].submissions.push(submission);
+    }
+
+    return Object.values(groups).sort((a: any, b: any) => {
+      const dateA = new Date(String(a.exam_created_at || '').replace(' ', 'T')).getTime() || 0;
+      const dateB = new Date(String(b.exam_created_at || '').replace(' ', 'T')).getTime() || 0;
+
+      return dateB - dateA;
+    });
+  }
+
+  getDateOnly(value: any): string {
+    if (!value) {
+      return '';
+    }
+
+    const text = String(value);
+
+    if (/^\d{4}-\d{2}-\d{2}/.test(text)) {
+      return text.slice(0, 10);
+    }
+
+    const date = new Date(text.replace(' ', 'T'));
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  resetSubmissionFilters(): void {
+    this.submissionExamFilter = 'all';
+    this.submissionDateFilter = '';
+    this.refreshView();
+  }
+
+
+  enrichPackageVersions(): void {
+    const headers = this.getTeacherHeaders();
+
+    for (const packageItem of this.availablePackages) {
+      if (!packageItem?.name || !packageItem?.nixName) {
+        continue;
+      }
+
+      if (this.packageVersionByNixName[packageItem.nixName]) {
+        continue;
+      }
+
+      this.http.get<PackageSearchResponse>(
+        `${this.apiUrl}/packages/search/${encodeURIComponent(packageItem.name)}`,
+        { headers }
+      ).subscribe({
+        next: (data) => {
+          const exactCandidate =
+            data.candidates.find(candidate => candidate.nixName === packageItem.nixName) ||
+            data.candidates.find(candidate => candidate.name === packageItem.name);
+
+          if (exactCandidate?.version) {
+            this.packageVersionByNixName[packageItem.nixName] = exactCandidate.version;
+          } else {
+            this.packageVersionByNixName[packageItem.nixName] = 'Non renseignée';
+          }
+
+          this.refreshView();
+        },
+        error: () => {
+          this.packageVersionByNixName[packageItem.nixName] = 'Non renseignée';
+          this.refreshView();
+        }
+      });
+    }
+  }
+
+  getPackageVersionLabel(packageItem: any): string {
+    if (packageItem?.version) {
+      return packageItem.version;
+    }
+
+    if (packageItem?.nixName && this.packageVersionByNixName[packageItem.nixName]) {
+      return this.packageVersionByNixName[packageItem.nixName];
+    }
+
+    return 'Chargement...';
+  }
+
+
+  get paginatedPackages(): PackageCatalogItem[] {
+    const totalPages = this.getPackageTotalPages();
+
+    if (this.packagePage > totalPages) {
+      this.packagePage = totalPages;
+    }
+
+    if (this.packagePage < 1) {
+      this.packagePage = 1;
+    }
+
+    const start = (this.packagePage - 1) * this.packagePageSize;
+    const end = start + this.packagePageSize;
+
+    return this.displayedPackages.slice(start, end);
+  }
+
+  getPackageTotalPages(): number {
+    return Math.max(1, Math.ceil(this.displayedPackages.length / this.packagePageSize));
+  }
+
+  getPackagePages(): number[] {
+    const totalPages = this.getPackageTotalPages();
+
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  goToPackagePage(page: number): void {
+    const totalPages = this.getPackageTotalPages();
+
+    if (page < 1 || page > totalPages) {
+      return;
+    }
+
+    this.packagePage = page;
+    this.refreshView();
+  }
+
+  getPackagePaginationStart(): number {
+    if (this.displayedPackages.length === 0) {
+      return 0;
+    }
+
+    return ((this.packagePage - 1) * this.packagePageSize) + 1;
+  }
+
+  getPackagePaginationEnd(): number {
+    return Math.min(this.packagePage * this.packagePageSize, this.displayedPackages.length);
+  }
+
+
+
+  createConfig(): void {
+    this.openCreateConfigConfirmation();
+  }
+
+
+  openCreateConfigConfirmation(formValue?: any): void {
+    this.pendingCreateConfigPreview = this.getCreateConfigSnapshot(formValue);
+    this.showCreateConfigConfirmModal = true;
+    this.refreshCreateConfigModalIcons();
+    (this as any).refreshView?.();
+  }
+
+  closeCreateConfigConfirmation(): void {
+    this.showCreateConfigConfirmModal = false;
+    this.pendingCreateConfigPreview = {};
+    (this as any).refreshView?.();
+  }
+
+  confirmCreateConfigCreation(): void {
+    this.showCreateConfigConfirmModal = false;
+    (this as any).refreshView?.();
+    this.executeCreateConfig();
+  }
+
+  refreshCreateConfigModalIcons(): void {
+    setTimeout(() => {
+      (window as any).lucide?.createIcons?.();
+    }, 50);
+  }
+
+  getCreateConfigPreviewValue(...keys: string[]): string {
+    for (const key of keys) {
+      const value = this.pendingCreateConfigPreview?.[key];
+
+      if (Array.isArray(value) && value.length > 0) {
+        return value.join(', ');
+      }
+
+      if (value !== undefined && value !== null && String(value).trim() !== '') {
+        return String(value).trim();
+      }
+    }
+
+    return 'Non renseigné';
+  }
+
+  getCreateConfigPreviewBoolean(...keys: string[]): string {
+    for (const key of keys) {
+      const value = this.pendingCreateConfigPreview?.[key];
+
+      if (value === true || value === 'true' || value === 'on' || value === '1') {
+        return 'Oui';
+      }
+
+      if (value === false || value === 'false' || value === undefined || value === null || value === '') {
+        return 'Non';
+      }
+    }
+
+    return 'Non';
+  }
+
+  getCreateConfigPreviewDomainsList(): string[] {
+    const raw =
+      this.pendingCreateConfigPreview?.allowed_domains ??
+      this.pendingCreateConfigPreview?.allowedDomains ??
+      this.pendingCreateConfigPreview?.authorized_domains ??
+      this.pendingCreateConfigPreview?.domains ??
+      this.pendingCreateConfigPreview?.domain ??
+      this.pendingCreateConfigPreview?.domaines ??
+      this.pendingCreateConfigPreview?.domaines_autorises ??
+      this.getCreateConfigDomainInputFromDom();
+
+    if (Array.isArray(raw)) {
+      return raw
+        .map((item: any) => String(item).trim())
+        .filter(Boolean);
+    }
+
+    return String(raw || '')
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  getCreateConfigPreviewDomains(): string {
+    const domains = this.getCreateConfigPreviewDomainsList();
+    return domains.length ? domains.join(', ') : 'Aucun domaine';
+  }
+
+
+
+  getCreateConfigDomainInputFromDom(): string {
+    const normalize = (value: string): string => {
+      return String(value || '').trim();
+    };
+
+    const isValidDomainValue = (value: string): boolean => {
+      const cleanValue = normalize(value);
+
+      if (!cleanValue) {
+        return false;
+      }
+
+      const lower = cleanValue.toLowerCase();
+
+      if (
+        lower.startsWith('exam-') ||
+        lower.includes('/home/exam') ||
+        lower.startsWith('etu') ||
+        lower.startsWith('pc')
+      ) {
+        return false;
+      }
+
+      return true;
+    };
+
+    const getFieldValue = (field: Element | null): string => {
+      const input = field as HTMLInputElement | HTMLTextAreaElement | null;
+      const value = normalize(input?.value || '');
+      return isValidDomainValue(value) ? value : '';
+    };
+
+    const labels = Array.from(document.querySelectorAll('label'));
+
+    for (const label of labels) {
+      const labelText = normalize(label.textContent || '').toLowerCase();
+
+      if (
+        labelText.includes('domaines autorisés') ||
+        labelText.includes('domaines autorises') ||
+        labelText.includes('domaine') ||
+        labelText.includes('domain')
+      ) {
+        const htmlFor = label.getAttribute('for');
+
+        if (htmlFor) {
+          const linkedField = document.getElementById(htmlFor);
+          const linkedValue = getFieldValue(linkedField);
+
+          if (linkedValue) {
+            return linkedValue;
+          }
+        }
+
+        let sibling = label.nextElementSibling;
+        let safety = 0;
+
+        while (sibling && safety < 6) {
+          const directValue = getFieldValue(sibling);
+
+          if (directValue) {
+            return directValue;
+          }
+
+          const nestedField = sibling.querySelector('input, textarea');
+          const nestedValue = getFieldValue(nestedField);
+
+          if (nestedValue) {
+            return nestedValue;
+          }
+
+          sibling = sibling.nextElementSibling;
+          safety += 1;
+        }
+
+        const parent = label.parentElement;
+        const parentFields = Array.from(parent?.querySelectorAll('input, textarea') || []);
+
+        for (const field of parentFields) {
+          const relation = label.compareDocumentPosition(field);
+
+          if (relation & Node.DOCUMENT_POSITION_FOLLOWING) {
+            const value = getFieldValue(field);
+
+            if (value) {
+              return value;
+            }
+          }
+        }
+      }
+    }
+
+    const preciseSelectors = [
+      'input[name="allowed_domains"]',
+      'textarea[name="allowed_domains"]',
+      'input[name="allowedDomains"]',
+      'textarea[name="allowedDomains"]',
+      'input[name="authorized_domains"]',
+      'textarea[name="authorized_domains"]',
+      'input[name="domains"]',
+      'textarea[name="domains"]',
+      'input[name="domaines"]',
+      'textarea[name="domaines"]',
+      'input[name="domaines_autorises"]',
+      'textarea[name="domaines_autorises"]',
+      'input[ng-reflect-name="allowed_domains"]',
+      'textarea[ng-reflect-name="allowed_domains"]',
+      'input[ng-reflect-name="domains"]',
+      'textarea[ng-reflect-name="domains"]',
+      'input[placeholder*="domaine" i]',
+      'textarea[placeholder*="domaine" i]',
+      'input[placeholder*="domain" i]',
+      'textarea[placeholder*="domain" i]'
+    ];
+
+    for (const selector of preciseSelectors) {
+      const field = document.querySelector(selector);
+      const value = getFieldValue(field);
+
+      if (value) {
+        return value;
+      }
+    }
+
+    return '';
+  }
+
+
+
+  findCreateConfigPackageDetails(packageValue: any): any {
+    const rawName =
+      typeof packageValue === 'string'
+        ? packageValue
+        : (
+            packageValue?.nixName ??
+            packageValue?.nix_name ??
+            packageValue?.name ??
+            packageValue?.displayName ??
+            packageValue?.display_name ??
+            packageValue?.package ??
+            ''
+          );
+
+    const cleanName = String(rawName || '').trim().toLowerCase();
+
+    const catalogs = [
+      (this as any).packageCatalog,
+      (this as any).packages,
+      (this as any).availablePackages,
+      (this as any).catalogPackages,
+      (this as any).filteredPackages,
+      (this as any).paginatedPackages,
+      (this as any).activePackages,
+      (this as any).dashboard?.packages
+    ];
+
+    const flatCatalog = catalogs
+      .filter(Array.isArray)
+      .flat();
+
+    if (!cleanName) {
+      return typeof packageValue === 'object' ? packageValue : {};
+    }
+
+    const found = flatCatalog.find((item: any) => {
+      const candidates = [
+        item?.nixName,
+        item?.nix_name,
+        item?.name,
+        item?.displayName,
+        item?.display_name,
+        item?.package
+      ].map((value) => String(value || '').trim().toLowerCase());
+
+      return candidates.includes(cleanName);
+    });
+
+    return found || (typeof packageValue === 'object' ? packageValue : { nixName: rawName, name: rawName });
+  }
+
+  getCreateConfigPackageDisplayName(packageValue: any): string {
+    const details = this.findCreateConfigPackageDetails(packageValue);
+
+    return String(
+      details?.displayName ??
+      details?.display_name ??
+      details?.label ??
+      details?.title ??
+      details?.name ??
+      details?.nixName ??
+      details?.nix_name ??
+      packageValue ??
+      'Paquet'
+    ).trim();
+  }
+
+  getCreateConfigPackageVersionLabel(packageValue: any): string {
+    const details = this.findCreateConfigPackageDetails(packageValue);
+
+    const nixName = String(
+      details?.nixName ??
+      details?.nix_name ??
+      details?.name ??
+      packageValue ??
+      ''
+    ).trim();
+
+    const versionMap = (this as any).packageVersionByNixName || {};
+
+    const version =
+      details?.version ??
+      details?.packageVersion ??
+      details?.package_version ??
+      details?.latestVersion ??
+      details?.latest_version ??
+      versionMap[nixName] ??
+      versionMap[nixName.toLowerCase()] ??
+      '';
+
+    const cleanVersion = String(version || '').trim();
+
+    return cleanVersion || 'Non renseignée';
+  }
+
+  getCreateConfigPreviewPackagesList(): Array<{ displayName: string; nixName: string; version: string }> {
+    const possibleLists = [
+      this.pendingCreateConfigPreview?.packages,
+      (this as any).selectedPackages,
+      (this as any).selectedPackageNames,
+      (this as any).newConfig?.packages,
+      (this as any).config?.packages,
+      (this as any).examConfig?.packages,
+      (this as any).currentConfig?.packages
+    ];
+
+    let selectedPackages: any[] = [];
+
+    for (const list of possibleLists) {
+      if (Array.isArray(list) && list.length > 0) {
+        selectedPackages = list;
+        break;
+      }
+    }
+
+    const normalized = selectedPackages
+      .map((packageValue: any) => {
+        const details = this.findCreateConfigPackageDetails(packageValue);
+
+        const nixName = String(
+          details?.nixName ??
+          details?.nix_name ??
+          details?.name ??
+          packageValue ??
+          ''
+        ).trim();
+
+        return {
+          displayName: this.getCreateConfigPackageDisplayName(packageValue),
+          nixName: nixName || this.getCreateConfigPackageDisplayName(packageValue),
+          version: this.getCreateConfigPackageVersionLabel(packageValue)
+        };
+      })
+      .filter((item) => item.displayName && item.displayName !== 'Paquet');
+
+    const seen = new Set<string>();
+
+    return normalized.filter((item) => {
+      const key = `${item.displayName}|${item.nixName}`.toLowerCase();
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+  }
+
+  getSelectedPackagesCountForPreview(): number {
+    return this.getCreateConfigPreviewPackagesList().length;
+  }
+
+  getCreateConfigSnapshot(formValue?: any): any {
+    const sources = [
+      formValue,
+      (this as any).newConfig,
+      (this as any).config,
+      (this as any).examConfig,
+      (this as any).currentConfig,
+      (this as any)
+    ].filter(Boolean);
+
+    const pick = (...keys: string[]): any => {
+      for (const source of sources) {
+        for (const key of keys) {
+          const value = source?.[key];
+
+          if (Array.isArray(value) && value.length > 0) {
+            return value;
+          }
+
+          if (typeof value === 'boolean') {
+            return value;
+          }
+
+          if (value !== undefined && value !== null && String(value).trim() !== '') {
+            return value;
+          }
+        }
+      }
+
+      return '';
+    };
+
+    const domainsFromDom =
+      typeof this.getCreateConfigDomainInputFromDom === 'function'
+        ? this.getCreateConfigDomainInputFromDom()
+        : '';
+
+    const domainFromData = pick(
+      'allowed_domains',
+      'allowedDomains',
+      'authorized_domains',
+      'authorizedDomains',
+      'domains',
+      'domain',
+      'domaines',
+      'domaines_autorises',
+      'allowedDomainsInput',
+      'allowedDomainsText',
+      'domainsInput',
+      'domainsText'
+    );
+
+    const packages =
+      pick('packages', 'selectedPackages', 'selected_packages') ||
+      (this as any).selectedPackages ||
+      [];
+
+    return {
+      exam_id: pick('exam_id', 'examId', 'exam'),
+      student_id: pick('student_id', 'studentId', 'student'),
+      machine_id: pick('machine_id', 'machineId', 'machine'),
+      workspace: pick('workspace'),
+      sudo: pick('sudo', 'sudo_allowed', 'sudoAllowed'),
+      internet: pick('internet', 'internet_allowed', 'internetAllowed'),
+      educ_access: pick('educ_access', 'educAccess', 'educ', 'educ_enabled'),
+      allowed_domains: domainsFromDom || domainFromData || '',
+      packages: Array.isArray(packages) ? packages : []
+    };
+  }
+
+}

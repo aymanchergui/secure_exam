@@ -10,13 +10,13 @@ declare global {
 }
 
 @Component({
-  selector: 'app-header-auth',
+  selector: 'app-public-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './header-auth.html',
-  styleUrl: './header-auth.css'
+  templateUrl: './public-header.html',
+  styleUrl: './public-header.css'
 })
-export class HeaderAuthComponent implements AfterViewInit {
+export class PublicHeaderComponent implements AfterViewInit {
   showProjectInfoModal = false;
   currentYear = new Date().getFullYear();
   appVersion = 'Chargement...';

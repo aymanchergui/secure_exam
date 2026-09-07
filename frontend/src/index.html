@@ -1,6 +1,14 @@
 <!doctype html>
 <html lang="fr">
 <head>
+<script>
+  (function () {
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      window.location.replace("/accueil");
+    }
+  })();
+</script>
+
   <meta charset="utf-8">
   <title>ISEN SecureExam</title>
   <base href="/">

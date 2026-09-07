@@ -1,5 +1,25 @@
 <section class="authentication-page">
-  <app-header-auth class="authentication-header-auth"></app-header-auth>
+  <app-public-header class="authentication-public-header"></app-public-header>
+
+  <section class="professor-login-top-grid">
+    <div class="professor-login-left">
+      <button class="professor-login-home-button" type="button" (click)="goToMainDashboard()">
+        <span>←</span>
+        Retour à l'accueil
+      </button>
+    </div>
+
+    <section class="professor-login-title">
+      <h1>Espace Professeur</h1>
+      <p>
+        Connectez-vous pour préparer les examens, générer les configurations<br>
+        et suivre les environnements SecureExam.
+      </p>
+
+    </section>
+
+    <div class="professor-login-right"></div>
+  </section>
 
   <div class="authentication-card">
     <div class="authentication-heading">
@@ -34,7 +54,7 @@
       >
     </label>
 
-    <button type="button" (click)="submitAuthentication()">
+    <button type="button" class="authentication-submit-button" (click)="submitAuthentication()">
       <i data-lucide="log-in" class="btn-icon"></i>
       S'authentifier
     </button>
@@ -45,7 +65,7 @@
     </div>
 
     <div class="authentication-support">
-      <span>Problème de connexion ?</span>
+      <span>Problème sur la plateforme ?</span>
 
       <a
         href=""

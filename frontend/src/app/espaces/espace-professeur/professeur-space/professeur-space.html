@@ -1,0 +1,2258 @@
+<app-authentication
+  *ngIf="!isAuthenticated && publicPage === 'authentication'"
+  [authenticationError]="loginError"
+  (authenticationRequested)="onAuthenticationRequested($event)"
+  (supportRequested)="openSupportPage()">
+</app-authentication>
+
+<div *ngIf="!isAuthenticated && publicPage === 'support'">
+  <app-support
+    (backRequested)="openAuthenticationPage()">
+  </app-support>
+</div>
+
+<div class="page" *ngIf="isAuthenticated">
+  <app-header [teacherFullName]="headerTeacherFullName"
+    (refreshRequested)="loadDashboard()"
+    (logoutRequested)="logout()"
+    (profileRequested)="openProfilePage()"
+    (sectionRequested)="handleProfessorSectionRequested($event)">
+  </app-header>
+
+  <app-profile
+    *ngIf="authenticatedPage === 'profile'"
+    [accessToken]="accessToken"
+    (backRequested)="openDashboardPage()">
+  </app-profile>
+
+  <div *ngIf="authenticatedPage === 'dashboard'">
+    <div *ngIf="loading && !dashboard" class="info">
+      <i data-lucide="loader-circle" class="message-icon"></i>
+      Chargement du tableau de bord...
+    </div>
+
+    <div *ngIf="loading && dashboard" class="info">
+      <i data-lucide="refresh-cw" class="message-icon"></i>
+      Actualisation en cours...
+    </div>
+
+    <div *ngIf="error" class="error">
+      <i data-lucide="circle-alert" class="message-icon"></i>
+      {{ error }}
+    </div>
+
+    <div *ngIf="success" class="success">
+      <i data-lucide="circle-check" class="message-icon"></i>
+      {{ success }}
+    </div>
+
+    <main *ngIf="dashboard">
+      <section id="dashboard" class="stats">
+        <div class="card">
+          <div class="card-top">
+            <span>Configurations</span>
+            <i data-lucide="file-json" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.configs_count }}</strong>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span>Rendus reçus</span>
+            <i data-lucide="archive" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.submissions_count }}</strong>
+        </div>
+
+        <div class="card">
+          <div class="card-top">
+            <span>Machine identifiée pendant l’examens suivies</span>
+            <i data-lucide="monitor-check" class="card-icon"></i>
+          </div>
+          <strong>{{ dashboard.machines_count }}</strong>
+        </div>
+      </section>
+
+      
+<!-- ======================================================
+     INFORMATIONS EXAMEN - BLOC INDEPENDANT
+     ====================================================== -->
+
+<section class="exam-info-independent">
+
+<!-- INFORMATIONS GENERALES EXAMEN -->
+
+</section>
+
+
+<section id="configs" class="panel">
+        <h2>
+          <i data-lucide="settings" class="title-icon"></i>
+          Créer une configuration d'examen
+        </h2>
+
+        <!-- SECUREEXAM_UNIFIED_CONFIG_BLOCK_V2 -->
+        <div class="exam-config-workflow-card">
+
+          <div class="exam-information-section">
+
+            <div class="exam-information-header">
+
+              <div class="exam-information-heading">
+
+                <div class="exam-information-icon">
+                  <i data-lucide="calendar-check-2"></i>
+                </div>
+
+                <div>
+                  <strong>
+                    Informations de l'examen
+                  </strong>
+
+                  <p>
+                    Identifiez l'épreuve avant de définir
+                    son environnement sécurisé.
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="exam-information-grid">
+
+              <label>
+                Code de l'examen
+
+                <input
+                  type="text"
+                  name="exam_id"
+                  [(ngModel)]="newConfig.exam_id"
+                  placeholder="Ex : EXAM-PYTHON-2026"
+                  required
+                >
+              </label>
+
+
+              <label>
+                Nom de l'examen
+
+                <input
+                  type="text"
+                  name="exam_name"
+                  [(ngModel)]="newConfig.exam_name"
+                  placeholder="Ex : Programmation Python"
+                  required
+                >
+              </label>
+
+
+              <label>
+                Date prévue
+
+                <input
+                  type="date"
+                  name="exam_date"
+                  [(ngModel)]="newConfig.exam_date"
+                  required
+                >
+              </label>
+
+
+              <label>
+                Heure prévue
+
+                <input
+                  type="time"
+                  name="exam_time"
+                  [(ngModel)]="newConfig.exam_time"
+                  required
+                >
+              </label>
+
+            </div>
+
+          </div>
+
+
+          <div class="exam-workflow-divider">
+          </div>
+
+<div class="options package-manager">
+          <div class="package-manager-header">
+  <div class="package-manager-info">
+              <strong>
+                <i data-lucide="package-check" class="inline-icon"></i>
+                Paquets autorisés
+              </strong>
+
+              <p class="package-manager-subtitle">
+                Sélectionnez les logiciels disponibles pour l’environnement d’examen.
+              </p>
+            </div>
+
+  <div class="package-manager-filter-slot">
+    <div class="package-filter">
+                <span class="package-filter-icon">
+                  <i data-lucide="filter"></i>
+                </span>
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'all'"
+                  (click)="setPackageFilter('all')">
+                  Tous
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'active'"
+                  (click)="setPackageFilter('active')">
+                  Actifs
+                </button>
+
+                <button
+                  type="button"
+                  class="filter-pill"
+                  [class.active]="packageFilter === 'inactive'"
+                  (click)="setPackageFilter('inactive')">
+                  Désactivés
+                </button>
+              </div>
+  </div>
+
+  <div class="package-toolbar-buttons">
+    <button
+                type="button"
+                class="secondary package-create-toggle-button btn-create-action btn-neutral-action"
+                (click)="togglePackageCreationForm()">
+                <i data-lucide="package-plus" class="btn-icon"></i>
+                {{ showPackageCreationForm ? 'Fermer' : 'Ajouter un paquet' }}
+              </button>
+
+    <button
+                type="button"
+                class="btn-danger-outline package-delete-manager-button package-manage-button btn-neutral-action"
+                (click)="openPackageDeleteModal()">
+                <i data-lucide="settings"></i>
+                Gérer les paquets
+              </button>
+  </div>
+</div>
+
+          <div *ngIf="showPackageCreationForm" class="package-create-card">
+            <div class="package-create-header">
+              <div>
+                <h3>
+                  <i data-lucide="plus-circle" class="inline-icon"></i>
+                  Nouveau paquet logiciel
+                </h3>
+
+                <p>
+                  Ajoutez un paquet autorisé dans le catalogue SQLite.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <label class="package-name-field">
+                Nom du paquet
+                <input
+                  [(ngModel)]="newPackage.name"
+                  (ngModelChange)="onPackageNameChanged()"
+                  type="text"
+                  placeholder="exemple : htop, git, make"
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
+                >
+              </label>
+
+              <label class="package-display-field">
+                Nom affiché
+                <input
+                  [ngModel]="getPackageDisplayFieldValue()"
+                  type="text"
+                  placeholder="généré après sélection"
+                  readonly
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
+                >
+              </label>
+              <label class=" package-version-field">
+                Version du paquet
+                <select
+                  [(ngModel)]="selectedPackageCandidateNixName"
+                  (ngModelChange)="onPackageCandidateSelected()"
+                  [disabled]="packageVerificationStatus === 'checking' || packageSearchCandidates.length === 0"
+                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
+                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
+                  [class.package-input-checking]="packageVerificationStatus === 'checking'">
+                  <option value="">
+                    {{ packageVerificationStatus === 'checking' ? 'Chargement des versions...' : 'En attente de vérification' }}
+                  </option>
+                  <option
+                    *ngFor="let candidate of packageSearchCandidates"
+                    [ngValue]="candidate.nixName">
+                    {{ getPackageCandidateLabel(candidate) }}
+                  </option>
+                </select>
+              </label>
+
+              <div
+                class="package-verification-hint"
+                *ngIf="packageVerificationMessage"
+                [class.valid]="packageVerificationStatus === 'valid'"
+                [class.invalid]="packageVerificationStatus === 'invalid'"
+                [class.checking]="packageVerificationStatus === 'checking'">
+                {{ packageVerificationMessage }}
+              </div>
+
+              <label class="full package-description-field">
+                Description
+                <input
+                  [(ngModel)]="newPackage.description"
+                  type="text"
+                  placeholder="exemple : Outil de supervision système en terminal."
+                >
+              </label>
+            </div>
+
+            <div class="package-create-actions">
+              
+              
+
+
+<button class="btn-create-action"
+                type="button"
+                (click)="createPackage()"
+                [disabled]="packageCreating || packageVerificationStatus !== 'valid' || !selectedPackageCandidateNixName">
+                <i data-lucide="plus" class="btn-icon"></i>
+                {{ packageCreating ? 'Ajout en cours...' : 'Ajouter le paquet' }}
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="packagesLoading" class="info">
+            <i data-lucide="loader-circle" class="message-icon"></i>
+            Chargement du catalogue logiciel...
+          </div>
+
+          <div *ngIf="!packagesLoading && displayedPackages.length === 0" class="error">
+            <i data-lucide="circle-alert" class="message-icon"></i>
+            Aucun paquet logiciel pour ce filtre.
+          </div>
+
+          <div class="packages-grid" *ngIf="!packagesLoading && displayedPackages.length > 0">
+            <div
+              class="package-card"
+              *ngFor="let packageItem of paginatedPackages"
+              [class.inactive]="!packageItem.isActive"
+              [title]="packageItem.description">
+
+              <div class="package-card-top">
+                <div class="package-identity">
+                  <i data-lucide="package" class="package-identity-icon"></i>
+
+                  <span class="package-title">
+                    {{ packageItem.displayName }}
+                    <span class="package-nix-name">NixOS : {{ packageItem.nixName }}</span>
+                    <span class="package-version-name">Version : {{ getPackageVersionLabel(packageItem) }}</span>
+                  </span>
+                </div>
+
+                <span class="package-status active" *ngIf="packageItem.isActive">
+                  Actif
+                </span>
+
+                <span class="package-status inactive" *ngIf="!packageItem.isActive">
+                  Désactivé
+                </span>
+              </div>
+
+              <div class="package-card-actions">
+                <button
+                  type="button"
+                  class="package-power-switch"
+                  [class.on]="packageItem.isActive"
+                  [class.off]="!packageItem.isActive"
+                  [disabled]="packageActionLoadingId === packageItem.id"
+                  [attr.aria-label]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
+                  [title]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
+                  (click)="togglePackageActivation(packageItem)">
+                  <span class="package-power-track">
+                    <span class="package-power-thumb"></span>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+                      class="package-pagination"
+                      *ngIf="displayedPackages.length > packagePageSize"
+                    >
+                      <div class="package-pagination-info">
+                        {{ getPackagePaginationStart() }}-{{ getPackagePaginationEnd() }}
+                        sur {{ displayedPackages.length }} paquet(s)
+                      </div>
+          
+                      <div class="package-pagination-controls">
+                        <button
+                          type="button"
+                          class="package-page-arrow"
+                          [disabled]="packagePage === 1"
+                          (click)="goToPackagePage(packagePage - 1)"
+                        >
+                          <i data-lucide="chevron-left"></i>
+                        </button>
+          
+                        <button
+                          type="button"
+                          class="package-page-number"
+                          *ngFor="let page of getPackagePages()"
+                          [class.active]="packagePage === page"
+                          (click)="goToPackagePage(page)"
+                        >
+                          {{ page }}
+                        </button>
+          
+                        <button
+                          type="button"
+                          class="package-page-arrow"
+                          [disabled]="packagePage === getPackageTotalPages()"
+                          (click)="goToPackagePage(packagePage + 1)"
+                        >
+                          <i data-lucide="chevron-right"></i>
+                        </button>
+                      </div>
+                    </div>
+
+        </div>
+
+        <div class="exam-options-header">
+          <div class="package-manager-info">
+            <strong>
+              <i data-lucide="shield-check" class="inline-icon"></i>
+              Options autorisées
+            </strong>
+
+            <p class="package-manager-subtitle">
+              Définissez les droits système et les accès réseau disponibles pendant l’examen.
+            </p>
+          </div>
+
+          
+        </div>
+
+        <div class="options-row exam-options-row">
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.sudo">
+            Sudo autorisé
+          </label>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.internet">
+            Internet autorisé
+          </label>
+
+          <label>
+            <input type="checkbox" [(ngModel)]="newConfig.educ_access">
+            Accès Educ autorisé
+          </label>
+        </div>
+
+        <label class="full">
+          Domaines autorisés
+          <input [(ngModel)]="newConfig.allowed_domains_text" type="text">
+        </label>
+
+        <button
+          class="btn-create-action"
+          type="button"
+          (click)="openCreateConfigConfirmation()"
+          [disabled]="
+            newConfig.exam_id.length === 0 ||
+            newConfig.exam_name.length === 0 ||
+            newConfig.exam_date.length === 0 ||
+            newConfig.exam_time.length === 0
+          "
+          [title]="
+            (
+              newConfig.exam_id.length > 0 &&
+              newConfig.exam_name.length > 0 &&
+              newConfig.exam_date.length > 0 &&
+              newConfig.exam_time.length > 0
+            )
+              ? 'Créer la configuration'
+              : 'Complétez les informations de l’examen'
+          "
+        >
+          <i data-lucide="plus" class="btn-icon"></i>
+          Créer la configuration
+        </button>
+      
+        </div>
+</section>
+
+      
+<section class="panel generated-configs-panel">
+
+  <div class="generated-configs-title">
+
+    <div>
+
+      <h2>
+        <i
+          data-lucide="files"
+          class="title-icon"
+        ></i>
+
+        Configurations générées
+      </h2>
+
+      <p>
+        Retrouvez les examens configurés
+        et leurs paramètres associés.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="generated-configs-empty"
+    *ngIf="
+      !dashboard?.configs ||
+      dashboard!.configs.length === 0
+    "
+  >
+    <i data-lucide="file-plus-2"></i>
+
+    <strong>
+      Aucune configuration générée
+    </strong>
+
+    <span>
+      Les configurations créées apparaîtront ici.
+    </span>
+  </div>
+
+
+  <div
+    class="generated-configs-table-wrap"
+    *ngIf="
+      dashboard?.configs &&
+      dashboard!.configs.length > 0
+    "
+  >
+
+    <table class="generated-configs-table">
+
+      <thead>
+
+        <tr>
+
+          <th>
+            Examen
+          </th>
+
+          <th>
+            Prévu le
+          </th>
+
+          <th>
+            Créée le
+          </th>
+
+          <th>
+            Détail
+          </th>
+
+          <th>
+            Téléchargement
+          </th>
+
+          <th>
+            Action
+          </th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr
+          *ngFor="
+            let config of dashboard!.configs
+          "
+        >
+
+          <!-- EXAMEN -->
+
+          <td>
+
+            <div class="generated-exam-cell">
+
+              <div class="generated-exam-icon">
+                <i data-lucide="file-check-2"></i>
+              </div>
+
+
+              <div class="generated-exam-info">
+
+                <strong>
+                  {{
+                    config.exam_name
+                    || config.exam_id
+                    || 'Examen'
+                  }}
+                </strong>
+
+                <span>
+                  {{
+                    config.exam_id
+                    || config.filename.replace('.json', '')
+                  }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </td>
+
+
+          <!-- DATE EXAMEN -->
+
+          <td>
+
+            <div class="generated-date-cell">
+
+              <strong>
+                {{
+                  config.exam_date
+                  || 'Non renseignée'
+                }}
+              </strong>
+
+              <span
+                *ngIf="config.exam_time"
+              >
+                {{ config.exam_time }}
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <!-- CRÉATION -->
+
+          <td>
+
+            <span class="generated-created-date">
+              {{
+                config.created_at
+                  ? (
+                      config.created_at
+                      | date:'dd/MM/yyyy HH:mm'
+                    )
+                  : '—'
+              }}
+            </span>
+
+          </td>
+
+
+          <!-- DETAIL -->
+
+          <td>
+
+            <button
+              type="button"
+              class="generated-action-detail"
+              (click)="viewConfig(config)"
+            >
+              <i
+                data-lucide="eye"
+                class="btn-icon"
+              ></i>
+
+              Voir détail
+            </button>
+
+          </td>
+
+
+          <!-- DOWNLOAD -->
+
+          <td>
+
+            <button
+              type="button"
+              class="generated-action-download"
+              (click)="downloadConfig(config)"
+            >
+              <i
+                data-lucide="download"
+                class="btn-icon"
+              ></i>
+
+              Télécharger
+            </button>
+
+          </td>
+
+
+          <!-- DELETE -->
+
+          <td>
+
+            <button
+              type="button"
+              class="danger generated-action-delete"
+              (click)="deleteConfig(config)"
+            >
+              <i
+                data-lucide="trash-2"
+                class="btn-icon"
+              ></i>
+
+              Supprimer
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+      
+
+<!-- SECUREEXAM_CONFIG_DETAIL_POPUP_V1 -->
+
+<div
+  class="generated-detail-popup-backdrop"
+  *ngIf="selectedConfig"
+  (click)="closeConfigDetails()"
+>
+
+  <div
+    class="generated-detail-popup-shell"
+    (click)="$event.stopPropagation()"
+  >
+
+<section
+  class="
+    panel
+    generated-config-detail-panel
+  "
+  *ngIf="selectedConfig"
+>
+
+  <!-- HEADER -->
+
+  <div class="generated-detail-header">
+
+    <div class="generated-detail-heading">
+
+      <div class="generated-detail-title-icon">
+        <i data-lucide="file-search"></i>
+      </div>
+
+      <div>
+
+        <h2>
+          Détail de la configuration
+        </h2>
+
+        <p>
+          Vérifiez les paramètres définis
+          pour cet examen.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="generated-detail-close"
+      (click)="closeConfigDetails()"
+    >
+      <i
+        data-lucide="x"
+        class="btn-icon"
+      ></i>
+
+      Fermer
+    </button>
+
+  </div>
+
+
+  <!-- ===================================================
+       INFORMATIONS EXAMEN
+       =================================================== -->
+
+  <div class="generated-detail-section">
+
+    <div class="generated-detail-section-title">
+
+      <i data-lucide="calendar-check-2"></i>
+
+      <div>
+
+        <strong>
+          Informations de l'examen
+        </strong>
+
+        <span>
+          Identification et planification.
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="generated-detail-exam-grid">
+
+      <div class="generated-detail-info-card">
+
+        <span>
+          Code
+        </span>
+
+        <strong>
+          {{ selectedConfig.exam_id }}
+        </strong>
+
+      </div>
+
+
+      <div
+        class="
+          generated-detail-info-card
+          generated-detail-name-card
+        "
+      >
+
+        <span>
+          Nom de l'examen
+        </span>
+
+        <strong>
+          {{
+            selectedConfig.exam_name
+            || selectedConfig.exam_id
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="generated-detail-info-card">
+
+        <span>
+          Date prévue
+        </span>
+
+        <strong>
+          {{
+            selectedConfig.exam_date
+            || 'Non renseignée'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="generated-detail-info-card">
+
+        <span>
+          Heure prévue
+        </span>
+
+        <strong>
+          {{
+            selectedConfig.exam_time
+            || 'Non renseignée'
+          }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================
+       SECURITE
+       =================================================== -->
+
+  <div class="generated-detail-section">
+
+    <div class="generated-detail-section-title">
+
+      <i data-lucide="shield-check"></i>
+
+      <div>
+
+        <strong>
+          Paramètres de sécurité
+        </strong>
+
+        <span>
+          Droits et accès appliqués
+          pendant l'épreuve.
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="generated-detail-security-grid">
+
+
+      <div class="generated-security-card">
+
+        <div class="generated-security-icon">
+          <i data-lucide="shield"></i>
+        </div>
+
+        <div>
+
+          <span>
+            Sudo
+          </span>
+
+          <strong
+            [class.allowed]="selectedConfig.sudo"
+          >
+            {{
+              selectedConfig.sudo
+                ? 'Autorisé'
+                : 'Bloqué'
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="generated-security-card">
+
+        <div class="generated-security-icon">
+          <i data-lucide="globe"></i>
+        </div>
+
+        <div>
+
+          <span>
+            Internet
+          </span>
+
+          <strong
+            [class.allowed]="selectedConfig.internet"
+          >
+            {{
+              selectedConfig.internet
+                ? 'Autorisé'
+                : 'Bloqué'
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="generated-security-card">
+
+        <div class="generated-security-icon">
+          <i data-lucide="graduation-cap"></i>
+        </div>
+
+        <div>
+
+          <span>
+            Accès Educ
+          </span>
+
+          <strong
+            [class.allowed]="selectedConfig.educ_access"
+          >
+            {{
+              selectedConfig.educ_access
+                ? 'Autorisé'
+                : 'Bloqué'
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DOMAINES -->
+
+    <div class="generated-detail-domains">
+
+      <span class="generated-detail-label">
+        Domaines autorisés
+      </span>
+
+
+      <div
+        class="generated-domain-list"
+        *ngIf="
+          selectedConfig.allowed_domains &&
+          selectedConfig.allowed_domains.length > 0
+        "
+      >
+
+        <span
+          class="generated-domain-chip"
+          *ngFor="
+            let domain of
+            selectedConfig.allowed_domains
+          "
+        >
+          <i data-lucide="globe-2"></i>
+
+          {{ domain }}
+        </span>
+
+      </div>
+
+
+      <span
+        class="generated-detail-empty"
+        *ngIf="
+          !selectedConfig.allowed_domains ||
+          selectedConfig.allowed_domains.length === 0
+        "
+      >
+        Aucun domaine spécifique
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================
+       PAQUETS
+       =================================================== -->
+
+  <div class="generated-detail-section">
+
+    <div
+      class="
+        generated-detail-section-title
+        generated-packages-title
+      "
+    >
+
+      <div class="generated-title-left">
+
+        <i data-lucide="package-check"></i>
+
+        <div>
+
+          <strong>
+            Paquets autorisés
+          </strong>
+
+          <span>
+            Logiciels disponibles
+            pendant l'examen.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <span class="generated-package-count">
+        {{
+          selectedConfig.packages.length
+        }}
+        paquet(s)
+      </span>
+
+    </div>
+
+
+    <div class="generated-package-grid">
+
+      <div
+        class="generated-package-card"
+        *ngFor="
+          let packageName of
+          selectedConfig.packages;
+          let i = index
+        "
+      >
+
+        <div class="generated-package-icon">
+          <i data-lucide="package"></i>
+        </div>
+
+        <div>
+
+          <strong>
+            {{ packageName }}
+          </strong>
+
+          <span
+            *ngIf="
+              selectedConfig.nix_packages &&
+              selectedConfig.nix_packages[i]
+            "
+          >
+            NixOS :
+            {{
+              selectedConfig.nix_packages![i]
+            }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- FOOTER -->
+</section>
+
+  </div>
+
+</div>
+
+<!-- /SECUREEXAM_CONFIG_DETAIL_POPUP_V1 -->
+
+
+
+      
+<section class="panel generated-nixos-list-panel">
+
+  <div class="generated-nixos-list-heading">
+
+    <div>
+
+      <h2>
+        <i
+          data-lucide="terminal"
+          class="title-icon"
+        ></i>
+
+        Configurations NixOS générées
+      </h2>
+
+      <p>
+        Une configuration NixOS est associée
+        à chaque examen configuré.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- AUCUNE CONFIG -->
+
+  <div
+    class="generated-nixos-empty"
+    *ngIf="
+      !dashboard?.configs ||
+      dashboard!.configs.length === 0
+    "
+  >
+
+    <i data-lucide="terminal-square"></i>
+
+    <strong>
+      Aucune configuration NixOS disponible
+    </strong>
+
+    <span>
+      Créez d'abord une configuration d'examen.
+    </span>
+
+  </div>
+
+
+  <!-- LISTE NIXOS -->
+
+  <div
+    class="generated-nixos-table-wrap"
+    *ngIf="
+      dashboard?.configs &&
+      dashboard!.configs.length > 0
+    "
+  >
+
+    <table class="generated-nixos-table">
+
+      <thead>
+
+        <tr>
+
+          <th>
+            Examen
+          </th>
+
+          <th>
+            Fichier NixOS
+          </th>
+
+          <th>
+            Prévu le
+          </th>
+
+          <th>
+            Détail
+          </th>
+
+          <th>
+            Téléchargement
+          </th>
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr
+          *ngFor="
+            let config of dashboard!.configs
+          "
+        >
+
+          <!-- EXAMEN -->
+
+          <td>
+
+            <div class="generated-nixos-exam">
+
+              <div class="generated-nixos-icon">
+                <i data-lucide="terminal-square"></i>
+              </div>
+
+
+              <div>
+
+                <strong>
+                  {{
+                    config.exam_name
+                    || config.exam_id
+                    || 'Examen'
+                  }}
+                </strong>
+
+                <span>
+                  {{
+                    config.exam_id
+                    || config.filename.replace(
+                      '.json',
+                      ''
+                    )
+                  }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </td>
+
+
+          <!-- FICHIER -->
+
+          <td>
+
+            <div class="generated-nixos-file">
+
+              <i data-lucide="file-code-2"></i>
+
+              <span>
+                {{
+                  getNixosFilename(
+                    config
+                  )
+                }}
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <!-- DATE -->
+
+          <td>
+
+            <div class="generated-date-cell">
+
+              <strong>
+                {{
+                  config.exam_date
+                  || 'Non renseignée'
+                }}
+              </strong>
+
+              <span
+                *ngIf="config.exam_time"
+              >
+                {{ config.exam_time }}
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <!-- VOIR -->
+
+          <td>
+
+            <button
+              type="button"
+              class="generated-nixos-view"
+              (click)="
+                viewNixosConfigFor(
+                  config
+                )
+              "
+            >
+
+              <i
+                data-lucide="eye"
+                class="btn-icon"
+              ></i>
+
+              Voir NixOS
+
+            </button>
+
+          </td>
+
+
+          <!-- DOWNLOAD -->
+
+          <td>
+
+            <button
+              type="button"
+              class="generated-nixos-download"
+              (click)="
+                downloadNixosConfigFor(
+                  config
+                )
+              "
+            >
+
+              <i
+                data-lucide="download"
+                class="btn-icon"
+              ></i>
+
+              Télécharger .nix
+
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+      <section id="machines" class="panel">
+        <h2>
+          <i data-lucide="monitor-cog" class="title-icon"></i>
+          État des machines
+        </h2>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Examen</th>
+              <th>Étudiant identifié pendant l’examen</th>
+              <th>Machine identifiée pendant l’examen</th>
+              <th>Étape</th>
+              <th>Statut</th>
+              <th>Message</th>
+              <th>Historique</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let machine of dashboard.machine_statuses">
+              <td>{{ machine.exam_id }}</td>
+              <td>{{ machine.student_id }}</td>
+              <td>{{ machine.machine_id }}</td>
+              <td>{{ machine.step }}</td>
+
+              <td>
+                <span class="badge">
+                  <i data-lucide="circle-check" class="badge-icon"></i>
+                  {{ machine.status }}
+                </span>
+              </td>
+
+              <td>{{ machine.message }}</td>
+
+              <td>
+                <button type="button" (click)="viewStatusHistory(machine)">
+                  <i data-lucide="history" class="btn-icon"></i>
+                  Voir historique
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel" *ngIf="statusHistory.length > 0">
+        <div class="details-header">
+          <h2>
+            <i data-lucide="history" class="title-icon"></i>
+            Historique machine
+          </h2>
+
+          <button class="btn-neutral-action" type="button" (click)="closeStatusHistory()">
+            <i data-lucide="x" class="btn-icon"></i>
+            Fermer
+          </button>
+        </div>
+
+        <p><strong>Machine identifiée pendant l’examen :</strong> {{ statusHistoryTitle }}</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Étape</th>
+              <th>Statut</th>
+              <th>Message</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let item of statusHistory">
+              <td>{{ item.created_at }}</td>
+              <td>{{ item.step }}</td>
+
+              <td>
+                <span class="badge">
+                  <i data-lucide="circle-check" class="badge-icon"></i>
+                  {{ item.status }}
+                </span>
+              </td>
+
+              <td>{{ item.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="submissions" class="panel">
+        <div class="submission-panel-header">
+          <div>
+            <h2>
+              <i data-lucide="archive" class="title-icon"></i>
+              Rendus étudiants
+            </h2>
+            <p class="submission-panel-subtitle">
+              Filtrez les rendus par examen et par date.
+            </p>
+          </div>
+
+          <div class="submission-filter-pillbar">
+            <span class="submission-filter-pill-icon">
+              <i data-lucide="filter"></i>
+            </span>
+
+            <div class="submission-filter-pill-control submission-filter-select">
+              <i data-lucide="book-open"></i>
+
+              <select [(ngModel)]="submissionExamFilter">
+                <option value="all">Tous les examens</option>
+                <option *ngFor="let exam of getSubmissionExamOptions()" [value]="exam">
+                  {{ exam }}
+                </option>
+              </select>
+
+              <i data-lucide="chevron-down" class="submission-filter-chevron"></i>
+            </div>
+
+            <div class="submission-filter-pill-control">
+              <i data-lucide="calendar-days"></i>
+              <input type="date" [(ngModel)]="submissionDateFilter">
+            </div>
+
+            <button
+              type="button"
+              class="submission-filter-reset-pill"
+              (click)="resetSubmissionFilters()"
+            >
+              <i data-lucide="rotate-ccw"></i>
+              Réinitialiser
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="getFilteredSubmissions().length === 0" class="empty-state">
+          Aucun rendu trouvé pour ces filtres.
+        </div>
+
+        <div *ngFor="let group of getGroupedSubmissions()" class="submission-exam-group">
+          <div class="submission-exam-header">
+            <div>
+              <h3>{{ group.exam_id }}</h3>
+              <p>Date de l'examen : {{ formatDashboardDate(group.exam_created_at) }}</p>
+            </div>
+
+            <span class="submission-count">
+              {{ group.submissions.length }} rendu(s)
+            </span>
+          </div>
+
+          <div class="submission-table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Étudiant identifié pendant l’examen</th>
+                  <th>Machine identifiée pendant l’examen</th>
+                  <th>Archive</th>
+                  <th>Taille</th>
+                  <th>Date du rendu</th>
+                  <th>Téléchargement</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let submission of group.submissions">
+                  <td>{{ submission.student_id || '-' }}</td>
+                  <td>{{ submission.machine_id || '-' }}</td>
+                  <td class="archive-cell">{{ submission.filename }}</td>
+                  <td>{{ submission.size_kb }} KB</td>
+                  <td>{{ formatDashboardDate(submission.created_at) }}</td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="download-success"
+                      (click)="downloadSubmission(submission)"
+                    >
+                      <i data-lucide="download" class="btn-icon"></i>
+                      Télécharger
+                    </button>
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      class="danger btn-delete-action"
+                      (click)="deleteSubmission(submission)"
+                    >
+                      <i data-lucide="trash-2" class="btn-icon"></i>
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="modal-backdrop package-management-backdrop" *ngIf="showPackageDeleteModal">
+  <div class="package-management-modal" (wheel)="$event.stopPropagation()" (touchmove)="$event.stopPropagation()">
+    <div class="package-management-header">
+      <div>
+        <h2>
+          <i data-lucide="trash-2"></i>
+          Gestion des paquets
+        </h2>
+        <p>
+          Supprimez les paquets non utilisés ou désactivez ceux déjà présents dans des configurations.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="icon-button"
+        (click)="closePackageDeleteModal()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+
+    <div class="package-management-actions">
+      <button
+        type="button"
+        class="btn-danger btn-delete-action"
+        (click)="deleteSelectedPackages()"
+        [disabled]="packageManagementLoading || getSelectedPackageDeleteCount() === 0">
+        <i data-lucide="trash-2"></i>
+        Supprimer la sélection
+      </button>
+
+      <button
+        type="button"
+        class="secondary-button btn-neutral-action btn-refresh-action"
+        (click)="loadPackageManagementItems()"
+        [disabled]="packageManagementLoading">
+        <i data-lucide="refresh-cw"></i>
+        Actualiser
+      </button>
+    </div>
+
+    <div class="package-management-loading" *ngIf="packageManagementLoading">
+      Chargement...
+    </div>
+
+    <div class="package-management-table-wrapper" *ngIf="!packageManagementLoading">
+      <table class="package-management-table">
+        <thead>
+          <tr>
+            <th>Sélection</th>
+            <th>Paquet</th>
+            <th>NixOS</th>
+            <th>Statut</th>
+            <th>Utilisation</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let packageItem of packageManagementItems">
+            <td>
+              <input
+                type="checkbox"
+                [checked]="isPackageSelectedForDeletion(packageItem.id)"
+                [disabled]="!packageItem.canDelete"
+                (change)="togglePackageManagementSelection(packageItem.id, $any($event.target).checked)">
+            </td>
+
+            <td>
+              <strong>{{ packageItem.displayName }}</strong>
+              <small>{{ packageItem.name }}</small>
+            </td>
+
+            <td>
+              <code>{{ packageItem.nixName }}</code>
+            </td>
+
+            <td>
+              <span class="status-pill active" *ngIf="packageItem.isActive">Actif</span>
+              <span class="status-pill disabled" *ngIf="!packageItem.isActive">Désactivé</span>
+            </td>
+
+            <td>
+              <span *ngIf="packageItem.usageCount === 0" class="usage-free">
+                Non utilisé
+              </span>
+
+              <span *ngIf="packageItem.usageCount > 0" class="usage-locked">
+                {{ packageItem.usageCount }} config(s)
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="table-danger-button btn-delete-action"
+                *ngIf="packageItem.canDelete"
+                (click)="deletePackageManagementItem(packageItem)">
+                <i data-lucide="trash-2"></i>
+                Supprimer
+              </button>
+
+              <button
+                type="button"
+                class="table-warning-button"
+                *ngIf="!packageItem.canDelete && packageItem.isActive"
+                (click)="disablePackageManagementItem(packageItem)">
+                <i data-lucide="power-off"></i>
+                Désactiver
+              </button>
+
+              <span
+                class="locked-text"
+                *ngIf="!packageItem.canDelete && !packageItem.isActive">
+                Protégé
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="packageManagementItems.length === 0">
+            <td colspan="6" class="empty-table-message">
+              Aucun paquet dans le catalogue.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation création configuration -->
+
+
+<!-- =====================================================
+     CONFIRMATION CONFIGURATION EXAMEN V3
+     ===================================================== -->
+
+<div
+  class="
+    create-config-modal-backdrop
+    create-config-review-backdrop
+  "
+  *ngIf="showCreateConfigConfirmModal"
+  (click)="closeCreateConfigConfirmation()"
+>
+
+  <div
+    class="create-config-review-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- ===============================================
+         HEADER
+         =============================================== -->
+
+    <div class="create-config-review-header">
+
+      <div class="create-config-review-heading">
+
+        <div class="create-config-review-icon">
+          <i data-lucide="shield-check"></i>
+        </div>
+
+        <div>
+          <h2>
+            Confirmer la création
+          </h2>
+
+          <p>
+            Vérifiez les paramètres de l'examen
+            avant de générer la configuration.
+          </p>
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="create-config-review-close"
+        (click)="closeCreateConfigConfirmation()"
+        aria-label="Fermer"
+      >
+        <i data-lucide="x"></i>
+      </button>
+
+    </div>
+
+
+    <!-- ===============================================
+         BODY
+         =============================================== -->
+
+    <div class="create-config-review-body">
+
+
+      <!-- =============================================
+           INFORMATIONS EXAMEN
+           ============================================= -->
+
+      <section class="create-config-review-section">
+
+        <div class="create-config-review-section-title">
+
+          <div>
+            <h3>
+              <i data-lucide="calendar-check-2"></i>
+              Informations de l'examen
+            </h3>
+
+            <p>
+              Identité et planification de l'épreuve.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="create-config-review-exam-grid">
+
+
+          <div class="create-config-review-info-card">
+
+            <span>
+              Code de l'examen
+            </span>
+
+            <strong>
+              {{
+                newConfig.exam_id || '—'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div
+            class="
+              create-config-review-info-card
+              create-config-review-info-name
+            "
+          >
+
+            <span>
+              Nom de l'examen
+            </span>
+
+            <strong>
+              {{
+                newConfig.exam_name || '—'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="create-config-review-info-card">
+
+            <span>
+              Date prévue
+            </span>
+
+            <strong>
+              {{
+                newConfig.exam_date || '—'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div class="create-config-review-info-card">
+
+            <span>
+              Heure prévue
+            </span>
+
+            <strong>
+              {{
+                newConfig.exam_time || '—'
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =============================================
+           PARAMÈTRES
+           ============================================= -->
+
+      <section class="create-config-review-section">
+
+        <div class="create-config-review-section-title">
+
+          <div>
+            <h3>
+              <i data-lucide="shield"></i>
+              Paramètres de sécurité
+            </h3>
+
+            <p>
+              Droits et accès appliqués
+              pendant l'examen.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div class="create-config-review-options">
+
+
+          <div class="create-config-review-option">
+
+            <div class="create-config-review-option-icon">
+              <i data-lucide="terminal-square"></i>
+            </div>
+
+            <div>
+              <span>Sudo</span>
+
+              <strong
+                [class.enabled]="newConfig.sudo"
+              >
+                {{
+                  newConfig.sudo
+                    ? 'Autorisé'
+                    : 'Bloqué'
+                }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <div class="create-config-review-option">
+
+            <div class="create-config-review-option-icon">
+              <i data-lucide="globe"></i>
+            </div>
+
+            <div>
+              <span>Internet</span>
+
+              <strong
+                [class.enabled]="newConfig.internet"
+              >
+                {{
+                  newConfig.internet
+                    ? 'Autorisé'
+                    : 'Bloqué'
+                }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <div class="create-config-review-option">
+
+            <div class="create-config-review-option-icon">
+              <i data-lucide="graduation-cap"></i>
+            </div>
+
+            <div>
+              <span>Accès Educ</span>
+
+              <strong
+                [class.enabled]="newConfig.educ_access"
+              >
+                {{
+                  newConfig.educ_access
+                    ? 'Autorisé'
+                    : 'Bloqué'
+                }}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- DOMAINES -->
+
+        <div class="create-config-review-domains">
+
+          <span class="create-config-review-label">
+            Domaines autorisés
+          </span>
+
+
+          <ng-container
+            *ngIf="
+              getCreateConfigPreviewDomainsList().length > 0;
+              else noReviewDomain
+            "
+          >
+
+            <div class="create-config-review-domain-list">
+
+              <span
+                class="create-config-review-domain"
+                *ngFor="
+                  let domain of
+                  getCreateConfigPreviewDomainsList()
+                "
+              >
+                <i data-lucide="globe-2"></i>
+
+                {{ domain }}
+              </span>
+
+            </div>
+
+          </ng-container>
+
+
+          <ng-template #noReviewDomain>
+
+            <span class="create-config-review-empty">
+              Aucun domaine spécifique
+            </span>
+
+          </ng-template>
+
+        </div>
+
+      </section>
+
+
+      <!-- =============================================
+           PAQUETS
+           ============================================= -->
+
+      <section class="create-config-review-section">
+
+        <div class="create-config-review-section-title">
+
+          <div>
+            <h3>
+              <i data-lucide="package-check"></i>
+              Paquets autorisés
+            </h3>
+
+            <p>
+              Logiciels disponibles dans
+              l'environnement d'examen.
+            </p>
+          </div>
+
+
+          <span class="create-config-review-count">
+            {{
+              getCreateConfigPreviewPackagesList().length
+            }}
+            paquet(s)
+          </span>
+
+        </div>
+
+
+        <ng-container
+          *ngIf="
+            getCreateConfigPreviewPackagesList().length > 0;
+            else noReviewPackage
+          "
+        >
+
+          <div class="create-config-review-package-grid">
+
+            <div
+              class="create-config-review-package"
+              *ngFor="
+                let packageItem of
+                getCreateConfigPreviewPackagesList()
+              "
+            >
+
+              <div class="create-config-review-package-icon">
+                <i data-lucide="package"></i>
+              </div>
+
+
+              <div class="create-config-review-package-info">
+
+                <strong>
+                  {{ packageItem.displayName }}
+                </strong>
+
+                <span>
+                  NixOS :
+                  {{ packageItem.nixName }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </ng-container>
+
+
+        <ng-template #noReviewPackage>
+
+          <div class="create-config-review-empty">
+            Aucun paquet sélectionné
+          </div>
+
+        </ng-template>
+
+      </section>
+
+    </div>
+
+
+    <!-- ===============================================
+         ACTIONS
+         =============================================== -->
+
+    <div class="create-config-review-actions">
+
+      <button
+        type="button"
+        class="create-config-review-cancel"
+        (click)="closeCreateConfigConfirmation()"
+      >
+        Annuler
+      </button>
+
+
+      <button
+        type="button"
+        class="create-config-review-confirm"
+        (click)="confirmCreateConfigCreation()"
+      >
+        <i data-lucide="check"></i>
+
+        Confirmer la création
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- Confirmation création configuration -->
+
+
+
+<!-- =====================================================
+     SECUREEXAM_NIXOS_PREVIEW_POPUP_V1
+     ===================================================== -->
+
+<div
+  class="nixos-preview-backdrop"
+  *ngIf="nixosConfig"
+  (click)="closeNixosConfig()"
+>
+
+  <div
+    class="nixos-preview-popup"
+    (click)="$event.stopPropagation()"
+  >
+
+    <!-- HEADER -->
+
+    <div class="nixos-preview-header">
+
+      <div class="nixos-preview-heading">
+
+        <div class="nixos-preview-title-icon">
+          <i data-lucide="terminal-square"></i>
+        </div>
+
+        <div>
+
+          <h2>
+            Configuration NixOS
+          </h2>
+
+          <p>
+            Prévisualisation du fichier généré
+            pour cet examen.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="nixos-preview-close"
+        (click)="closeNixosConfig()"
+      >
+        <i data-lucide="x"></i>
+
+        Fermer
+      </button>
+
+    </div>
+
+
+    <!-- FICHIER -->
+
+    <div class="nixos-preview-filebar">
+
+      <div>
+
+        <span>
+          Fichier généré
+        </span>
+
+        <strong>
+          {{ nixosConfig.filename }}
+        </strong>
+
+      </div>
+
+      <span class="nixos-preview-type">
+        .nix
+      </span>
+
+    </div>
+
+
+    <!-- CONTENU -->
+
+    <div class="nixos-preview-code-wrapper">
+
+      <pre
+        class="nixos-preview-code"
+      ><code>{{ nixosConfig.content }}</code></pre>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- /SECUREEXAM_NIXOS_PREVIEW_POPUP_V1 -->
+

@@ -1,0 +1,76 @@
+<div class="dashboard-page">
+  <app-public-header class="dashboard-public-header"></app-public-header>
+
+  <main class="dashboard-main">
+    <section class="dashboard-hero">
+      <h1>
+        Bienvenue sur votre plateforme
+        <span>ISEN SecureExam</span>
+      </h1>
+
+      <p>
+        Préparez, sécurisez et gérez vos environnements d’examen en toute simplicité.
+      </p>
+
+      <p>
+        Choisissez votre espace pour configurer un examen ou récupérer les environnements NixOS générés.
+      </p>
+    </section>
+
+    <section class="dashboard-grid">
+      <button class="dashboard-card professor-card" type="button" (click)="professorSelected.emit()">
+        <div class="dashboard-icon">
+          <i data-lucide="settings-2"></i>
+        </div>
+
+        <div class="dashboard-content">
+          <span>Espace Professeur</span>
+          <h2>Préparer un examen</h2>
+          <p>
+            Créer les configurations, choisir les paquets, définir les accès réseau
+            et suivre les rendus étudiants.
+          </p>
+        </div>
+
+        <div class="dashboard-arrow">
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </button>
+
+      <button class="dashboard-card supervisor-card" type="button" (click)="supervisorSelected.emit()">
+        <div class="dashboard-icon">
+          <i data-lucide="download-cloud"></i>
+        </div>
+
+        <div class="dashboard-content">
+          <span>Espace Surveillant</span>
+          <h2>Récupérer les configurations</h2>
+          <p>
+            Consulter les examens préparés par les professeurs et télécharger les
+            fichiers NixOS associés aux machines.
+          </p>
+        </div>
+
+        <div class="dashboard-arrow">
+          <i data-lucide="arrow-right"></i>
+        </div>
+      </button>
+    </section>
+
+    <section class="dashboard-footer">
+      <span>Rapide</span>
+      <span>Sécurisée</span>
+      <span>Reproductible</span>
+      <span>Environnements NixOS</span>
+    </section>
+    <div class="accueil-support-link">
+      <span>Problème sur la plateforme ?</span>
+
+      <button type="button" (click)="openSupportPage()">
+        <i data-lucide="life-buoy"></i>
+        <span>Consulter le support</span>
+      </button>
+    </div>
+
+  </main>
+</div>

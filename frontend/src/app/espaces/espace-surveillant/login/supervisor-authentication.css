@@ -1,0 +1,398 @@
+.supervisor-auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(circle at top left, rgba(17, 24, 39, 0.045), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(17, 24, 39, 0.06), transparent 30%),
+    linear-gradient(135deg, #f7f8fb 0%, #eef1f5 100%);
+  color: #111827;
+  font-family: Inter, Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+.supervisor-auth-header {
+  width: 100%;
+  display: block;
+}
+
+.supervisor-auth-main {
+  flex: 1;
+  padding: 34px 42px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.supervisor-auth-top {
+  width: calc(100% - 48px);
+  max-width: 1400px;
+  display: grid;
+  grid-template-columns: 280px minmax(520px, 1fr) 280px;
+  align-items: start;
+  gap: 16px;
+  margin: 0 auto 28px;
+}
+
+.supervisor-auth-back-button {
+  justify-self: start;
+  height: 48px;
+  min-width: 205px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #111827 0%, #020617 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  box-shadow:
+    0 16px 34px rgba(17, 24, 39, 0.18),
+    0 8px 20px rgba(15, 23, 42, 0.12);
+  transition: 0.22s ease;
+}
+
+.supervisor-auth-back-button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #111827 0%, #c40024 100%);
+}
+
+.supervisor-auth-title {
+  text-align: center;
+}
+
+.supervisor-auth-title h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(38px, 4vw, 58px);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.supervisor-auth-title p {
+  max-width: 720px;
+  margin: 14px auto 0;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.supervisor-auth-card {
+  width: min(430px, calc(100% - 40px));
+  padding: 30px 34px 28px;
+  border-radius: 24px;
+  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.14),
+    0 8px 22px rgba(196, 0, 36, 0.05);
+}
+
+.supervisor-auth-heading {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  column-gap: 18px;
+  margin-bottom: 24px;
+}
+
+.supervisor-auth-icon {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(17, 24, 39, 0.08);
+  color: #111827;
+}
+
+.supervisor-auth-icon svg,
+.supervisor-auth-icon i {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.3;
+}
+
+.supervisor-auth-heading h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 27px;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.supervisor-auth-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.supervisor-auth-card label {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.supervisor-auth-card input {
+  width: 100%;
+  height: 52px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  padding: 0 15px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 15px;
+  outline: none;
+  transition: 0.22s ease;
+}
+
+.supervisor-auth-card input:focus {
+  border-color: #111827;
+  box-shadow:
+    0 0 0 4px rgba(17, 24, 39, 0.08),
+    0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.supervisor-auth-submit {
+  width: 100%;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: none;
+  border-radius: 14px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #111827 0%, #020617 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  transition: 0.22s ease;
+  box-shadow:
+    0 14px 28px rgba(17, 24, 39, 0.18),
+    0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.supervisor-auth-submit:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #111827 0%, #c40024 100%);
+}
+
+.supervisor-auth-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.supervisor-auth-submit svg,
+.supervisor-auth-submit i {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.3;
+}
+
+.supervisor-auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: #fff1f2;
+  color: #7a0015;
+  border: 1px solid rgba(196, 0, 36, 0.18);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.supervisor-auth-support {
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid #eef0f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.supervisor-auth-support button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  color: #8b0018;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  padding: 0;
+}
+
+.supervisor-auth-support button:hover {
+  color: #c40024;
+  text-decoration: underline;
+}
+
+.supervisor-auth-support svg,
+.supervisor-auth-support i {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.4;
+}
+
+@media (max-width: 900px) {
+  .supervisor-auth-main {
+    padding: 28px 20px;
+  }
+
+  .supervisor-auth-top {
+    width: calc(100% - 20px);
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .supervisor-auth-back-button {
+    justify-self: start;
+  }
+
+  .supervisor-auth-title h1 {
+    font-size: 36px;
+  }
+
+  .supervisor-auth-spacer {
+    display: none;
+  }
+
+  .supervisor-auth-support {
+    flex-direction: column;
+  }
+}
+
+
+/* =========================================================
+   LOGIN SURVEILLANT - TITRE NOIR + SUPPORT GENERAL
+   ========================================================= */
+
+.supervisor-auth-title h1 {
+  background: none !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+.supervisor-auth-back-button {
+  justify-self: start !important;
+}
+
+.supervisor-auth-support {
+  margin-top: 24px !important;
+  padding-top: 18px !important;
+  border-top: 1px solid #eef0f3 !important;
+}
+
+/* =========================================================
+   LOGIN SURVEILLANT - RETOUR MEME POSITION QUE PROF
+   ========================================================= */
+
+.supervisor-auth-top {
+  width: calc(100% - 48px) !important;
+  max-width: none !important;
+  margin: 0 auto 28px !important;
+  display: grid !important;
+  grid-template-columns: 280px minmax(520px, 1fr) 280px !important;
+  align-items: start !important;
+}
+
+.supervisor-auth-back-button {
+  justify-self: start !important;
+  margin-left: 0 !important;
+}
+
+.supervisor-auth-title {
+  justify-self: center !important;
+  text-align: center !important;
+}
+
+/* =========================================================
+   LOGIN SURVEILLANT - BOUTON RETOUR PLUS A GAUCHE
+   ========================================================= */
+
+.supervisor-auth-top {
+  position: relative !important;
+  width: 100vw !important;
+  max-width: none !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  grid-template-columns: 1fr !important;
+}
+
+.supervisor-auth-back-button {
+  position: absolute !important;
+  left: 24px !important;
+  top: 0 !important;
+  justify-self: unset !important;
+  margin-left: 0 !important;
+}
+
+.supervisor-auth-title {
+  justify-self: center !important;
+  margin: 0 auto !important;
+}
+
+
+/* =========================================================
+   LOGIN SURVEILLANT - FIX LOADING / ERREUR
+   ========================================================= */
+
+.supervisor-auth-submit:disabled {
+  opacity: 0.72 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+.supervisor-auth-card,
+.supervisor-auth-card * {
+  cursor: auto;
+}
+
+.supervisor-auth-submit,
+.supervisor-auth-support button,
+.supervisor-support-link {
+  cursor: pointer !important;
+}
+
+.supervisor-auth-error {
+  margin-top: 16px !important;
+}
+
+/* =========================================================
+   LOGIN SURVEILLANT - BACKGROUND ROUGE + GRIS
+   ========================================================= */
+
+.supervisor-auth-page {
+  background:
+    radial-gradient(circle at top left, rgba(196, 0, 36, 0.14), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(17, 24, 39, 0.10), transparent 30%),
+    linear-gradient(135deg, #f7f8fb 0%, #eef1f5 100%) !important;
+}
+
+.supervisor-auth-main {
+  background: transparent !important;
+}

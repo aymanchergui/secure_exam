@@ -1,0 +1,552 @@
+<section class="supervisor-page">
+  <app-supervisor-header *ngIf="!publicSupportMode"
+    [activeSection]="activeSection"
+    [supervisorName]="supervisorName"
+    (sectionRequested)="handleSectionRequested($event)"
+    (refreshRequested)="refreshSupervisorSpace()"
+    (logoutRequested)="logoutRequested.emit()"
+    (backToDashboard)="backToDashboard.emit()">
+  </app-supervisor-header>
+
+  <main class="supervisor-main">
+    <section *ngIf="publicSupportMode" class="supervisor-public-support-top">
+      <button type="button" class="supervisor-secondary-button" (click)="backToDashboard.emit()">
+        ← Retour à l'accueil
+      </button>
+
+      <div>
+        <span class="supervisor-badge">Assistance</span>
+        <h1>Support surveillant</h1>
+        <p>
+          Utilisez ce formulaire si vous avez un problème de connexion ou une difficulté
+          pour accéder à l’espace surveillant.
+        </p>
+      </div>
+    </section>
+    <section *ngIf="activeSection === 'dashboard'" class="supervisor-panel supervisor-dashboard-panel">
+      <span class="supervisor-badge">Espace Surveillant</span>
+
+      <h1>Tableau de bord surveillant</h1>
+
+      <p>
+        Consultez les examens préparés, récupérez les configurations NixOS
+        et suivez les informations utiles pendant la session d’examen.
+      </p>
+
+      <div class="supervisor-dashboard-grid">
+        <button type="button" class="supervisor-action-card" (click)="handleSectionRequested('configs')">
+          <div class="supervisor-action-icon red">
+            <i data-lucide="download-cloud"></i>
+          </div>
+
+          <div>
+            <h2>Configurations</h2>
+            <p>Télécharger les fichiers NixOS générés par les professeurs.</p>
+          </div>
+        </button>
+
+        <button type="button" class="supervisor-action-card" (click)="handleSectionRequested('machines')">
+          <div class="supervisor-action-icon black">
+            <i data-lucide="monitor-check"></i>
+          </div>
+
+          <div>
+            <h2>Machines</h2>
+            <p>Consulter les machines associées aux examens préparés.</p>
+          </div>
+        </button>
+
+        <button type="button" class="supervisor-action-card" (click)="handleSectionRequested('profile')">
+          <div class="supervisor-action-icon red">
+            <i data-lucide="shield-user"></i>
+          </div>
+
+          <div>
+            <h2>Profil</h2>
+            <p>Mettre à jour les informations du surveillant.</p>
+          </div>
+        </button>
+
+        <button type="button" class="supervisor-action-card" (click)="handleSectionRequested('help')">
+          <div class="supervisor-action-icon black">
+            <i data-lucide="life-buoy"></i>
+          </div>
+
+          <div>
+            <h2>Assistance</h2>
+            <p>Envoyer une demande support en cas de problème.</p>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    
+<!-- SECUREEXAM_SUPERVISOR_NIXOS_LIST -->
+
+<section
+  class="supervisor-nixos-panel"
+  *ngIf="!publicSupportMode"
+>
+
+  <div class="supervisor-nixos-heading">
+
+    <div>
+
+      <span
+        style="
+          display:inline-flex;
+          margin-bottom:14px;
+          padding:7px 13px;
+          border-radius:999px;
+          background:#fff1f2;
+          color:#c40024;
+          font-size:12px;
+          font-weight:900;
+          letter-spacing:.08em;
+          text-transform:uppercase;
+        "
+      >
+        Configurations
+      </span>
+
+      <h2>
+        Configurations NixOS disponibles
+      </h2>
+
+      <p>
+        Retrouvez les examens préparés par les professeurs
+        et récupérez leur configuration NixOS sécurisée.
+      </p>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="supervisor-nixos-refresh"
+      (click)="loadSupervisorNixosConfigs()"
+      [disabled]="supervisorNixosLoading"
+    >
+      Actualiser
+    </button>
+
+  </div>
+
+
+  <div
+    class="supervisor-nixos-error"
+    *ngIf="supervisorNixosError"
+  >
+    {{ supervisorNixosError }}
+  </div>
+
+
+  <div
+    class="supervisor-nixos-loading"
+    *ngIf="supervisorNixosLoading"
+  >
+    Chargement des configurations NixOS...
+  </div>
+
+
+  <div
+    class="supervisor-nixos-empty"
+    *ngIf="
+      !supervisorNixosLoading &&
+      supervisorNixosConfigs.length === 0
+    "
+  >
+    Aucune configuration NixOS disponible.
+  </div>
+
+
+  <div
+    class="supervisor-nixos-table-wrap"
+    *ngIf="
+      !supervisorNixosLoading &&
+      supervisorNixosConfigs.length > 0
+    "
+  >
+
+    <table class="supervisor-nixos-table">
+
+      <thead>
+
+        <tr>
+          <th>Examen</th>
+          <th>Professeur</th>
+          <th>Date prévue</th>
+          <th>Fichier NixOS</th>
+          <th>Consultation</th>
+          <th>Téléchargement</th>
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        <tr
+          *ngFor="
+            let config of supervisorNixosConfigs
+          "
+        >
+
+          <td>
+
+            <div class="supervisor-nixos-exam">
+
+              <strong>
+                {{
+                  config.exam_name
+                  || config.exam_id
+                }}
+              </strong>
+
+              <span>
+                {{ config.exam_id }}
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <div class="supervisor-nixos-exam">
+
+              <strong>
+                {{
+                  config.professor_name
+                  || 'Professeur'
+                }}
+              </strong>
+
+              <span>
+                Enseignant responsable
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <div class="supervisor-nixos-date">
+
+              <strong>
+                {{
+                  config.exam_date
+                  || 'Non renseignée'
+                }}
+              </strong>
+
+              <span *ngIf="config.exam_time">
+                {{ config.exam_time }}
+              </span>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <code>
+              {{ config.nix_filename }}
+            </code>
+
+          </td>
+
+
+          <td>
+
+            <button
+              type="button"
+              class="supervisor-nixos-view"
+              (click)="
+                viewSupervisorNixosConfig(config)
+              "
+            >
+              Voir NixOS
+            </button>
+
+          </td>
+
+
+          <td>
+
+            <button
+              type="button"
+              class="supervisor-nixos-download"
+              (click)="
+                downloadSupervisorNixosConfig(config)
+              "
+            >
+              Télécharger .nix
+            </button>
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<div
+  class="supervisor-nixos-backdrop"
+  *ngIf="supervisorNixosPreview"
+  (click)="closeSupervisorNixosPreview()"
+>
+
+  <div
+    class="supervisor-nixos-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="supervisor-nixos-modal-header">
+
+      <div>
+
+        <h2>
+          {{
+            supervisorNixosPreview.exam_name
+            || supervisorNixosPreview.exam_id
+          }}
+        </h2>
+
+        <span>
+          Professeur :
+          {{
+            supervisorNixosPreview.professor_name
+            || 'Professeur'
+          }}
+          ·
+          {{ supervisorNixosPreview.filename }}
+        </span>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="supervisor-nixos-close"
+        (click)="closeSupervisorNixosPreview()"
+      >
+        Fermer
+      </button>
+
+    </div>
+
+
+    <div class="supervisor-nixos-filebar">
+
+      <span>
+        {{ supervisorNixosPreview.filename }}
+      </span>
+
+    </div>
+
+
+    <pre
+      class="supervisor-nixos-code"
+    >{{ supervisorNixosPreview.content }}</pre>
+
+  </div>
+
+</div>
+
+
+    <section *ngIf="activeSection === 'machines'" class="supervisor-panel">
+      <div class="supervisor-section-header">
+        <div>
+          <span class="supervisor-badge">Machines</span>
+          <h1>Suivi des machines d’examen</h1>
+          <p>
+            Cette page permettra au surveillant de visualiser les machines prévues
+            pour l’examen et les configurations associées.
+          </p>
+        </div>
+      </div>
+
+      <div class="supervisor-empty-state">
+        <i data-lucide="monitor-check"></i>
+        <strong>Suivi machine</strong>
+        <span>Les machines seront affichées à partir des configurations professeur.</span>
+      </div>
+    </section>
+
+    <section *ngIf="activeSection === 'profile'" class="supervisor-panel">
+      <div class="supervisor-section-header">
+        <div>
+          <span class="supervisor-badge">Profil</span>
+          <h1>Profil surveillant</h1>
+          <p>
+            Gérez les informations du compte utilisé le jour de l’examen.
+          </p>
+        </div>
+      </div>
+
+      <form class="supervisor-form" (ngSubmit)="saveProfile()">
+        <div class="supervisor-form-grid">
+          <label>
+            Nom complet
+            <input type="text" name="full_name" [(ngModel)]="profile.full_name">
+          </label>
+
+          <label>
+            Email
+            <input type="email" name="email" [(ngModel)]="profile.email">
+          </label>
+
+          <label>
+            Téléphone
+            <input type="text" name="phone" [(ngModel)]="profile.phone">
+          </label>
+
+          <label>
+            Salle / zone
+            <input type="text" name="room" [(ngModel)]="profile.room" placeholder="Salle 204, bâtiment A...">
+          </label>
+        </div>
+
+        <label>
+          Notes
+          <textarea name="notes" rows="4" [(ngModel)]="profile.notes"></textarea>
+        </label>
+
+        <div *ngIf="profileSuccess" class="supervisor-success">
+          <i data-lucide="check-circle-2"></i>
+          {{ profileSuccess }}
+        </div>
+
+        <div *ngIf="profileError" class="supervisor-error">
+          <i data-lucide="circle-alert"></i>
+          {{ profileError }}
+        </div>
+
+        <div class="supervisor-form-actions">
+          <button type="button" class="supervisor-secondary-button" (click)="loadProfile()">
+            <i data-lucide="refresh-cw"></i>
+            Recharger
+          </button>
+
+          <button type="submit" class="supervisor-primary-button" [disabled]="profileLoading">
+            <i data-lucide="save"></i>
+            {{ profileLoading ? 'Sauvegarde...' : 'Sauvegarder le profil' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section *ngIf="activeSection === 'help'" class="supervisor-panel">
+      <div class="supervisor-section-header">
+        <div>
+          <span class="supervisor-badge">Assistance</span>
+          <h1>Support surveillant</h1>
+          <p>
+            Signalez un problème rencontré pendant la récupération des configurations
+            ou la préparation des machines.
+          </p>
+        </div>
+      </div>
+
+      <form class="supervisor-form" (ngSubmit)="sendSupportRequest()">
+        <div class="supervisor-form-grid">
+          <label>
+            Sujet
+            <input type="text" name="subject" [(ngModel)]="supportForm.subject" placeholder="Ex : téléchargement impossible">
+          </label>
+
+          <label>
+            Catégorie
+            <select name="category" [(ngModel)]="supportForm.category">
+              <option>Configuration NixOS</option>
+              <option>Connexion</option>
+              <option>Machine d’examen</option>
+              <option>Rendu étudiant</option>
+              <option>Autre</option>
+            </select>
+          </label>
+
+          <label>
+            Priorité
+            <select name="priority" [(ngModel)]="supportForm.priority">
+              <option>Faible</option>
+              <option>Normale</option>
+              <option>Haute</option>
+              <option>Urgente</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          Message
+          <textarea
+            name="message"
+            rows="5"
+            [(ngModel)]="supportForm.message"
+            placeholder="Décrivez le problème rencontré..."
+          ></textarea>
+        </label>
+
+        <div *ngIf="supportSuccess" class="supervisor-success">
+          <i data-lucide="check-circle-2"></i>
+          {{ supportSuccess }}
+        </div>
+
+        <div *ngIf="supportError" class="supervisor-error">
+          <i data-lucide="circle-alert"></i>
+          {{ supportError }}
+        </div>
+
+        <div class="supervisor-form-actions">
+          <button type="button" class="supervisor-secondary-button" (click)="loadSupportRequests()">
+            <i data-lucide="refresh-cw"></i>
+            Actualiser
+          </button>
+
+          <button type="submit" class="supervisor-primary-button" [disabled]="supportLoading">
+            <i data-lucide="send"></i>
+            {{ supportLoading ? 'Envoi...' : 'Envoyer la demande' }}
+          </button>
+        </div>
+      </form>
+
+      <section *ngIf="!publicSupportMode" class="supervisor-requests">
+        <h2>Demandes envoyées</h2>
+
+        <div *ngIf="supportRequests.length === 0" class="supervisor-empty-state small">
+          <i data-lucide="inbox"></i>
+          <strong>Aucune demande</strong>
+          <span>Aucune demande support surveillant n’a encore été envoyée.</span>
+        </div>
+
+        <article *ngFor="let request of supportRequests" class="supervisor-request-card">
+          <div>
+            <div class="supervisor-request-top">
+              <strong>{{ request.subject }}</strong>
+              <span>{{ request.status }}</span>
+            </div>
+
+            <p>{{ request.message }}</p>
+
+            <div class="supervisor-request-meta">
+              <span>{{ request.category }}</span>
+              <span>{{ request.priority }}</span>
+              <span>{{ request.created_at }}</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </section>
+  </main>
+</section>

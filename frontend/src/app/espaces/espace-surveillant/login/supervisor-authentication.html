@@ -1,0 +1,80 @@
+<section class="supervisor-auth-page">
+  <app-public-header class="supervisor-auth-header"></app-public-header>
+
+  <main class="supervisor-auth-main">
+    <section class="supervisor-auth-top">
+      <button class="supervisor-auth-back-button" type="button" (click)="goBack()">
+        <span>←</span>
+        Retour à l'accueil
+      </button>
+
+      <section class="supervisor-auth-title">
+        <h1>Espace Surveillant</h1>
+        <p>
+          Connectez-vous pour consulter les examens préparés et récupérer les
+          configurations NixOS générées.
+        </p>
+      </section>
+
+      <div class="supervisor-auth-spacer"></div>
+    </section>
+
+    <section class="supervisor-auth-card">
+      <div class="supervisor-auth-heading">
+        <div class="supervisor-auth-icon">
+          <i data-lucide="shield-check"></i>
+        </div>
+
+        <div>
+          <h2>Authentification</h2>
+          <p>ISEN SecureExam</p>
+        </div>
+      </div>
+
+      <label>
+        Identifiant
+        <input
+          type="text"
+          [(ngModel)]="username"
+          placeholder="surveillant"
+          autocomplete="username"
+        >
+      </label>
+
+      <label>
+        Mot de passe
+        <input
+          type="password"
+          [(ngModel)]="password"
+          (keyup.enter)="submitAuthentication()"
+          placeholder="Mot de passe"
+          autocomplete="current-password"
+        >
+      </label>
+
+      <button
+        class="supervisor-auth-submit"
+        type="button"
+        [disabled]="isLoading"
+        (click)="submitAuthentication()"
+      >
+        <i data-lucide="log-in"></i>
+        {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+      </button>
+
+      <div *ngIf="authenticationError" class="supervisor-auth-error">
+        <i data-lucide="circle-alert"></i>
+        {{ authenticationError }}
+      </div>
+
+      <div class="supervisor-auth-support">
+        <span>Problème sur la plateforme ?</span>
+
+        <button class="supervisor-support-link" type="button" (click)="openSupport()">
+          <i data-lucide="life-buoy"></i>
+          Consulter le support
+        </button>
+      </div>
+    </section>
+  </main>
+</section>
