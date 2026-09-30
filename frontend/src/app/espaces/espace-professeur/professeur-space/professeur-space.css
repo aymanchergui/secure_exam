@@ -12747,3 +12747,771 @@ select {
    ========================================================= */
 
 
+
+
+
+/* SECUREEXAM_PROF_ADMIN_DELIVERY_V5 START */
+
+
+/* =========================================================
+   MEME BLOC VISUEL QUE L'ESPACE ADMIN
+   ========================================================= */
+
+.admin-delivery-status {
+
+  display:
+    inline-flex;
+
+  padding:
+    6px 9px;
+
+  border-radius:
+    999px;
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .05em;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-delivery-status.ready {
+
+  background:
+    #fff7ed;
+
+  color:
+    #c2410c;
+}
+
+
+.admin-delivery-status.sent {
+
+  background:
+    #dcfce7;
+
+  color:
+    #15803d;
+}
+
+
+.admin-delivery-date {
+
+  display:
+    block;
+
+  margin-top:
+    5px;
+
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  white-space:
+    nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   BOUTON ENVOI
+   --------------------------------------------------------- */
+
+.admin-send-exam {
+
+  min-height:
+    38px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    6px;
+
+  padding:
+    0 12px;
+
+  border:
+    0;
+
+  border-radius:
+    10px;
+
+  cursor:
+    pointer;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    11px;
+
+  font-weight:
+    850;
+
+  transition:
+    .2s ease;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #c40024 100%
+    );
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 8px 18px
+    rgba(196,0,36,.16);
+}
+
+
+.admin-send-exam:hover:not(:disabled) {
+
+  transform:
+    translateY(-1px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #020617 0%,
+      #8b0018 100%
+    );
+}
+
+
+.admin-send-exam:disabled {
+
+  opacity:
+    .55;
+
+  cursor:
+    not-allowed;
+
+  transform:
+    none;
+
+  box-shadow:
+    none;
+}
+
+
+.admin-send-exam.sent {
+
+  background:
+    #c47789;
+}
+
+
+.admin-send-exam svg,
+.admin-send-exam i {
+
+  width:
+    17px;
+
+  height:
+    17px;
+}
+
+
+/* SECUREEXAM_PROF_ADMIN_DELIVERY_V5 END */
+
+
+
+
+
+/* =========================================================
+   SECUREEXAM_TEACHER_ROSTER_STYLE_V1
+   Meme rendu que l'espace Admin
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   BOUTON VOIR LISTE
+   --------------------------------------------------------- */
+
+.admin-roster-view {
+
+  min-height:
+    38px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px;
+
+  padding:
+    0 12px;
+
+  border:
+    0;
+
+  border-radius:
+    10px;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+
+  cursor:
+    pointer;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    11px;
+
+  font-weight:
+    850;
+
+  transition:
+    .2s ease;
+}
+
+
+.admin-roster-view:hover:not(:disabled) {
+
+  transform:
+    translateY(-1px);
+
+  background:
+    #020617;
+}
+
+
+.admin-roster-view:disabled {
+
+  opacity:
+    .48;
+
+  cursor:
+    not-allowed;
+
+  transform:
+    none;
+}
+
+
+.admin-roster-view svg,
+.admin-roster-view i {
+
+  width:
+    18px;
+
+  height:
+    18px;
+}
+
+
+.admin-roster-filename {
+
+  display:
+    block;
+
+  max-width:
+    145px;
+
+  margin-top:
+    5px;
+
+  overflow:
+    hidden;
+
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+/* ---------------------------------------------------------
+   BACKDROP
+   --------------------------------------------------------- */
+
+.admin-roster-backdrop {
+
+  position:
+    fixed !important;
+
+  inset:
+    0 !important;
+
+  z-index:
+    12000 !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  padding:
+    28px !important;
+
+  background:
+    rgba(2,6,23,.70) !important;
+
+  backdrop-filter:
+    blur(8px) !important;
+}
+
+
+/* ---------------------------------------------------------
+   MODAL
+   --------------------------------------------------------- */
+
+.admin-roster-modal {
+
+  width:
+    min(1000px,95vw) !important;
+
+  max-height:
+    88vh !important;
+
+  display:
+    flex !important;
+
+  flex-direction:
+    column !important;
+
+  overflow:
+    hidden !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.16) !important;
+
+  border-radius:
+    26px !important;
+
+  background:
+    #ffffff !important;
+
+  box-shadow:
+    0 36px 100px rgba(0,0,0,.38),
+    0 12px 30px rgba(196,0,36,.14) !important;
+}
+
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.admin-roster-modal-header {
+
+  flex:
+    0 0 auto !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap:
+    24px !important;
+
+  padding:
+    25px 28px !important;
+
+  color:
+    #ffffff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1b1829 0%,
+      #4c0a28 34%,
+      #7c0025 62%,
+      #a50024 82%,
+      #c40024 100%
+    ) !important;
+}
+
+
+.admin-roster-modal-header > div > span {
+
+  display:
+    inline-flex !important;
+
+  margin-bottom:
+    7px !important;
+
+  color:
+    rgba(255,255,255,.70) !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    950 !important;
+
+  letter-spacing:
+    .12em !important;
+}
+
+
+.admin-roster-modal-header h2 {
+
+  margin:
+    0 !important;
+
+  color:
+    #ffffff !important;
+
+  font-size:
+    25px !important;
+
+  font-weight:
+    950 !important;
+}
+
+
+.admin-roster-modal-header p {
+
+  margin:
+    7px 0 0 !important;
+
+  color:
+    rgba(255,255,255,.80) !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    650 !important;
+}
+
+
+.admin-roster-close {
+
+  min-width:
+    92px !important;
+
+  height:
+    44px !important;
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.10) !important;
+
+  border-radius:
+    13px !important;
+
+  background:
+    #0f172a !important;
+
+  color:
+    #ffffff !important;
+
+  cursor:
+    pointer !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    900 !important;
+}
+
+
+/* ---------------------------------------------------------
+   BODY
+   --------------------------------------------------------- */
+
+.admin-roster-modal-body {
+
+  flex:
+    1 1 auto !important;
+
+  min-height:
+    0 !important;
+
+  overflow:
+    auto !important;
+
+  padding:
+    24px 26px !important;
+
+  background:
+    #ffffff !important;
+}
+
+
+/* ---------------------------------------------------------
+   TABLE
+   --------------------------------------------------------- */
+
+.admin-roster-modal-table {
+
+  width:
+    100% !important;
+
+  border-collapse:
+    separate !important;
+
+  border-spacing:
+    0 !important;
+
+  overflow:
+    hidden !important;
+
+  border:
+    1px solid #e5e7eb !important;
+
+  border-radius:
+    17px !important;
+
+  background:
+    #ffffff !important;
+}
+
+
+.admin-roster-modal-table th {
+
+  position:
+    sticky !important;
+
+  top:
+    0 !important;
+
+  z-index:
+    2 !important;
+
+  padding:
+    14px 16px !important;
+
+  text-align:
+    left !important;
+
+  border-bottom:
+    1px solid
+    rgba(196,0,36,.11) !important;
+
+  background:
+    #fff7f8 !important;
+
+  color:
+    #64748b !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    950 !important;
+
+  letter-spacing:
+    .065em !important;
+
+  text-transform:
+    uppercase !important;
+}
+
+
+.admin-roster-modal-table td {
+
+  padding:
+    15px 16px !important;
+
+  border-bottom:
+    1px solid #eef2f7 !important;
+
+  color:
+    #334155 !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    650 !important;
+}
+
+
+.admin-roster-modal-table tbody tr:hover {
+
+  background:
+    rgba(196,0,36,.035) !important;
+}
+
+
+.admin-roster-modal-table
+td strong {
+
+  color:
+    #c40024 !important;
+
+  font-weight:
+    950 !important;
+}
+
+
+/* ---------------------------------------------------------
+   FOOTER
+   --------------------------------------------------------- */
+
+.admin-roster-modal-footer {
+
+  flex:
+    0 0 auto !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    space-between !important;
+
+  padding:
+    18px 26px !important;
+
+  border-top:
+    1px solid #e5e7eb !important;
+
+  background:
+    #f8fafc !important;
+}
+
+
+.admin-roster-modal-footer > span {
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  gap:
+    7px !important;
+
+  color:
+    #475569 !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    850 !important;
+}
+
+
+.admin-roster-modal-footer
+> span::before {
+
+  content:
+    "" !important;
+
+  width:
+    9px !important;
+
+  height:
+    9px !important;
+
+  border-radius:
+    50% !important;
+
+  background:
+    #16a34a !important;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(22,163,74,.12) !important;
+}
+
+
+@media (max-width:700px) {
+
+  .admin-roster-backdrop {
+
+    padding:
+      10px !important;
+  }
+
+
+  .admin-roster-modal {
+
+    width:
+      100% !important;
+
+    max-height:
+      94vh !important;
+  }
+
+
+  .admin-roster-modal-header {
+
+    align-items:
+      flex-start !important;
+
+    padding:
+      20px !important;
+  }
+
+
+  .admin-roster-modal-body {
+
+    padding:
+      16px !important;
+  }
+
+}
+
+
+/* /SECUREEXAM_TEACHER_ROSTER_STYLE_V1 */
+
+

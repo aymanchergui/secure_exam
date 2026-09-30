@@ -2652,8 +2652,18 @@
 
           <!-- SECUREEXAM_TEACHER_DELIVERY_COLUMN_V2 -->
 
+          <!-- SECUREEXAM_TEACHER_ROSTER_COLUMN_V1 -->
+
+          <th>
+            Liste CSV
+          </th>
+
           <th>
             Diffusion
+          </th>
+
+          <th>
+            Envoi
           </th>
 
           <th>
@@ -2828,123 +2838,138 @@
 
           </td>
 
-          <!-- SECUREEXAM_TEACHER_DELIVERY_CELL_V3 -->
+          <!-- SECUREEXAM_TEACHER_ROSTER_CELL_V1 -->
 
           <td>
 
-            <div class="teacher-delivery-cell">
+            <button
+              type="button"
 
-              <!-- STATUT -->
+              class="admin-roster-view"
 
-              <span
-                class="teacher-delivery-status"
-                [class.sent]="
+              [disabled]="
+                !config.roster_count
+              "
+
+              (click)="
+                viewTeacherRoster(config)
+              "
+            >
+
+              <i data-lucide="users"></i>
+
+              Voir liste
+
+            </button>
+
+
+            <small
+              class="admin-roster-filename"
+
+              *ngIf="
+                config.roster_filename
+              "
+            >
+              {{ config.roster_filename }}
+            </small>
+
+          </td>
+
+
+          <!-- SECUREEXAM_TEACHER_DELIVERY_CELL_V5 -->
+
+
+          <!-- DIFFUSION : MEME BLOC QUE ADMIN -->
+
+          <td>
+
+            <span
+              class="admin-delivery-status ready"
+              *ngIf="
+                !isTeacherExamSent(config)
+              "
+            >
+              À ENVOYER
+            </span>
+
+
+            <span
+              class="admin-delivery-status sent"
+              *ngIf="
+                isTeacherExamSent(config)
+              "
+            >
+              ENVOYÉ
+            </span>
+
+
+            <small
+              class="admin-delivery-date"
+              *ngIf="
+                config.sent_at
+              "
+            >
+              {{ config.sent_at }}
+            </small>
+
+          </td>
+
+
+
+          <!-- ENVOI : MEME BLOC QUE ADMIN -->
+
+          <td>
+
+            <button
+              type="button"
+
+              class="admin-send-exam"
+
+              [class.sent]="
+                isTeacherExamSent(config)
+              "
+
+              [disabled]="
+                !config.roster_count
+
+                || isTeacherExamSent(config)
+
+                || teacherDeliveryLoadingId
+                   === config.id
+              "
+
+              (click)="
+                sendExamToStudentsFromTeacher(
+                  config
+                )
+              "
+            >
+
+
+              <i
+                [attr.data-lucide]="
                   isTeacherExamSent(config)
+                    ? 'circle-check'
+                    : 'send'
                 "
-                [class.ready]="
-                  !isTeacherExamSent(config)
-                "
-              >
-
-                {{
-                  isTeacherExamSent(config)
-                    ? 'ENVOY?'
-                    : '? ENVOYER'
-                }}
-
-              </span>
+              ></i>
 
 
-              <!-- NOMBRE ETUDIANTS -->
-
-              <small
-                class="teacher-delivery-count"
-                *ngIf="
-                  config.roster_count
-                  && config.roster_count > 0
-                "
-              >
-
-                {{ config.roster_count }}
-                ?tudiant(s)
-
-              </small>
-
-
-              <!-- BOUTON -->
-
-              <button
-                type="button"
-                class="teacher-send-exam"
-                [class.sent]="
-                  isTeacherExamSent(config)
-                "
-                [disabled]="
-                  isTeacherExamSent(config)
-                  ||
-                  teacherDeliveryLoadingExamId
-                  === (
-                    config.exam_id
-                    || config.filename.replace(
-                      '.json',
-                      ''
-                    )
-                  )
-                "
-                (click)="
-                  sendExamToStudentsFromTeacher(
-                    config
-                  )
-                "
-              >
-
-                <i
-                  [attr.data-lucide]="
-                    isTeacherExamSent(config)
-                      ? 'circle-check'
-                      : 'send'
-                  "
-                  class="btn-icon"
-                ></i>
-
-
-                {{
-                  teacherDeliveryLoadingExamId
-                    === (
-                      config.exam_id
-                      || config.filename.replace(
-                        '.json',
-                        ''
-                      )
-                    )
+              {{
+                teacherDeliveryLoadingId
+                  === config.id
 
                     ? 'Envoi...'
 
                     : (
                         isTeacherExamSent(config)
-                          ? 'Envoy?'
+                          ? 'Envoyé'
                           : 'Envoyer'
                       )
-                }}
-
-              </button>
+              }}
 
 
-              <!-- DATE ENVOI -->
-
-              <small
-                class="teacher-delivery-date"
-                *ngIf="
-                  isTeacherExamSent(config)
-                  && config.sent_at
-                "
-              >
-
-                {{ config.sent_at }}
-
-              </small>
-
-            </div>
+            </button>
 
           </td>
 
@@ -2982,7 +3007,181 @@
 </section>
 
 
-      <section id="machines" class="panel">
+      <!-- SECUREEXAM_TEACHER_ROSTER_MODAL_V1 -->
+
+<div
+  class="admin-roster-backdrop"
+
+  *ngIf="
+    teacherRosterPreview
+  "
+
+  (click)="
+    closeTeacherRoster()
+  "
+>
+
+  <div
+    class="admin-roster-modal"
+
+    (click)="
+      $event.stopPropagation()
+    "
+  >
+
+
+    <div class="admin-roster-modal-header">
+
+      <div>
+
+        <span>
+          LISTE DES &Eacute;TUDIANTS
+        </span>
+
+        <h2>
+
+          {{
+            teacherRosterPreview.exam_name
+            || teacherRosterPreview.exam_id
+          }}
+
+        </h2>
+
+        <p>
+
+          {{ teacherRosterPreview.filename }}
+
+          &middot;
+
+          {{ teacherRosterPreview.students_count }}
+
+          &eacute;tudiant(s)
+
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+
+        class="admin-roster-close"
+
+        (click)="
+          closeTeacherRoster()
+        "
+      >
+
+        Fermer
+
+      </button>
+
+    </div>
+
+
+
+    <div class="admin-roster-modal-body">
+
+      <table class="admin-roster-modal-table">
+
+        <thead>
+
+          <tr>
+
+            <th>
+              #
+            </th>
+
+            <th>
+              N&deg; &eacute;tudiant
+            </th>
+
+            <th>
+              Nom complet
+            </th>
+
+            <th>
+              Email
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let student
+              of teacherRosterPreview.students
+            "
+          >
+
+            <td>
+              {{ student.line_number }}
+            </td>
+
+            <td>
+
+              <strong>
+                {{ student.student_number }}
+              </strong>
+
+            </td>
+
+            <td>
+              {{ student.full_name }}
+            </td>
+
+            <td>
+              {{ student.email }}
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+
+    <div class="admin-roster-modal-footer">
+
+      <span>
+
+        <ng-container
+          *ngIf="
+            teacherRosterPreview.status === 'SENT'
+          "
+        >
+          Examen d&eacute;j&agrave; envoy&eacute;
+        </ng-container>
+
+
+        <ng-container
+          *ngIf="
+            teacherRosterPreview.status !== 'SENT'
+          "
+        >
+          Liste pr&ecirc;te pour diffusion
+        </ng-container>
+
+      </span>
+
+    </div>
+
+
+  </div>
+
+</div>
+
+<!-- /SECUREEXAM_TEACHER_ROSTER_MODAL_V1 -->
+
+
+<section id="machines" class="panel">
         <h2>
           <i data-lucide="monitor-cog" class="title-icon"></i>
           État des machines

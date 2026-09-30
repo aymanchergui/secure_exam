@@ -5500,36 +5500,44 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("""
-
         SELECT
+            ec.id,
+            ec.exam_id,
+            ec.exam_name,
+            ec.exam_date,
+            ec.exam_time,
+            ec.student_id,
+            ec.machine_id,
+            ec.workspace,
+            ec.created_at,
+            ec.updated_at,
 
-            exam_id,
+            er.original_filename
+                AS roster_filename,
 
-            exam_name,
+            er.students_count
+                AS roster_count,
 
-            exam_date,
+            er.status
+                AS roster_status,
 
-            exam_time,
+            er.sent_at
 
-            student_id,
+        FROM exam_configs ec
 
-            machine_id,
+        LEFT JOIN exam_rosters er
+            ON er.exam_config_id = ec.id
 
-            workspace,
+        WHERE ec.teacher_id = ?
 
-            created_at,
-
-            updated_at
-
-        FROM exam_configs
-
-        WHERE teacher_id = ?
-
-        ORDER BY updated_at DESC
+        ORDER BY
+            ec.updated_at DESC,
+            ec.id DESC
 
     """, (
         current_teacher["id"],
     ))
+
     config_rows = cursor.fetchall()
     configs = []
     for row in config_rows:
@@ -5539,17 +5547,99 @@ def dashboard(current_teacher: dict = Depends(get_current_teacher)):
             row["machine_id"]
         )
         configs.append({
-            "filename": filename,
-            "exam_id": row["exam_id"],
-            "exam_name": row["exam_name"] if "exam_name" in row.keys() and row["exam_name"] else row["exam_id"],
-            "exam_date": row["exam_date"] if "exam_date" in row.keys() else "",
-            "exam_time": row["exam_time"] if "exam_time" in row.keys() else "",
-            "workspace": row["workspace"],
-            "created_at": row["created_at"],
-            "updated_at": row["updated_at"],
-            "download_url": f"/configs/{filename}/download",
-            "nixos_config_url": f"/configs/{filename}/nixos-config",
-            "nixos_config_download_url": f"/configs/{filename}/nixos-config/download"
+
+            "id":
+                int(row["id"]),
+
+            "filename":
+                filename,
+
+            "exam_id":
+                row["exam_id"],
+
+            "exam_name":
+                (
+                    row["exam_name"]
+                    if (
+                        "exam_name" in row.keys()
+                        and row["exam_name"]
+                    )
+                    else row["exam_id"]
+                ),
+
+            "exam_date":
+                (
+                    row["exam_date"]
+                    if "exam_date" in row.keys()
+                    else ""
+                ),
+
+            "exam_time":
+                (
+                    row["exam_time"]
+                    if "exam_time" in row.keys()
+                    else ""
+                ),
+
+            "workspace":
+                row["workspace"],
+
+            "created_at":
+                row["created_at"],
+
+            "updated_at":
+                row["updated_at"],
+
+            # ===============================================
+            # MEME SOURCE DE VERITE QUE ADMIN
+            # ===============================================
+
+            "roster_filename":
+                (
+                    row["roster_filename"]
+                    if (
+                        "roster_filename" in row.keys()
+                        and row["roster_filename"]
+                    )
+                    else ""
+                ),
+
+            "roster_count":
+                (
+                    int(
+                        row["roster_count"]
+                        or 0
+                    )
+                    if "roster_count" in row.keys()
+                    else 0
+                ),
+
+            "roster_status":
+                (
+                    row["roster_status"]
+                    if (
+                        "roster_status" in row.keys()
+                        and row["roster_status"]
+                    )
+                    else "MISSING"
+                ),
+
+            "sent_at":
+                (
+                    row["sent_at"]
+                    if "sent_at" in row.keys()
+                    else None
+                ),
+
+            "download_url":
+                f"/configs/{filename}/download",
+
+            "nixos_config_url":
+                f"/configs/{filename}/nixos-config",
+
+            "nixos_config_download_url":
+                f"/configs/{filename}/nixos-config/download"
+
         })
     cursor.execute("""
 
@@ -9983,128 +10073,24 @@ _roster_init_tables()
 
 
 
+
+
+
+
 # =========================================================
-# SECUREEXAM_TEACHER_DELIVERY_V2
-# Diffusion directe depuis l'espace professeur.
+# SECUREEXAM_TEACHER_DELIVERY_V5
 #
-# La logique m?tier d'envoi reste celle de l'Admin :
-# send_exam_to_roster_students().
+# M?me logique d'envoi que l'administrateur.
+# La seule diff?rence :
+# le professeur ne peut envoyer que SA configuration.
 # =========================================================
-
-
-@app.get(
-    "/teacher/exam-delivery"
-)
-def list_teacher_exam_delivery(
-    current_teacher:
-        dict = Depends(
-            get_current_teacher
-        )
-):
-
-    _roster_init_tables()
-
-    teacher_id = int(
-        current_teacher["id"]
-    )
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT
-            ec.id,
-            ec.exam_id,
-            ec.exam_name,
-            er.original_filename,
-            er.students_count,
-            er.status,
-            er.sent_at
-
-        FROM exam_configs ec
-
-        LEFT JOIN exam_rosters er
-            ON er.exam_config_id = ec.id
-
-        WHERE ec.teacher_id = ?
-
-        ORDER BY
-            ec.updated_at DESC,
-            ec.id DESC
-    """, (
-        teacher_id,
-    ))
-
-    rows = cursor.fetchall()
-
-    connection.close()
-
-    result = []
-
-    for row in rows:
-
-        keys = row.keys()
-
-        result.append({
-
-            "config_id":
-                int(row["id"]),
-
-            "exam_id":
-                row["exam_id"],
-
-            "exam_name":
-                (
-                    row["exam_name"]
-                    or row["exam_id"]
-                ),
-
-            "roster_filename":
-                (
-                    row["original_filename"]
-                    if (
-                        "original_filename" in keys
-                        and row["original_filename"]
-                    )
-                    else None
-                ),
-
-            "roster_count":
-                int(
-                    row["students_count"]
-                    or 0
-                )
-                if "students_count" in keys
-                else 0,
-
-            "roster_status":
-                (
-                    str(
-                        row["status"]
-                        or "MISSING"
-                    )
-                    if "status" in keys
-                    else "MISSING"
-                ),
-
-            "sent_at":
-                (
-                    row["sent_at"]
-                    if "sent_at" in keys
-                    else None
-                ),
-
-        })
-
-    return result
-
 
 
 @app.post(
-    "/teacher/exam-delivery/{exam_id}/send"
+    "/teacher/exam-delivery/{config_id}/send"
 )
 def send_teacher_exam_to_students(
-    exam_id: str,
+    config_id: int,
 
     current_teacher:
         dict = Depends(
@@ -10114,77 +10100,59 @@ def send_teacher_exam_to_students(
 
     _roster_init_tables()
 
-    clean_exam_id = (
-        exam_id
-        or ""
-    ).strip()
-
-    if not clean_exam_id:
-
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Code examen invalide."
-            )
-        )
-
     teacher_id = int(
         current_teacher["id"]
     )
+
+
+    # -----------------------------------------------------
+    # V?rification de propri?t?.
+    # -----------------------------------------------------
 
     connection = get_connection()
     cursor = connection.cursor()
 
     cursor.execute("""
-        SELECT
-            id,
-            exam_id
+        SELECT id
 
         FROM exam_configs
 
         WHERE
-            teacher_id = ?
-            AND exam_id = ?
-
-        ORDER BY
-            updated_at DESC,
-            id DESC
+            id = ?
+            AND teacher_id = ?
 
         LIMIT 1
     """, (
+        config_id,
         teacher_id,
-        clean_exam_id,
     ))
 
-    row = cursor.fetchone()
+    owned_config = cursor.fetchone()
 
     connection.close()
 
-    if row is None:
+
+    if owned_config is None:
 
         raise HTTPException(
             status_code=404,
             detail=(
                 "Configuration introuvable "
-                "dans votre espace professeur."
+                "ou non autoris?e."
             )
         )
 
-    config_id = int(
-        row["id"]
-    )
 
     # -----------------------------------------------------
-    # IMPORTANT :
+    # UNE SEULE LOGIQUE METIER.
     #
-    # On r?utilise EXACTEMENT la logique d?j? valid?e
-    # c?t? administrateur :
+    # On appelle directement la fonction Admin existante :
     #
-    # - CSV
+    # - lecture CSV
     # - v?rification comptes ?tudiants
     # - aucun envoi partiel
-    # - affectations
-    # - statut SENT
+    # - cr?ation affectations
+    # - status = SENT
     # - sent_at
     # -----------------------------------------------------
 
@@ -10194,7 +10162,80 @@ def send_teacher_exam_to_students(
     )
 
 
-# /SECUREEXAM_TEACHER_DELIVERY_V2
+# /SECUREEXAM_TEACHER_DELIVERY_V5
+
+
+
+
+# =========================================================
+# SECUREEXAM_TEACHER_ROSTER_PREVIEW_V1
+# Meme liste CSV que l'espace Admin,
+# avec controle de propriete professeur.
+# =========================================================
+
+@app.get(
+    "/teacher/exam-delivery/{config_id}/roster"
+)
+def get_teacher_exam_roster(
+    config_id: int,
+
+    current_teacher:
+        dict = Depends(
+            get_current_teacher
+        )
+):
+
+    _roster_init_tables()
+
+    teacher_id = int(
+        current_teacher["id"]
+    )
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+
+    cursor.execute("""
+        SELECT id
+
+        FROM exam_configs
+
+        WHERE
+            id = ?
+            AND teacher_id = ?
+
+        LIMIT 1
+
+    """, (
+        config_id,
+        teacher_id,
+    ))
+
+
+    owned_config = cursor.fetchone()
+
+    connection.close()
+
+
+    if owned_config is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Configuration introuvable "
+                "ou non autorisee."
+            )
+        )
+
+
+    # Meme fonction de lecture CSV que l'Admin.
+    return get_admin_exam_roster(
+        config_id=config_id,
+        current_admin=current_teacher
+    )
+
+
+# /SECUREEXAM_TEACHER_ROSTER_PREVIEW_V1
 
 
 # /SECUREEXAM_EXAM_ROSTER_DELIVERY_V1

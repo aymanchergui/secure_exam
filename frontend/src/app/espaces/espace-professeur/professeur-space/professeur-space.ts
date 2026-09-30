@@ -54,6 +54,30 @@ interface ExamConfigFile {
   sent_at?: string | null;
 }
 
+interface TeacherRosterStudent {
+  line_number: number;
+  student_number: string;
+  full_name: string;
+  email: string;
+}
+
+
+interface TeacherRosterPreview {
+  config_id: number;
+  exam_id: string;
+  exam_name: string;
+
+  filename: string;
+  students_count: number;
+
+  status: string;
+  sent_at?: string | null;
+
+  students: TeacherRosterStudent[];
+}
+
+
+
 interface ExamConfigDetail {
   exam_id: string;
 
@@ -576,6 +600,9 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   selectedConfig?: ExamConfigDetail;
   selectedConfigFilename = '';
 
+  teacherRosterPreview:
+    TeacherRosterPreview | null = null;
+
   statusHistory: MachineStatus[] = [];
   statusHistoryTitle = '';
 
@@ -587,7 +614,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   packageActionLoadingId = 0;
 
   // SECUREEXAM_TEACHER_DELIVERY_STATE_V2
-  teacherDeliveryLoadingExamId = '';
+  teacherDeliveryLoadingId = 0;
 
   error = '';
   success = '';
@@ -1310,9 +1337,6 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
         next: (data) => {
           this.dashboard = data;
           this.loading = false;
-
-          // SECUREEXAM_TEACHER_DELIVERY_LOAD_V2
-          this.loadTeacherExamDeliveryStatus();
 
           this.refreshView();
         },
@@ -5773,148 +5797,8 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
   // ======================================================
-  // SECUREEXAM_TEACHER_DELIVERY_METHODS_V3
+  // SECUREEXAM_TEACHER_DELIVERY_METHODS_V5
   // ======================================================
-
-  loadTeacherExamDeliveryStatus(): void {
-
-    if (
-      !this.dashboard
-      || !this.accessToken
-    ) {
-      return;
-    }
-
-    const headers =
-      this.getTeacherHeaders();
-
-    this.http.get<any[]>(
-      `${this.apiUrl}/teacher/exam-delivery`,
-      {
-        headers
-      }
-    ).subscribe({
-
-      next: (items) => {
-
-        const deliveryByExam =
-          new Map<string, any>();
-
-        for (
-          const item
-          of items || []
-        ) {
-
-          const examId =
-            String(
-              item?.exam_id
-              || ''
-            ).trim();
-
-          if (examId) {
-
-            deliveryByExam.set(
-              examId,
-              item
-            );
-          }
-        }
-
-
-        if (this.dashboard) {
-
-          this.dashboard.configs =
-            (
-              this.dashboard.configs
-              || []
-            ).map(
-              config => {
-
-                const examId =
-                  String(
-                    config.exam_id
-                    || config.filename.replace(
-                      /\.json$/i,
-                      ''
-                    )
-                    || ''
-                  ).trim();
-
-
-                const delivery =
-                  deliveryByExam.get(
-                    examId
-                  );
-
-
-                if (!delivery) {
-
-                  return {
-                    ...config,
-
-                    roster_count:
-                      config.roster_count
-                      || 0,
-
-                    roster_status:
-                      config.roster_status
-                      || 'READY',
-
-                    sent_at:
-                      config.sent_at
-                      || null
-                  };
-                }
-
-
-                return {
-                  ...config,
-
-                  delivery_config_id:
-                    delivery.config_id,
-
-                  roster_filename:
-                    delivery.roster_filename
-                    || null,
-
-                  roster_count:
-                    Number(
-                      delivery.roster_count
-                      || 0
-                    ),
-
-                  roster_status:
-                    String(
-                      delivery.roster_status
-                      || 'READY'
-                    ),
-
-                  sent_at:
-                    delivery.sent_at
-                    || null
-                };
-              }
-            );
-        }
-
-
-        this.refreshView();
-      },
-
-
-      error: (err) => {
-
-        console.error(
-          'Erreur statut diffusion professeur',
-          err
-        );
-
-        this.refreshView();
-      }
-
-    });
-  }
-
 
 
   isTeacherExamSent(
@@ -5922,10 +5806,12 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   ): boolean {
 
     return (
+
       String(
         config.roster_status
         || ''
       ).toUpperCase()
+
       === 'SENT'
     );
   }
@@ -5940,21 +5826,16 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     this.success = '';
 
 
-    const examId =
-      String(
-        config.exam_id
-        || config.filename.replace(
-          /\.json$/i,
-          ''
-        )
-        || ''
-      ).trim();
-
-
-    if (!examId) {
+    // MEME REGLE QUE ADMIN
+    if (
+      !config.roster_count
+    ) {
 
       this.error =
-        'Code examen introuvable.';
+        (
+          'Aucune liste étudiants '
+          + 'associ?e ? cet examen.'
+        );
 
       this.refreshView();
 
@@ -5962,14 +5843,21 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     }
 
 
+    // MEME REGLE QUE ADMIN
     if (
       this.isTeacherExamSent(
         config
       )
     ) {
 
-      this.success =
-        'Cet examen a d?j? ?t? envoy?.';
+      return;
+    }
+
+
+    if (!config.id) {
+
+      this.error =
+        'Identifiant de configuration introuvable.';
 
       this.refreshView();
 
@@ -5977,40 +5865,18 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     }
 
 
-    const examLabel =
-      config.exam_name
-      || examId;
-
-
-    const count =
-      Number(
-        config.roster_count
-        || 0
-      );
-
-
-    let confirmText =
-      `Envoyer "${examLabel}" aux ?tudiants ?`;
-
-
-    if (count > 0) {
-
-      confirmText =
-        `Envoyer "${examLabel}" `
-        + `aux ${count} ?tudiant(s) `
-        + 'de la liste CSV ?';
-    }
-
-
-    confirmText +=
-      '\n\n'
-      + 'L?examen appara?tra dans '
-      + 'leur espace ?tudiant.';
-
-
     const confirmed =
       window.confirm(
-        confirmText
+        (
+          `Envoyer "${
+            config.exam_name
+            || config.exam_id
+          }" `
+          + `aux ${
+              config.roster_count
+            } étudiant(s) `
+          + 'de la liste CSV ?'
+        )
       );
 
 
@@ -6019,10 +5885,8 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     }
 
 
-    this.teacherDeliveryLoadingExamId =
-      examId;
-
-    this.refreshView();
+    this.teacherDeliveryLoadingId =
+      config.id;
 
 
     const headers =
@@ -6032,9 +5896,8 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     this.http.post<any>(
       (
         `${this.apiUrl}`
-        + '/teacher/exam-delivery/'
-        + `${encodeURIComponent(examId)}`
-        + '/send'
+        + `/teacher/exam-delivery/`
+        + `${config.id}/send`
       ),
       {},
       {
@@ -6044,62 +5907,59 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
       next: (response) => {
 
-        this.teacherDeliveryLoadingExamId =
-          '';
+        this.teacherDeliveryLoadingId =
+          0;
 
 
-        config.roster_status =
-          'SENT';
+        this.success =
+          (
+            response?.already_sent
+
+              ? (
+                  `Examen déjà envoyé ? `
+                  + `${
+                      response.students_count
+                    } étudiant(s).`
+                )
+
+              : (
+                  response?.message
+                  || (
+                    `Examen envoyé ? `
+                    + `${
+                        response.students_count
+                      } étudiant(s).`
+                  )
+                )
+          );
 
 
-        config.sent_at =
-          response?.sent_at
-          || config.sent_at
-          || null;
+        /*
+         * IMPORTANT :
+         * on recharge /dashboard.
+         *
+         * Le statut vient donc de la DB,
+         * exactement comme pour l'Admin.
+         */
 
-
-        if (
-          response?.already_sent
-        ) {
-
-          this.success =
-            (
-              'Cet examen avait d?j? ?t? '
-              + 'envoy? aux ?tudiants.'
-            );
-
-        } else {
-
-          this.success =
-            response?.message
-            || (
-              'Examen envoy? avec succ?s '
-              + 'aux ?tudiants.'
-            );
-        }
-
-
-        this.loadTeacherExamDeliveryStatus();
+        this.loadDashboard();
 
         this.refreshView();
       },
 
 
-      error: (err) => {
+      error: (error) => {
 
-        console.error(err);
-
-        this.teacherDeliveryLoadingExamId =
-          '';
+        this.teacherDeliveryLoadingId =
+          0;
 
 
         const detail =
-          err?.error?.detail;
+          error?.error?.detail;
 
 
         if (
-          detail
-          && typeof detail === 'object'
+          detail?.missing_students
           && Array.isArray(
             detail.missing_students
           )
@@ -6111,38 +5971,31 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
                 (student: any) =>
                   student.student_number
               )
-              .filter(
-                (value: any) =>
-                  !!value
-              )
               .join(', ');
 
 
           this.error =
             (
-              detail.message
-              || 'Envoi impossible.'
-            )
-            + (
-                missing
-                  ? (
-                      ' Compte(s) ?tudiant(s) '
-                      + 'introuvable(s) : '
-                      + missing
-                      + '.'
-                    )
-                  : ''
-              );
+              `${detail.message} `
+              + `Compte(s) introuvable(s) : `
+              + missing
+            );
 
         } else {
 
           this.error =
-            this.getApiErrorMessage(
-              err,
-              (
-                'Impossible d?envoyer '
-                + 'l?examen aux ?tudiants.'
-              )
+            (
+              typeof detail === 'string'
+
+                ? detail
+
+                : (
+                    detail?.message
+                    || (
+                      'Impossible d’envoyer '
+                      + 'l’examen.'
+                    )
+                  )
             );
         }
 
@@ -6151,6 +6004,100 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       }
 
     });
+  }
+
+
+
+  // ======================================================
+  // ======================================================
+  // SECUREEXAM_TEACHER_ROSTER_METHODS_V1
+  // ======================================================
+
+  viewTeacherRoster(
+    config: ExamConfigFile
+  ): void {
+
+    this.error = '';
+    this.success = '';
+
+
+    if (!config.id) {
+
+      this.error =
+        'Identifiant de configuration introuvable.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const headers =
+      this.getTeacherHeaders();
+
+
+    this.http.get<TeacherRosterPreview>(
+      (
+        `${this.apiUrl}`
+        + `/teacher/exam-delivery/`
+        + `${config.id}/roster`
+      ),
+      {
+        headers
+      }
+    ).subscribe({
+
+      next: (roster) => {
+
+        this.teacherRosterPreview =
+          roster;
+
+        document.body.style.overflow =
+          'hidden';
+
+        this.refreshView();
+      },
+
+
+      error: (error) => {
+
+        console.error(
+          error
+        );
+
+
+        const detail =
+          error?.error?.detail;
+
+
+        this.error =
+          (
+            typeof detail === 'string'
+              ? detail
+              : (
+                  detail?.message
+                  || 'Impossible de charger la liste des etudiants.'
+                )
+          );
+
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  closeTeacherRoster(): void {
+
+    this.teacherRosterPreview =
+      null;
+
+    document.body.style.overflow =
+      '';
+
+    this.refreshView();
   }
 
 
