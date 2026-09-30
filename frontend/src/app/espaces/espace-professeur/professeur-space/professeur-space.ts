@@ -34,6 +34,7 @@ interface MachineStatus {
 }
 
 interface ExamConfigFile {
+  id?: number;
   filename: string;
   download_url: string;
 
@@ -44,6 +45,13 @@ interface ExamConfigFile {
 
   created_at?: string;
   updated_at?: string;
+
+  // SECUREEXAM_TEACHER_DELIVERY_FIELDS_V2
+  delivery_config_id?: number;
+  roster_filename?: string | null;
+  roster_count?: number;
+  roster_status?: string;
+  sent_at?: string | null;
 }
 
 interface ExamConfigDetail {
@@ -125,6 +133,48 @@ interface PackageSearchResponse {
   candidates: PackageSearchCandidate[];
 }
 
+
+type PackageTerminalLineKind =
+  | 'command'
+  | 'success'
+  | 'error'
+  | 'info';
+
+
+interface PackageTerminalLine {
+  kind: PackageTerminalLineKind;
+  text: string;
+}
+
+
+interface PackageTerminalItem {
+  id: number;
+  name: string;
+  nixName: string;
+  displayName: string;
+  description: string;
+  isActive: boolean;
+  version?: string;
+  channel?: string;
+  verified?: boolean;
+  catalogCreated?: boolean;
+}
+
+
+interface PackageTerminalResponse {
+  success: boolean;
+  action: string;
+  message: string;
+  packages: string[];
+  items: PackageTerminalItem[];
+  package?: PackageTerminalItem;
+  source?: string;
+  onlineVerified?: boolean;
+  channel?: string;
+  added?: boolean;
+  removed?: boolean;
+}
+
 interface PackageManagementItem extends PackageCatalogItem {
   usageCount: number;
   canDelete: boolean;
@@ -133,6 +183,44 @@ interface PackageManagementItem extends PackageCatalogItem {
 interface PackageManagementResponse {
   count: number;
   packages: PackageManagementItem[];
+}
+
+
+interface ExamEnvironmentPreset {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  icon: string;
+
+  packageRefs: string[];
+
+  sudo: boolean;
+  internet: boolean;
+  educAccess: boolean;
+
+  allowedDomains: string[];
+}
+
+
+interface CustomExamEnvironment {
+  id: number;
+  name: string;
+  packages: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+
+interface CustomExamEnvironmentListResponse {
+  count: number;
+  environments: CustomExamEnvironment[];
+}
+
+
+interface CustomExamEnvironmentMutationResponse {
+  message: string;
+  environment: CustomExamEnvironment;
 }
 
 
@@ -176,53 +264,53 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   }
 
 
-  openSupervisorSupportFromLogin(): void {
+  openAdminSupportFromLogin(): void {
     sessionStorage.setItem('secureexam_open_general_support', '1');
     window.location.href = '/espace_prof/login?support=1';
   }
 
 
-  isSupervisorAuthenticated = localStorage.getItem('secureexam_supervisor_token') !== null;
+  isAdminAuthenticated = localStorage.getItem('secureexam_admin_token') !== null;
 
-  isSupervisorPublicSupport =
-    window.location.pathname.toLowerCase().startsWith('/espace_surveillant/support')
-    && localStorage.getItem('secureexam_supervisor_token') === null;
+  isAdminPublicSupport =
+    window.location.pathname.toLowerCase().startsWith('/espace_admin/support')
+    && localStorage.getItem('secureexam_admin_token') === null;
 
-  openSupervisorSpace(): void {
-    this.isSupervisorPublicSupport = false;
-    this.setSecureExamSpace('/espace_surveillant/login', 'supervisor');
+  openAdminSpace(): void {
+    this.isAdminPublicSupport = false;
+    this.setSecureExamSpace('/espace_admin/login', 'admin');
   }
 
 
-  handleSupervisorAuthenticated(): void {
-    this.isSupervisorAuthenticated = true;
-    this.isSupervisorPublicSupport = false;
-    this.secureExamSpace = 'supervisor';
+  handleAdminAuthenticated(): void {
+    this.isAdminAuthenticated = true;
+    this.isAdminPublicSupport = false;
+    this.secureExamSpace = 'admin';
 
-    if (window.location.pathname !== '/espace_surveillant/dashboard') {
-      window.history.pushState({}, '', '/espace_surveillant/dashboard');
+    if (window.location.pathname !== '/espace_admin/dashboard') {
+      window.history.pushState({}, '', '/espace_admin/dashboard');
     }
 
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  logoutSupervisor(): void {
-    localStorage.removeItem('secureexam_supervisor_token');
-    localStorage.removeItem('secureexam_supervisor_username');
+  logoutAdmin(): void {
+    localStorage.removeItem('secureexam_admin_token');
+    localStorage.removeItem('secureexam_admin_username');
 
-    this.isSupervisorAuthenticated = false;
-    this.isSupervisorPublicSupport = false;
-    this.secureExamSpace = 'supervisor';
+    this.isAdminAuthenticated = false;
+    this.isAdminPublicSupport = false;
+    this.secureExamSpace = 'admin';
 
-    if (window.location.pathname !== '/espace_surveillant/login') {
-      window.history.pushState({}, '', '/espace_surveillant/login');
+    if (window.location.pathname !== '/espace_admin/login') {
+      window.history.pushState({}, '', '/espace_admin/login');
     }
 
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   backToMainDashboard(): void {
-    this.isSupervisorPublicSupport = false;
+    this.isAdminPublicSupport = false;
     this.setSecureExamSpace('/accueil', 'dashboard');
   }
 
@@ -255,7 +343,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
     const textTargets: Record<string, string[]> = {
       dashboard: ['Configurations', 'Rendus reçus', 'Machines suivies'],
-      configurations: ['Créer une configuration', 'Paquets autorisés', 'Configurations générées'],
+      configurations: ['Créer une configuration', 'Environnement d’examen', 'Configurations générées'],
       nixos: ['Configuration NixOS', 'NixOS générée', 'Fichier NixOS'],
       machines: ['Suivi des machines', 'Machines suivies', 'Machines'],
       rendus: ['Rendus étudiants', 'Rendus reçus', 'Rendus'],
@@ -320,9 +408,9 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   @HostListener('window:popstate')
   onSecureExamPopState(): void {
     this.secureExamSpace = this.resolveSecureExamSpaceFromPath();
-    this.isSupervisorPublicSupport =
-      window.location.pathname.toLowerCase().startsWith('/espace_surveillant/support')
-      && localStorage.getItem('secureexam_supervisor_token') === null;
+    this.isAdminPublicSupport =
+      window.location.pathname.toLowerCase().startsWith('/espace_admin/support')
+      && localStorage.getItem('secureexam_admin_token') === null;
 
     if (this.secureExamSpace === 'professor') {
       const section = this.getProfessorSectionFromPath();
@@ -339,7 +427,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   }
 
 
-  secureExamSpace: 'dashboard' | 'professor' | 'supervisor' = this.resolveSecureExamSpaceFromPath();
+  secureExamSpace: 'dashboard' | 'professor' | 'admin' = this.resolveSecureExamSpaceFromPath();
 
   private getProfessorPathFromSection(section: string): string {
     const key = String(section || 'dashboard').toLowerCase();
@@ -392,7 +480,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     return 'dashboard';
   }
 
-  private resolveSecureExamSpaceFromPath(): 'dashboard' | 'professor' | 'supervisor' {
+  private resolveSecureExamSpaceFromPath(): 'dashboard' | 'professor' | 'admin' {
     const path = window.location.pathname.toLowerCase();
 
     if (path === '/' || path === '') {
@@ -408,15 +496,15 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       return 'professor';
     }
 
-    if (path.startsWith('/espace_surveillant')) {
-      return 'supervisor';
+    if (path.startsWith('/espace_admin')) {
+      return 'admin';
     }
 
     window.history.replaceState({}, '', '/accueil');
     return 'dashboard';
   }
 
-  private setSecureExamSpace(path: string, space: 'dashboard' | 'professor' | 'supervisor'): void {
+  private setSecureExamSpace(path: string, space: 'dashboard' | 'professor' | 'admin'): void {
     this.secureExamSpace = space;
 
     if (window.location.pathname !== path) {
@@ -498,6 +586,9 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   packageCreating = false;
   packageActionLoadingId = 0;
 
+  // SECUREEXAM_TEACHER_DELIVERY_STATE_V2
+  teacherDeliveryLoadingExamId = '';
+
   error = '';
   success = '';
 
@@ -511,7 +602,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   loginError = '';
   accessToken = '';
 
-  private apiUrl = `http://${window.location.hostname}:8000`;
+  private apiUrl = `/api`;
   headerTeacherFullName = localStorage.getItem('secure_exam_teacher_full_name') || 'Professeur';
 
   availablePackages: PackageCatalogItem[] = [];
@@ -535,10 +626,290 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   selectedPackageIdsToDelete = new Set<number>();
   private packageVerificationTimer?: number;
 
+  examEnvironmentPresets:
+    ExamEnvironmentPreset[] = [
+
+    {
+      id: 'python',
+
+      title:
+        'Python',
+
+      subtitle:
+        'Algorithmique & scripting',
+
+      description:
+        'Pour Python, algorithmique, structures de données et scripts.',
+
+      icon:
+        'code-2',
+
+      packageRefs: [
+        'python3',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    },
+
+
+    {
+      id: 'cpp',
+
+      title:
+        'C / C++',
+
+      subtitle:
+        'Compilation & débogage',
+
+      description:
+        'Pour programmation C/C++, compilation, mémoire et débogage.',
+
+      icon:
+        'braces',
+
+      packageRefs: [
+        'gcc',
+        'gdb',
+        'gnumake',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    },
+
+
+    {
+      id: 'java',
+
+      title:
+        'Java / POO',
+
+      subtitle:
+        'Programmation objet',
+
+      description:
+        'Pour Java, programmation objet et projets Maven.',
+
+      icon:
+        'coffee',
+
+      packageRefs: [
+        'jdk21',
+        'maven',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    },
+
+
+    {
+      id: 'web',
+
+      title:
+        'Web',
+
+      subtitle:
+        'Frontend & JavaScript',
+
+      description:
+        'Pour HTML, CSS, JavaScript et applications Node.js locales.',
+
+      icon:
+        'globe-2',
+
+      packageRefs: [
+        'nodejs',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    },
+
+
+    {
+      id: 'database',
+
+      title:
+        'SQL / BDD',
+
+      subtitle:
+        'Bases de données',
+
+      description:
+        'Pour SQL, modélisation et bases de données locales.',
+
+      icon:
+        'database',
+
+      packageRefs: [
+        'sqlite',
+        'postgresql',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    },
+
+
+    {
+      id: 'linux',
+
+      title:
+        'Linux / Shell',
+
+      subtitle:
+        'Systèmes & scripts',
+
+      description:
+        'Pour Bash, commandes Unix et traitement de texte.',
+
+      icon:
+        'terminal',
+
+      packageRefs: [
+        'bash',
+        'coreutils',
+        'gnugrep',
+        'gnused',
+        'gawk',
+        'vim'
+      ],
+
+      sudo: false,
+      internet: false,
+      educAccess: true,
+
+      allowedDomains: []
+    }
+
+  ];
+
+
+  selectedEnvironmentId =
+    'python';
+
+  selectedEnvironmentCustomized =
+    false;
+
+  environmentInitialized =
+    false;
+
+
+  packageLibraryOpen =
+    false;
+
+  packageLibrarySearch =
+    '';
+
+
+  packageLibraryMode:
+    'catalog'
+    | 'custom' = 'catalog';
+
+
+
+  packageTerminalPopupOpen = false;
+
+  packageTerminalContext:
+    'custom'
+    | 'catalog' = 'custom';
+
+  packageTerminalCatalogPackages:
+    string[] = [];
+
+  packageTerminalCommand = '';
+
+  packageTerminalLoading = false;
+
+  packageTerminalChannel = 'unstable';
+
+  packageTerminalHistory:
+    PackageTerminalLine[] = [];
+
+
+  customEnvironmentNameModalOpen =
+    false;
+
+  customEnvironmentName =
+    '';
+
+  customEnvironmentBaseId:
+    string | null = null;
+
+  customEnvironmentEditingId:
+    number | null = null;
+
+  customEnvironmentSaving =
+    false;
+
+
+  customEnvironmentModalError =
+    '';
+
+
+  customEnvironments:
+    CustomExamEnvironment[] = [];
+
+  customEnvironmentsLoading =
+    false;
+
+  myCustomEnvironmentsOpen =
+    false;
+
+
   newPackage = {
     name: '',
     description: ''
   };
+
+  studentRosterFile:
+    File | null = null;
+
+  studentRosterFilename = '';
+  studentRosterCount = 0;
+  studentRosterError = '';
+
+  studentRosterPreview:
+    Array<{
+      student_number: string;
+      full_name: string;
+      email: string;
+    }> = [];
+
+
+  get hasValidStudentRoster():
+    boolean {
+
+    return (
+      this.studentRosterFile
+      !== null
+      && this.studentRosterCount > 0
+      && !this.studentRosterError
+    );
+  }
+
 
   newConfig = {
     exam_id: 'EXAM-PYTHON-2026',
@@ -575,6 +946,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       setTimeout(() => {
         this.loadActivePackages();
         this.loadDashboard();
+        this.loadCustomExamEnvironments();
       }, 100);
     } else {
       this.refreshLucideIcons();
@@ -733,6 +1105,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
         this.loadActivePackages();
         this.loadDashboard();
+        this.loadCustomExamEnvironments();
         this.refreshView();
       },
       error: (err) => {
@@ -937,6 +1310,10 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
         next: (data) => {
           this.dashboard = data;
           this.loading = false;
+
+          // SECUREEXAM_TEACHER_DELIVERY_LOAD_V2
+          this.loadTeacherExamDeliveryStatus();
+
           this.refreshView();
         },
         error: (err) => {
@@ -952,32 +1329,88 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   }
 
   loadActivePackages(): void {
+
     this.packagesLoading = true;
 
-    const headers = this.getTeacherHeaders();
+    const headers =
+      this.getTeacherHeaders();
 
-    this.http.get<PackageCatalogResponse>(
-      `${this.apiUrl}/packages`,
-      { headers }
-    ).subscribe({
-      next: (data) => {
-        this.availablePackages = data.packages;
-        this.newConfig.packages = this.getActivePackageNames();
-        this.enrichPackageVersions();
 
-        this.packagesLoading = false;
-        this.refreshView();
-      },
-      error: (err) => {
-        console.error(err);
+    this.http
+      .get<PackageCatalogResponse>(
+        `${this.apiUrl}/packages`,
+        {
+          headers
+        }
+      )
+      .subscribe({
 
-        this.error = 'Impossible de charger le catalogue logiciel.';
-        this.packagesLoading = false;
+        next: data => {
 
-        this.refreshView();
-      }
-    });
+          this.availablePackages =
+            data.packages || [];
+
+
+          /*
+           * Au premier chargement, on sélectionne
+           * l'environnement Python par défaut.
+           *
+           * On ne met PLUS automatiquement tous
+           * les paquets actifs dans l'examen.
+           */
+          if (
+            !this.environmentInitialized
+          ) {
+
+            const defaultEnvironment =
+              this.examEnvironmentPresets.find(
+                environment =>
+                  environment.id
+                  === 'python'
+              );
+
+
+            if (defaultEnvironment) {
+
+              this.applyExamEnvironment(
+                defaultEnvironment,
+                false
+              );
+            }
+
+
+            this.environmentInitialized =
+              true;
+          }
+
+
+          this.enrichPackageVersions();
+
+          this.packagesLoading =
+            false;
+
+          this.refreshView();
+        },
+
+
+        error: err => {
+
+          console.error(
+            err
+          );
+
+          this.error =
+            'Impossible de charger la bibliothèque de logiciels.';
+
+          this.packagesLoading =
+            false;
+
+          this.refreshView();
+        }
+
+      });
   }
+
 
   getActivePackageNames(): string[] {
     return this.availablePackages
@@ -1194,14 +1627,2666 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   }
 
 
-  togglePackageCreationForm(): void {
-    this.showPackageCreationForm = !this.showPackageCreationForm;
+  private normalizePackageKey(
+    value: string
+  ): string {
 
-    if (!this.showPackageCreationForm) {
-      this.resetPackageVerification();
+    return String(
+      value || ''
+    )
+      .trim()
+      .toLowerCase()
+      .replace(
+        /[\s_.-]+/g,
+        ''
+      );
+  }
+
+
+  private getRequirementAliases(
+    requirement: string
+  ): string[] {
+
+    const key =
+      this.normalizePackageKey(
+        requirement
+      );
+
+
+    const aliases:
+      Record<string, string[]> = {
+
+      python3: [
+        'python3',
+        'python'
+      ],
+
+      gcc: [
+        'gcc'
+      ],
+
+      gdb: [
+        'gdb'
+      ],
+
+      gnumake: [
+        'gnumake',
+        'make'
+      ],
+
+      vim: [
+        'vim'
+      ],
+
+      nano: [
+        'nano'
+      ],
+
+      java: [
+        'java',
+        'jdk',
+        'jdk17',
+        'jdk21',
+        'openjdk',
+        'openjdk17',
+        'openjdk21'
+      ],
+
+      maven: [
+        'maven',
+        'mvn'
+      ],
+
+      nodejs: [
+        'nodejs',
+        'node',
+        'nodejs20',
+        'nodejs22'
+      ],
+
+      npm: [
+        'npm',
+        'nodejs',
+        'node'
+      ],
+
+      sqlite: [
+        'sqlite',
+        'sqlite3'
+      ],
+
+      postgresql: [
+        'postgresql',
+        'postgres',
+        'postgresql16',
+        'postgresql17'
+      ]
+    };
+
+
+    return (
+      aliases[key]
+      || [requirement]
+    ).map(
+      value =>
+        this.normalizePackageKey(
+          value
+        )
+    );
+  }
+
+
+  findCatalogPackageForRequirement(
+    requirement: string,
+    activeOnly = true
+  ):
+    PackageCatalogItem | undefined {
+
+    const aliases =
+      this.getRequirementAliases(
+        requirement
+      );
+
+
+    return this.availablePackages.find(
+      packageItem => {
+
+        if (
+          activeOnly
+          && !packageItem.isActive
+        ) {
+          return false;
+        }
+
+
+        const values = [
+          packageItem.name,
+          packageItem.nixName,
+          packageItem.displayName
+        ]
+          .map(
+            value =>
+              this.normalizePackageKey(
+                value
+              )
+          );
+
+
+        return aliases.some(
+          alias =>
+            values.includes(
+              alias
+            )
+        );
+      }
+    );
+  }
+
+
+  getEnvironmentMissingPackages(
+    environment:
+      ExamEnvironmentPreset
+  ): string[] {
+
+    return environment.packageRefs.filter(
+      requirement =>
+        !this.findCatalogPackageForRequirement(
+          requirement,
+          true
+        )
+    );
+  }
+
+
+  isEnvironmentReady(
+    environment:
+      ExamEnvironmentPreset
+  ): boolean {
+
+    return (
+      this.getEnvironmentMissingPackages(
+        environment
+      ).length
+      === 0
+    );
+  }
+
+
+  getEnvironmentResolvedPackages(
+    environment:
+      ExamEnvironmentPreset
+  ): string[] {
+
+    const result:
+      string[] = [];
+
+
+    for (
+      const requirement
+      of environment.packageRefs
+    ) {
+
+      const packageItem =
+        this.findCatalogPackageForRequirement(
+          requirement,
+          true
+        );
+
+
+      if (
+        packageItem
+        && !result.includes(
+          packageItem.name
+        )
+      ) {
+
+        result.push(
+          packageItem.name
+        );
+      }
     }
 
+
+    return result;
+  }
+
+
+  getEnvironmentPackageLabel(
+    requirement: string
+  ): string {
+
+    const packageItem =
+      this.findCatalogPackageForRequirement(
+        requirement,
+        false
+      );
+
+
+    if (packageItem) {
+
+      return (
+        packageItem.displayName
+        || packageItem.name
+      );
+    }
+
+
+    const labels:
+      Record<string, string> = {
+
+      python3:
+        'Python 3',
+
+      gcc:
+        'GCC',
+
+      gdb:
+        'GDB',
+
+      gnumake:
+        'Make',
+
+      vim:
+        'Vim',
+
+      nano:
+        'Nano',
+
+      java:
+        'JDK',
+
+      maven:
+        'Maven',
+
+      nodejs:
+        'Node.js',
+
+      npm:
+        'npm',
+
+      sqlite:
+        'SQLite',
+
+      postgresql:
+        'PostgreSQL'
+    };
+
+
+    return (
+      labels[requirement]
+      || requirement
+    );
+  }
+
+
+  applyExamEnvironment(
+    environment:
+      ExamEnvironmentPreset,
+    customized = false
+  ): void {
+
+    this.selectedEnvironmentId =
+      environment.id;
+
+
+    this.selectedEnvironmentCustomized =
+      customized;
+
+
+    /*
+     * IMPORTANT :
+     * Un environnement logiciel ne modifie JAMAIS
+     * sudo / internet / EDUC / domaines.
+     *
+     * Ces options restent dans la section
+     * "Options autorisées" de l'examen.
+     */
+    this.newConfig.packages =
+      this.getEnvironmentResolvedPackages(
+        environment
+      );
+
+
+    this.error =
+      '';
+
+
     this.refreshView();
+  }
+
+
+
+  resetCustomEnvironmentDraft(): void {
+
+    /*
+     * Abandon complet de toute configuration
+     * personnalisée non finalisée.
+     */
+
+    this.customEnvironmentNameModalOpen =
+      false;
+
+    this.customEnvironmentName =
+      '';
+
+    this.customEnvironmentBaseId =
+      null;
+
+    this.customEnvironmentEditingId =
+      null;
+
+    this.customEnvironmentSaving =
+      false;
+
+
+    this.packageLibraryOpen =
+      false;
+
+    this.packageLibraryMode =
+      'catalog';
+
+
+    this.showPackageCreationForm =
+      false;
+
+
+    this.resetPackageTerminalState();
+
+
+    document.body.style.overflow =
+      '';
+
+
+    this.selectedEnvironmentCustomized =
+      false;
+
+
+    this.error =
+      '';
+  }
+
+
+  selectExamEnvironment(
+    environment:
+      ExamEnvironmentPreset
+  ): void {
+
+    const missing =
+      this.getEnvironmentMissingPackages(
+        environment
+      );
+
+
+    if (
+      missing.length > 0
+    ) {
+
+      this.error =
+        (
+          'Configuration '
+          + environment.title
+          + ' indisponible. Il manque : '
+          + missing
+            .map(
+              item =>
+                this.getEnvironmentPackageLabel(
+                  item
+                )
+            )
+            .join(', ')
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    /*
+     * Le professeur abandonne éventuellement
+     * un brouillon personnalisé.
+     *
+     * Une config officielle repart TOUJOURS
+     * de sa définition SecureExam propre.
+     */
+    this.resetCustomEnvironmentDraft();
+
+
+    this.applyExamEnvironment(
+      environment,
+      false
+    );
+
+
+    this.refreshView();
+  }
+
+
+
+  customizeExamEnvironment(
+    environment:
+      ExamEnvironmentPreset
+  ): void {
+
+    const missing =
+      this.getEnvironmentMissingPackages(
+        environment
+      );
+
+
+    if (
+      missing.length > 0
+    ) {
+
+      this.error =
+        (
+          'Impossible de personnaliser '
+          + environment.title
+          + '. Paquet(s) manquant(s) : '
+          + missing
+            .map(
+              value =>
+                this.getEnvironmentPackageLabel(
+                  value
+                )
+            )
+            .join(', ')
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    /*
+     * On ne modifie JAMAIS le preset officiel.
+     * On prépare une nouvelle config perso basée
+     * sur celui-ci.
+     */
+    this.resetCustomEnvironmentDraft();
+
+
+    this.customEnvironmentBaseId =
+      environment.id;
+
+
+    this.customEnvironmentName =
+      `${environment.title} personnalisé`;
+
+
+    this.customEnvironmentEditingId =
+      null;
+
+
+    this.customEnvironmentNameModalOpen =
+      true;
+
+
+    this.packageLibraryMode =
+      'custom';
+
+
+    this.refreshView();
+  }
+
+
+
+
+  createCustomExamEnvironment():
+    void {
+
+    /*
+     * Une nouvelle configuration personnalisée
+     * repart toujours de zéro.
+     */
+    this.resetCustomEnvironmentDraft();
+
+
+    this.customEnvironmentName =
+      '';
+
+
+    this.customEnvironmentBaseId =
+      null;
+
+
+    this.customEnvironmentEditingId =
+      null;
+
+
+    this.customEnvironmentNameModalOpen =
+      true;
+
+
+    this.packageLibraryMode =
+      'custom';
+
+
+    this.error =
+      '';
+
+
+    this.refreshView();
+  }
+
+
+
+
+  get selectedEnvironment():
+    ExamEnvironmentPreset | undefined {
+
+    return this.examEnvironmentPresets.find(
+      environment =>
+        environment.id
+        === this.selectedEnvironmentId
+    );
+  }
+
+
+  get selectedEnvironmentTitle():
+    string {
+
+    if (
+      this.selectedEnvironmentId
+        .startsWith(
+          'custom-'
+        )
+    ) {
+
+      const id =
+        Number(
+          this.selectedEnvironmentId
+            .replace(
+              'custom-',
+              ''
+            )
+        );
+
+
+      const custom =
+        this.customEnvironments
+          .find(
+            environment =>
+              environment.id
+              === id
+          );
+
+
+      if (custom) {
+
+        return custom.name;
+      }
+
+
+      if (
+        this.customEnvironmentName
+          .trim()
+      ) {
+
+        return (
+          this.customEnvironmentName
+            .trim()
+        );
+      }
+
+
+      return (
+        'Configuration personnalisée'
+      );
+    }
+
+
+    if (
+      this.selectedEnvironmentId
+      === 'custom-draft'
+    ) {
+
+      return (
+        this.customEnvironmentName
+          .trim()
+        || 'Configuration personnalisée'
+      );
+    }
+
+
+    const environment =
+      this.selectedEnvironment;
+
+
+    if (!environment) {
+
+      return (
+        'Configuration personnalisée'
+      );
+    }
+
+
+    return (
+      environment.title
+      + (
+          this.selectedEnvironmentCustomized
+            ? ' · modifiée pour cet examen'
+            : ''
+        )
+    );
+  }
+
+
+
+  getSelectedEnvironmentPackageNames():
+    string[] {
+
+    const activeNames =
+      new Set(
+        this.availablePackages
+          .filter(
+            packageItem =>
+              packageItem.isActive
+          )
+          .map(
+            packageItem =>
+              packageItem.name
+          )
+      );
+
+
+    return Array.from(
+      new Set(
+        this.newConfig.packages.filter(
+          packageName =>
+            activeNames.has(
+              packageName
+            )
+        )
+      )
+    );
+  }
+
+
+  getSelectedEnvironmentPackageItems():
+    PackageCatalogItem[] {
+
+    const selected =
+      new Set(
+        this.newConfig.packages
+      );
+
+
+    return this.availablePackages.filter(
+      packageItem =>
+        selected.has(
+          packageItem.name
+        )
+    );
+  }
+
+
+
+  openPackageTerminalPopup(
+    context:
+      'custom'
+      | 'catalog'
+  ): void {
+
+    this.packageTerminalContext =
+      context;
+
+
+    this.resetPackageTerminalState();
+
+
+    if (
+      context
+      === 'catalog'
+    ) {
+      this.packageTerminalCatalogPackages = [];
+    }
+
+
+    this.ensurePackageTerminalWelcome();
+
+
+    this.packageTerminalPopupOpen =
+      true;
+
+
+    document.body.style.overflow =
+      'hidden';
+
+
+    this.refreshView();
+
+
+    setTimeout(() => {
+
+      const input =
+        document.querySelector(
+          '.secureexam-terminal-popup-modal .secureexam-package-terminal-inputbar input'
+        ) as HTMLInputElement | null;
+
+
+      input?.focus();
+
+    }, 60);
+  }
+
+
+  closePackageTerminalPopup(): void {
+
+    this.packageTerminalPopupOpen =
+      false;
+
+
+    this.packageTerminalCommand =
+      '';
+
+
+    if (
+      !this.packageLibraryOpen
+      && !this.customEnvironmentNameModalOpen
+      && !this.myCustomEnvironmentsOpen
+    ) {
+      document.body.style.overflow = '';
+    }
+
+
+    this.refreshView();
+  }
+
+
+  removeCustomEnvironmentPackage(
+    packageName: string
+  ): void {
+
+    this.newConfig.packages =
+      this.newConfig.packages.filter(
+        item =>
+          item !== packageName
+      );
+
+
+    this.selectedEnvironmentCustomized =
+      true;
+
+
+    this.refreshView();
+  }
+
+
+  private resetPackageTerminalState(): void {
+
+    this.packageTerminalCommand = '';
+    this.packageTerminalLoading = false;
+    this.packageTerminalChannel = 'unstable';
+    this.packageTerminalHistory = [];
+  }
+
+
+  private ensurePackageTerminalWelcome(): void {
+
+    if (
+      this.packageTerminalHistory.length > 0
+    ) {
+      return;
+    }
+
+
+    this.packageTerminalHistory = [
+      {
+        kind: 'info',
+        text:
+          'Terminal prêt. Les paquets ajoutés sont vérifiés dans Nixpkgs avant leur utilisation.'
+      },
+      {
+        kind: 'info',
+        text:
+          'Syntaxe : add <logiciel> [version] · remove <paquet> · list · clear · help'
+      }
+    ];
+  }
+
+
+  private scrollPackageTerminalToBottom(): void {
+
+    setTimeout(() => {
+
+      const terminal =
+        document.querySelector(
+          '.secureexam-package-terminal-screen'
+        ) as HTMLElement | null;
+
+
+      if (!terminal) {
+        return;
+      }
+
+
+      terminal.scrollTop =
+        terminal.scrollHeight;
+
+    }, 30);
+  }
+
+
+  private upsertPackageTerminalItems(
+    items: PackageTerminalItem[]
+  ): void {
+
+    for (const item of items || []) {
+
+      if (!item?.name) {
+        continue;
+      }
+
+
+      const existingIndex =
+        this.availablePackages.findIndex(
+          packageItem =>
+            packageItem.name === item.name
+            || packageItem.nixName === item.nixName
+        );
+
+
+      const existing =
+        existingIndex >= 0
+          ? this.availablePackages[existingIndex]
+          : undefined;
+
+
+      const normalized:
+        PackageCatalogItem = {
+
+        id:
+          item.id,
+
+        name:
+          item.name,
+
+        nixName:
+          item.nixName || item.name,
+
+        displayName:
+          item.displayName || item.name,
+
+        description:
+          item.description || '',
+
+        isActive:
+          item.isActive !== false,
+
+        version:
+          item.version || existing?.version,
+
+        verifiedNixPackage:
+          item.nixName || item.name,
+
+        createdAt:
+          existing?.createdAt || '',
+
+        updatedAt:
+          existing?.updatedAt || ''
+      };
+
+
+      if (existingIndex >= 0) {
+
+        this.availablePackages =
+          this.availablePackages.map(
+            (packageItem, index) =>
+              index === existingIndex
+                ? {
+                    ...packageItem,
+                    ...normalized
+                  }
+                : packageItem
+          );
+
+      } else {
+
+        this.availablePackages = [
+          ...this.availablePackages,
+          normalized
+        ];
+      }
+    }
+  }
+
+
+  setPackageTerminalCommand(
+    command: string
+  ): void {
+
+    if (this.packageTerminalLoading) {
+      return;
+    }
+
+
+    this.packageTerminalCommand =
+      command;
+
+
+    this.refreshView();
+
+
+    setTimeout(() => {
+
+      const input =
+        document.querySelector(
+          '.secureexam-terminal-popup-modal .secureexam-package-terminal-inputbar input'
+        ) as HTMLInputElement | null;
+
+
+      input?.focus();
+
+    }, 30);
+  }
+
+
+  executePackageTerminalCommand(
+    commandOverride?: string
+  ): void {
+
+    if (
+      !this.packageTerminalPopupOpen
+      || this.packageTerminalLoading
+    ) {
+      return;
+    }
+
+
+    const command =
+      String(
+        commandOverride
+        ?? this.packageTerminalCommand
+        ?? ''
+      ).trim();
+
+
+    if (!command) {
+      return;
+    }
+
+
+    this.customEnvironmentModalError = '';
+    this.error = '';
+
+
+    this.packageTerminalHistory = [
+      ...this.packageTerminalHistory,
+      {
+        kind: 'command',
+        text: command
+      }
+    ];
+
+
+    if (!commandOverride) {
+      this.packageTerminalCommand = '';
+    }
+
+
+    this.packageTerminalLoading = true;
+
+    this.refreshView();
+    this.scrollPackageTerminalToBottom();
+
+
+    const payload = {
+      command,
+      packages:
+        this.packageTerminalContext
+        === 'custom'
+          ? [
+              ...this.newConfig.packages
+            ]
+          : [
+              ...this.packageTerminalCatalogPackages
+            ]
+    };
+
+
+    this.http
+      .post<PackageTerminalResponse>(
+        `${this.apiUrl}/exam-environments/package-terminal`,
+        payload,
+        {
+          headers:
+            this.getTeacherHeaders()
+        }
+      )
+      .subscribe({
+
+        next: data => {
+
+          this.packageTerminalLoading = false;
+
+
+          this.packageTerminalChannel =
+            data.channel
+            || this.packageTerminalChannel
+            || 'unstable';
+
+
+          const resolvedPackages =
+            Array.from(
+              new Set(
+                data.packages || []
+              )
+            );
+
+
+          if (
+            this.packageTerminalContext
+            === 'custom'
+          ) {
+
+            this.newConfig.packages =
+              resolvedPackages;
+
+          } else {
+
+            this.packageTerminalCatalogPackages =
+              resolvedPackages;
+          }
+
+
+          const terminalItems = [
+            ...(data.items || [])
+          ];
+
+
+          if (data.package) {
+
+            const alreadyIncluded =
+              terminalItems.some(
+                item =>
+                  item.name
+                  === data.package!.name
+              );
+
+
+            if (!alreadyIncluded) {
+              terminalItems.push(
+                data.package
+              );
+            }
+          }
+
+
+          this.upsertPackageTerminalItems(
+            terminalItems
+          );
+
+
+          if (
+            this.packageTerminalContext
+            === 'custom'
+          ) {
+            this.selectedEnvironmentCustomized =
+              true;
+          }
+
+
+          this.packageTerminalHistory = [
+            ...this.packageTerminalHistory,
+            {
+              kind:
+                data.success
+                  ? 'success'
+                  : 'info',
+              text:
+                data.message
+                || 'Commande exécutée.'
+            }
+          ];
+
+
+          if (
+            data.action === 'list'
+            && (data.items || []).length > 0
+          ) {
+
+            this.packageTerminalHistory = [
+              ...this.packageTerminalHistory,
+              ...data.items.map(
+                item => ({
+                  kind: 'info' as PackageTerminalLineKind,
+                  text:
+                    `${item.displayName} → ${item.nixName}`
+                })
+              )
+            ];
+          }
+
+
+          if (
+            this.packageTerminalContext
+            === 'catalog'
+            && data.action
+            === 'add'
+          ) {
+            this.loadActivePackages();
+          }
+
+
+          this.refreshView();
+          this.scrollPackageTerminalToBottom();
+        },
+
+
+        error: err => {
+
+          console.error(
+            'PACKAGE TERMINAL ERROR',
+            err
+          );
+
+
+          this.packageTerminalLoading = false;
+
+
+          const detail =
+            err?.error?.detail;
+
+
+          let message =
+            'Impossible d’exécuter cette commande.';
+
+
+          if (
+            typeof detail === 'string'
+          ) {
+
+            message = detail;
+
+          } else if (
+            detail?.message
+          ) {
+
+            message = detail.message;
+
+          } else if (
+            err?.status === 0
+          ) {
+
+            message =
+              'Backend SecureExam injoignable sur le port 8000.';
+          }
+
+
+          this.packageTerminalHistory = [
+            ...this.packageTerminalHistory,
+            {
+              kind: 'error',
+              text: message
+            }
+          ];
+
+
+          if (
+            this.packageTerminalContext
+            === 'custom'
+          ) {
+            this.customEnvironmentModalError =
+              message;
+          }
+
+
+          this.refreshView();
+          this.scrollPackageTerminalToBottom();
+        }
+
+      });
+  }
+
+
+  getCustomEnvironmentPackageNixName(
+    packageName: string
+  ): string {
+
+    const packageItem =
+      this.availablePackages.find(
+        item =>
+          item.name === packageName
+          || item.nixName === packageName
+      );
+
+
+    return (
+      packageItem?.nixName
+      || packageName
+    );
+  }
+
+
+  openPackageLibrary(): void {
+
+    this.packageLibraryOpen =
+      true;
+
+
+    this.packageLibrarySearch =
+      '';
+
+
+    if (
+      this.packageLibraryMode
+      === 'custom'
+    ) {
+
+      this.ensurePackageTerminalWelcome();
+    }
+
+
+    document.body.style.overflow =
+      'hidden';
+
+
+    this.refreshView();
+
+
+    this.refreshLucideIcons();
+  }
+
+
+  closePackageLibrary(): void {
+
+    this.packageLibraryOpen =
+      false;
+
+
+    this.packageTerminalPopupOpen =
+      false;
+
+
+    document.body.style.overflow =
+      '';
+
+
+    this.refreshView();
+  }
+
+
+  get packageLibraryItems():
+    PackageCatalogItem[] {
+
+    const query =
+      this.packageLibrarySearch
+        .trim()
+        .toLowerCase();
+
+
+    if (!query) {
+
+      return this.availablePackages;
+    }
+
+
+    return this.availablePackages.filter(
+      packageItem => {
+
+        const text =
+          [
+            packageItem.displayName,
+            packageItem.name,
+            packageItem.nixName,
+            packageItem.description || ''
+          ]
+            .join(' ')
+            .toLowerCase();
+
+
+        return text.includes(
+          query
+        );
+      }
+    );
+  }
+
+
+  isPackageSelectedInEnvironment(
+    packageItem:
+      PackageCatalogItem
+  ): boolean {
+
+    return this.newConfig.packages.includes(
+      packageItem.name
+    );
+  }
+
+
+  toggleEnvironmentPackage(
+    packageItem:
+      PackageCatalogItem
+  ): void {
+
+    /*
+     * Le catalogue général ne modifie jamais
+     * la configuration sélectionnée.
+     */
+    if (
+      this.packageLibraryMode
+      !== 'custom'
+    ) {
+
+      return;
+    }
+
+
+    if (
+      !packageItem.isActive
+    ) {
+
+      return;
+    }
+
+
+    const packages =
+      new Set(
+        this.newConfig.packages
+      );
+
+
+    if (
+      packages.has(
+        packageItem.name
+      )
+    ) {
+
+      packages.delete(
+        packageItem.name
+      );
+
+    } else {
+
+      packages.add(
+        packageItem.name
+      );
+    }
+
+
+    this.newConfig.packages =
+      Array.from(
+        packages
+      );
+
+
+    this.selectedEnvironmentCustomized =
+      true;
+
+
+    this.refreshView();
+  }
+
+
+
+
+  finishPackageLibrarySelection():
+    void {
+
+    /*
+     * En mode catalogue, aucun changement de
+     * configuration d'examen.
+     */
+    if (
+      this.packageLibraryMode
+      === 'catalog'
+    ) {
+
+      this.closePackageLibrary();
+
+      return;
+    }
+
+
+    const packages =
+      this.getSelectedEnvironmentPackageNames();
+
+
+    if (
+      packages.length === 0
+    ) {
+
+      this.error =
+        (
+          'Sélectionnez au moins un logiciel '
+          + 'pour cette configuration.'
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    this.newConfig.packages =
+      packages;
+
+
+    /*
+     * Configuration personnalisée sauvegardée.
+     */
+    if (
+      this.customEnvironmentName
+        .trim()
+    ) {
+
+      this.saveCurrentCustomEnvironment();
+
+      return;
+    }
+
+
+    this.error =
+      '';
+
+
+    this.closePackageLibrary();
+  }
+
+
+
+
+  closeCustomEnvironmentNameModal():
+    void {
+
+    this.customEnvironmentNameModalOpen =
+      false;
+
+
+    this.customEnvironmentBaseId =
+      null;
+
+
+    this.customEnvironmentEditingId =
+      null;
+
+
+    this.customEnvironmentName =
+      '';
+
+
+    this.refreshView();
+  }
+
+
+  private normalizeCustomEnvironmentNameForComparison(
+    value: string
+  ): string {
+
+    return String(
+      value
+      || ''
+    )
+      .trim()
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9+]+/g,
+        ''
+      );
+  }
+
+
+  getCustomEnvironmentNameValidationMessage():
+    string {
+
+    const name =
+      this.customEnvironmentName
+        .trim();
+
+
+    if (!name) {
+
+      return '';
+    }
+
+
+    const normalized =
+      this.normalizeCustomEnvironmentNameForComparison(
+        name
+      );
+
+
+    /*
+     * Noms officiels SecureExam.
+     */
+    const officialConflict =
+      this.examEnvironmentPresets
+        .find(
+          environment =>
+            this.normalizeCustomEnvironmentNameForComparison(
+              environment.title
+            )
+            === normalized
+        );
+
+
+    if (officialConflict) {
+
+      return (
+        `Le nom "${officialConflict.title}" `
+        + 'est réservé à une configuration '
+        + 'officielle SecureExam.'
+      );
+    }
+
+
+    /*
+     * Noms personnalisés déjà utilisés
+     * par CE professeur.
+     *
+     * En modification, le nom actuel
+     * reste évidemment autorisé.
+     */
+    const customConflict =
+      this.customEnvironments
+        .find(
+          environment => {
+
+            if (
+              this.customEnvironmentEditingId
+              !== null
+              && environment.id
+              === this.customEnvironmentEditingId
+            ) {
+
+              return false;
+            }
+
+
+            return (
+              this
+                .normalizeCustomEnvironmentNameForComparison(
+                  environment.name
+                )
+              === normalized
+            );
+          }
+        );
+
+
+    if (customConflict) {
+
+      return (
+        `Vous avez déjà une configuration `
+        + `"${customConflict.name}".`
+      );
+    }
+
+
+    return '';
+  }
+
+
+  confirmCustomEnvironmentName():
+    void {
+
+    const name =
+      this.customEnvironmentName
+        .trim();
+
+
+    this.customEnvironmentModalError =
+      '';
+
+
+    if (!name) {
+
+      this.customEnvironmentModalError =
+        (
+          'Donnez un nom à la '
+          + 'configuration personnalisée.'
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    if (
+      name.length > 80
+    ) {
+
+      this.customEnvironmentModalError =
+        (
+          'Le nom ne peut pas dépasser '
+          + '80 caractères.'
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const validationMessage =
+      this
+        .getCustomEnvironmentNameValidationMessage();
+
+
+    if (validationMessage) {
+
+      this.customEnvironmentModalError =
+        validationMessage;
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    /*
+     * Modification d'une config perso existante :
+     * ses paquets ont déjà été chargés.
+     */
+    if (
+      this.customEnvironmentEditingId
+      !== null
+    ) {
+
+      this.selectedEnvironmentId =
+        `custom-${this.customEnvironmentEditingId}`;
+
+    }
+
+
+    /*
+     * Personnalisation d'un preset officiel.
+     */
+    else if (
+      this.customEnvironmentBaseId
+    ) {
+
+      const base =
+        this.examEnvironmentPresets
+          .find(
+            environment =>
+              environment.id
+              === this.customEnvironmentBaseId
+          );
+
+
+      if (!base) {
+
+        this.customEnvironmentModalError =
+          (
+            'La configuration de base '
+            + 'est introuvable.'
+          );
+
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      this.newConfig.packages =
+        this.getEnvironmentResolvedPackages(
+          base
+        );
+
+
+      this.selectedEnvironmentId =
+        'custom-draft';
+
+    }
+
+
+    /*
+     * Nouvelle configuration personnelle.
+     */
+    else {
+
+      this.newConfig.packages =
+        [];
+
+
+      this.selectedEnvironmentId =
+        'custom-draft';
+    }
+
+
+    this.selectedEnvironmentCustomized =
+      true;
+
+
+    this.packageLibraryMode =
+      'custom';
+
+
+    this.customEnvironmentNameModalOpen =
+      false;
+
+
+    this.resetPackageTerminalState();
+
+
+    this.error =
+      '';
+
+
+    this.openPackageLibrary();
+
+
+    this.refreshView();
+  }
+
+
+
+
+  openPackageCatalog(): void {
+
+    this.packageLibraryMode =
+      'catalog';
+
+
+    this.showPackageCreationForm =
+      false;
+
+
+    this.openPackageLibrary();
+  }
+
+
+  openCustomDraftLibrary(): void {
+
+    if (
+      this.selectedEnvironmentId
+      !== 'custom-draft'
+    ) {
+
+      return;
+    }
+
+
+    this.packageLibraryMode =
+      'custom';
+
+
+    this.openPackageLibrary();
+  }
+
+
+  openCurrentExamPackageLibrary():
+    void {
+
+    /*
+     * Ancien comportement supprimé :
+     * une configuration officielle ne peut plus
+     * être modifiée directement pour un examen.
+     *
+     * Ce bouton ouvre désormais uniquement
+     * le catalogue logiciel.
+     */
+    this.openPackageCatalog();
+  }
+
+
+
+  loadCustomExamEnvironments():
+    void {
+
+    if (!this.accessToken) {
+
+      return;
+    }
+
+
+    this.customEnvironmentsLoading =
+      true;
+
+
+    this.http
+      .get<CustomExamEnvironmentListResponse>(
+        (
+          `${this.apiUrl}`
+          + '/exam-environments/custom'
+        ),
+        {
+          headers:
+            this.getTeacherHeaders()
+        }
+      )
+      .subscribe({
+
+        next: data => {
+
+          this.customEnvironments =
+            data.environments
+            || [];
+
+
+          this.customEnvironmentsLoading =
+            false;
+
+
+          this.refreshView();
+        },
+
+
+        error: err => {
+
+          console.error(
+            err
+          );
+
+
+          this.customEnvironmentsLoading =
+            false;
+
+
+          this.refreshView();
+        }
+
+      });
+  }
+
+
+  openMyCustomEnvironments():
+    void {
+
+    this.myCustomEnvironmentsOpen =
+      true;
+
+
+    this.loadCustomExamEnvironments();
+
+
+    document.body.style.overflow =
+      'hidden';
+
+
+    this.refreshView();
+  }
+
+
+  closeMyCustomEnvironments():
+    void {
+
+    this.myCustomEnvironmentsOpen =
+      false;
+
+
+    document.body.style.overflow =
+      '';
+
+
+    this.refreshView();
+  }
+
+
+  useCustomExamEnvironment(
+    environment:
+      CustomExamEnvironment
+  ): void {
+
+    const activeNames =
+      new Set(
+        this.availablePackages
+          .filter(
+            packageItem =>
+              packageItem.isActive
+          )
+          .map(
+            packageItem =>
+              packageItem.name
+          )
+      );
+
+
+    const missing =
+      environment.packages
+        .filter(
+          packageName =>
+            !activeNames.has(
+              packageName
+            )
+        );
+
+
+    if (
+      missing.length > 0
+    ) {
+
+      this.error =
+        (
+          'Cette configuration utilise '
+          + 'des logiciels actuellement '
+          + 'indisponibles : '
+          + missing.join(', ')
+        );
+
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    this.newConfig.packages =
+      [
+        ...environment.packages
+      ];
+
+
+    this.selectedEnvironmentId =
+      `custom-${environment.id}`;
+
+
+    this.selectedEnvironmentCustomized =
+      false;
+
+
+    this.customEnvironmentEditingId =
+      null;
+
+
+    this.customEnvironmentName =
+      '';
+
+
+    this.closeMyCustomEnvironments();
+
+
+    this.refreshView();
+  }
+
+
+  editCustomExamEnvironment(
+    environment:
+      CustomExamEnvironment
+  ): void {
+
+    this.resetPackageTerminalState();
+
+
+    /*
+     * Charger immédiatement les paquets existants.
+     * Ils seront conservés pendant la modification
+     * du nom.
+     */
+    this.newConfig.packages = [
+      ...environment.packages
+    ];
+
+
+    this.selectedEnvironmentId =
+      `custom-${environment.id}`;
+
+
+    this.selectedEnvironmentCustomized =
+      true;
+
+
+    /*
+     * ID existant = le save fera un PUT
+     * et non un nouveau POST.
+     */
+    this.customEnvironmentEditingId =
+      environment.id;
+
+
+    /*
+     * Nom actuel prérempli dans la popup.
+     */
+    this.customEnvironmentName =
+      environment.name;
+
+
+    this.customEnvironmentBaseId =
+      null;
+
+
+    this.customEnvironmentModalError =
+      '';
+
+
+    /*
+     * Fermer "Mes configurations"
+     * avant d'ouvrir l'éditeur.
+     */
+    this.myCustomEnvironmentsOpen =
+      false;
+
+
+    this.packageLibraryOpen =
+      false;
+
+
+    this.packageLibraryMode =
+      'custom';
+
+
+    /*
+     * Première étape de modification :
+     * le professeur peut changer le nom.
+     */
+    this.customEnvironmentNameModalOpen =
+      true;
+
+
+    document.body.style.overflow =
+      'hidden';
+
+
+    this.refreshView();
+
+
+    setTimeout(() => {
+
+      this.refreshLucideIcons();
+
+    }, 50);
+  }
+
+
+
+  deleteCustomExamEnvironment(
+    environment:
+      CustomExamEnvironment
+  ): void {
+
+    const confirmed =
+      window.confirm(
+        (
+          'Supprimer définitivement '
+          + `la configuration "${environment.name}" ?`
+        )
+      );
+
+
+    if (!confirmed) {
+
+      return;
+    }
+
+
+    this.error =
+      '';
+
+
+    this.http
+      .delete<any>(
+        (
+          `${this.apiUrl}`
+          + '/exam-environments/custom/'
+          + environment.id
+        ),
+        {
+          headers:
+            this.getTeacherHeaders()
+        }
+      )
+      .subscribe({
+
+        next: response => {
+
+          /*
+           * La carte disparaît immédiatement.
+           */
+          this.customEnvironments =
+            this.customEnvironments
+              .filter(
+                item =>
+                  item.id
+                  !== environment.id
+              );
+
+
+          /*
+           * Si la config supprimée était sélectionnée,
+           * retour propre sur Python.
+           */
+          if (
+            this.selectedEnvironmentId
+            === `custom-${environment.id}`
+          ) {
+
+            const defaultEnvironment =
+              this.examEnvironmentPresets
+                .find(
+                  item =>
+                    item.id
+                    === 'python'
+                );
+
+
+            this.selectedEnvironmentId =
+              'python';
+
+
+            this.selectedEnvironmentCustomized =
+              false;
+
+
+            this.customEnvironmentName =
+              '';
+
+
+            this.customEnvironmentEditingId =
+              null;
+
+
+            this.customEnvironmentBaseId =
+              null;
+
+
+            if (
+              defaultEnvironment
+            ) {
+
+              this.applyExamEnvironment(
+                defaultEnvironment,
+                false
+              );
+            }
+          }
+
+
+          /*
+           * Si elle était actuellement en édition,
+           * on ferme aussi l'éditeur.
+           */
+          if (
+            this.customEnvironmentEditingId
+            === environment.id
+          ) {
+
+            this.customEnvironmentEditingId =
+              null;
+
+
+            this.customEnvironmentName =
+              '';
+
+
+            this.customEnvironmentBaseId =
+              null;
+
+
+            this.customEnvironmentNameModalOpen =
+              false;
+
+
+            this.packageLibraryOpen =
+              false;
+
+
+            document.body.style.overflow =
+              '';
+          }
+
+
+          this.success =
+            response?.message
+            || (
+              'Configuration personnalisée '
+              + 'supprimée.'
+            );
+
+
+          this.error =
+            '';
+
+
+          /*
+           * Confirmation depuis SQLite.
+           */
+          this.loadCustomExamEnvironments();
+
+
+          this.refreshView();
+        },
+
+
+        error: err => {
+
+          console.error(
+            'CUSTOM ENVIRONMENT DELETE ERROR',
+            err
+          );
+
+
+          const detail =
+            err?.error?.detail;
+
+
+          if (
+            typeof detail
+            === 'string'
+          ) {
+
+            this.error =
+              detail;
+
+          } else if (
+            detail?.message
+          ) {
+
+            this.error =
+              detail.message;
+
+          } else if (
+            err?.status === 404
+          ) {
+
+            this.error =
+              (
+                'La configuration est introuvable '
+                + 'ou ne vous appartient pas.'
+              );
+
+          } else if (
+            err?.status === 401
+            || err?.status === 403
+          ) {
+
+            this.error =
+              (
+                'Votre session professeur '
+                + 'a expiré.'
+              );
+
+          } else {
+
+            this.error =
+              (
+                'Impossible de supprimer '
+                + 'la configuration personnalisée.'
+              );
+          }
+
+
+          this.refreshView();
+        }
+
+      });
+  }
+
+
+
+  saveCurrentCustomEnvironment():
+    void {
+
+    const name =
+      this.customEnvironmentName
+        .trim();
+
+
+    const packages =
+      this.getSelectedEnvironmentPackageNames();
+
+
+    this.customEnvironmentModalError =
+      '';
+
+
+    if (!name) {
+
+      this.customEnvironmentModalError =
+        (
+          'Donnez un nom à la '
+          + 'configuration personnalisée.'
+        );
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    if (
+      packages.length === 0
+    ) {
+
+      this.customEnvironmentModalError =
+        (
+          'Sélectionnez au moins '
+          + 'un logiciel.'
+        );
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const token =
+      this.accessToken
+      || localStorage.getItem(
+        'accessToken'
+      )
+      || '';
+
+
+    if (!token) {
+
+      this.customEnvironmentModalError =
+        (
+          'Votre session professeur '
+          + 'a expiré. Reconnectez-vous.'
+        );
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const headers =
+      new HttpHeaders({
+        Authorization:
+          `Bearer ${token}`
+      });
+
+
+    const payload = {
+
+      name:
+        name,
+
+      packages:
+        packages
+
+    };
+
+
+    this.customEnvironmentSaving =
+      true;
+
+
+    this.refreshView();
+
+
+    const url =
+      this.customEnvironmentEditingId
+        ? (
+            `${this.apiUrl}`
+            + '/exam-environments/custom/'
+            + this.customEnvironmentEditingId
+          )
+        : (
+            `${this.apiUrl}`
+            + '/exam-environments/custom'
+          );
+
+
+    const request =
+      this.customEnvironmentEditingId
+        ? this.http.put<any>(
+            url,
+            payload,
+            {
+              headers
+            }
+          )
+        : this.http.post<any>(
+            url,
+            payload,
+            {
+              headers
+            }
+          );
+
+
+    request.subscribe({
+
+      next: response => {
+
+        this.customEnvironmentSaving =
+          false;
+
+
+        const saved =
+          response?.environment;
+
+
+        if (
+          !saved
+          || !saved.id
+        ) {
+
+          this.customEnvironmentModalError =
+            (
+              'Le serveur n’a pas retourné '
+              + 'la configuration enregistrée.'
+            );
+
+          this.refreshView();
+
+          return;
+        }
+
+
+        /*
+         * 1. La carte apparaît immédiatement.
+         */
+        const existingIndex =
+          this.customEnvironments.findIndex(
+            environment =>
+              environment.id
+              === saved.id
+          );
+
+
+        if (
+          existingIndex >= 0
+        ) {
+
+          this.customEnvironments =
+            this.customEnvironments.map(
+              environment =>
+                environment.id
+                === saved.id
+                  ? saved
+                  : environment
+            );
+
+        } else {
+
+          this.customEnvironments = [
+            saved,
+            ...this.customEnvironments
+          ];
+        }
+
+
+        /*
+         * 2. Elle devient immédiatement
+         *    la configuration sélectionnée.
+         */
+        this.selectedEnvironmentId =
+          `custom-${saved.id}`;
+
+
+        this.selectedEnvironmentCustomized =
+          false;
+
+
+        this.newConfig.packages = [
+          ...saved.packages
+        ];
+
+
+        /*
+         * 3. Fermer réellement la popup.
+         */
+        this.packageLibraryOpen =
+          false;
+
+
+        this.packageLibraryMode =
+          'catalog';
+
+
+        this.showPackageCreationForm =
+          false;
+
+
+        document.body.style.overflow =
+          '';
+
+
+        /*
+         * 4. Nettoyer uniquement le brouillon.
+         *    La configuration sélectionnée reste.
+         */
+        this.customEnvironmentEditingId =
+          null;
+
+
+        this.customEnvironmentBaseId =
+          null;
+
+
+        this.customEnvironmentName =
+          '';
+
+
+        this.customEnvironmentModalError =
+          '';
+
+
+        this.success =
+          response?.message
+          || (
+            'Configuration personnalisée '
+            + 'enregistrée.'
+          );
+
+
+        this.error =
+          '';
+
+
+        this.refreshView();
+
+
+        /*
+         * Recharger depuis SQLite pour confirmer
+         * que la liste locale correspond au backend.
+         */
+        this.loadCustomExamEnvironments();
+
+
+        setTimeout(() => {
+
+          this.refreshLucideIcons();
+
+        }, 50);
+      },
+
+
+      error: err => {
+
+        console.error(
+          'CUSTOM ENVIRONMENT SAVE ERROR',
+          err
+        );
+
+
+        this.customEnvironmentSaving =
+          false;
+
+
+        const detail =
+          err?.error?.detail;
+
+
+        if (
+          typeof detail
+          === 'string'
+        ) {
+
+          this.customEnvironmentModalError =
+            detail;
+
+        } else if (
+          detail?.message
+        ) {
+
+          this.customEnvironmentModalError =
+            detail.message;
+
+        } else if (
+          err?.status === 404
+        ) {
+
+          this.customEnvironmentModalError =
+            (
+              'La route de sauvegarde des '
+              + 'configurations personnalisées '
+              + 'est introuvable sur le backend.'
+            );
+
+        } else if (
+          err?.status === 401
+          || err?.status === 403
+        ) {
+
+          this.customEnvironmentModalError =
+            (
+              'Session professeur expirée. '
+              + 'Reconnectez-vous.'
+            );
+
+        } else if (
+          err?.status === 0
+        ) {
+
+          this.customEnvironmentModalError =
+            (
+              'Impossible de joindre le backend '
+              + 'SecureExam sur le port 8000.'
+            );
+
+        } else {
+
+          this.customEnvironmentModalError =
+            (
+              'Impossible d’enregistrer '
+              + 'la configuration personnalisée.'
+            );
+        }
+
+
+        this.error =
+          this.customEnvironmentModalError;
+
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  togglePackageCreationForm(): void {
+
+    /*
+     * L'ancien formulaire manuel est remplacé
+     * par le terminal Nixpkgs en popup.
+     */
+    this.showPackageCreationForm =
+      false;
+
+
+    this.resetPackageVerification();
+
+
+    this.openPackageTerminalPopup(
+      'catalog'
+    );
   }
 
   resetPackageVerification(): void {
@@ -1436,6 +4521,24 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       { headers }
     ).subscribe({
       next: (data) => {
+
+        // AUTO_SELECT_CREATED_LIBRARY_PACKAGE
+        if (
+          this.packageLibraryOpen
+          && this.packageLibraryMode === 'custom'
+          && data.package
+          && data.package.isActive
+          && !this.newConfig.packages.includes(
+            data.package.name
+          )
+        ) {
+
+          this.newConfig.packages = [
+            ...this.newConfig.packages,
+            data.package.name
+          ];
+        }
+
         this.success = data.verifiedNixPackage
           ? `${data.message} Paquet NixOS vérifié : ${data.verifiedNixPackage}`
           : data.message;
@@ -1545,67 +4648,792 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
 
-  executeCreateConfig(): void {
-    this.error = '';
-    this.success = '';
+  private normalizeStudentRosterHeader(
+    value: string
+  ): string {
 
-    const activePackageNames = this.getActivePackageNames();
+    return String(
+      value || ''
+    )
+      .normalize('NFD')
+      .replace(
+        /[\u0300-\u036f]/g,
+        ''
+      )
+      .toLowerCase()
+      .replace(
+        /[^a-z0-9]+/g,
+        '_'
+      )
+      .replace(
+        /^_+|_+$/g,
+        ''
+      );
+  }
 
-    if (activePackageNames.length === 0) {
-      this.error = 'Aucun paquet logiciel actif disponible.';
+
+  private parseStudentRosterCsvLine(
+    line: string,
+    delimiter: string
+  ): string[] {
+
+    const result: string[] = [];
+
+    let current = '';
+    let quoted = false;
+
+
+    for (
+      let index = 0;
+      index < line.length;
+      index++
+    ) {
+
+      const char =
+        line[index];
+
+
+      if (char === '"') {
+
+        if (
+          quoted
+          && line[index + 1]
+          === '"'
+        ) {
+
+          current += '"';
+          index++;
+
+        } else {
+
+          quoted = !quoted;
+        }
+
+        continue;
+      }
+
+
+      if (
+        char === delimiter
+        && !quoted
+      ) {
+
+        result.push(
+          current.trim()
+        );
+
+        current = '';
+
+        continue;
+      }
+
+
+      current += char;
+    }
+
+
+    result.push(
+      current.trim()
+    );
+
+
+    return result;
+  }
+
+
+  onStudentRosterSelected(
+    event: Event
+  ): void {
+
+    this.studentRosterError = '';
+    this.studentRosterCount = 0;
+    this.studentRosterPreview = [];
+
+    const input =
+      event.currentTarget as HTMLInputElement;
+
+    const file =
+      input.files?.[0]
+      || null;
+
+
+    if (!file) {
+
+      this.studentRosterFile = null;
+      this.studentRosterFilename = '';
+
       this.refreshView();
+
       return;
     }
 
-    const headers = this.getTeacherHeaders();
 
-    const payload = {
-      exam_id: this.newConfig.exam_id,
-        exam_name: this.newConfig.exam_name || this.newConfig.exam_id,
-        exam_date: this.newConfig.exam_date,
-        exam_time: this.newConfig.exam_time,
-      packages: activePackageNames,
-      sudo: this.newConfig.sudo,
-      internet: this.newConfig.internet,
-      educ_access: this.newConfig.educ_access,
-      allowed_domains: this.newConfig.allowed_domains_text
-        .split(',')
-        .map(domain => domain.trim())
-        .filter(domain => domain.length > 0),
-    };
+    if (
+      !file.name
+        .toLowerCase()
+        .endsWith('.csv')
+    ) {
 
-    this.http.post(`${this.apiUrl}/configs`, payload, { headers })
-      .subscribe({
-        next: () => {
-          this.success = 'Configuration créée avec succès.';
-          this.loadDashboard();
-          this.refreshView();
-        },
-        error: (err) => {
-          console.error(err);
+      this.studentRosterFile = null;
 
-        const configErrorMessage = this.getApiErrorMessage(
-          err,
-          "Erreur lors de la création de la configuration."
+      this.studentRosterError =
+        'Le fichier doit être au format CSV.';
+
+      input.value = '';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    this.studentRosterFile = file;
+
+    this.studentRosterFilename =
+      file.name;
+
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload = () => {
+
+      const content =
+        String(
+          reader.result || ''
         );
 
-        if (err.status === 409) {
-          window.alert(configErrorMessage);
+
+      const lines =
+        content
+          .split(/\r?\n/)
+          .map(
+            line =>
+              line.trim()
+          )
+          .filter(
+            line =>
+              line.length > 0
+          );
+
+
+      if (
+        lines.length < 2
+      ) {
+
+        this.studentRosterError =
+          'Le CSV ne contient aucun étudiant.';
+
+        this.studentRosterCount = 0;
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      const firstLine =
+        lines[0];
+
+
+      const delimiter =
+        (
+          firstLine.split(';').length
+          >
+          firstLine.split(',').length
+        )
+          ? ';'
+          : ',';
+
+
+      const headers =
+        this.parseStudentRosterCsvLine(
+          firstLine,
+          delimiter
+        )
+          .map(
+            value =>
+              this.normalizeStudentRosterHeader(
+                value
+              )
+          );
+
+
+      const numberAliases = [
+        'student_number',
+        'numero_etudiant',
+        'num_etudiant',
+        'student_id',
+        'identifiant',
+        'numero'
+      ];
+
+      const nameAliases = [
+        'full_name',
+        'nom_complet',
+        'nom_prenom',
+        'name'
+      ];
+
+      const emailAliases = [
+        'email',
+        'mail',
+        'adresse_email'
+      ];
+
+
+      const findIndex = (
+        aliases: string[]
+      ): number => {
+
+        for (
+          const alias
+          of aliases
+        ) {
+
+          const index =
+            headers.indexOf(
+              alias
+            );
+
+          if (
+            index >= 0
+          ) {
+            return index;
+          }
         }
 
-        this.error = configErrorMessage;
+        return -1;
+      };
 
-          if (err.error?.detail?.message === 'Paquets non autorisés') {
-            const invalidPackages = err.error.detail.invalid_packages?.join(', ') || '';
-            this.error = `Paquets non autorisés : ${invalidPackages}`;
-          } else {
-            this.error = this.getApiErrorMessage(err, "Erreur lors de la création de la configuration.");
+
+      const numberIndex =
+        findIndex(
+          numberAliases
+        );
+
+      const nameIndex =
+        findIndex(
+          nameAliases
+        );
+
+      const emailIndex =
+        findIndex(
+          emailAliases
+        );
+
+
+      const firstNameIndex =
+        headers.indexOf(
+          'prenom'
+        ) >= 0
+          ? headers.indexOf(
+              'prenom'
+            )
+          : headers.indexOf(
+              'first_name'
+            );
+
+
+      const lastNameIndex =
+        headers.indexOf(
+          'nom'
+        ) >= 0
+          ? headers.indexOf(
+              'nom'
+            )
+          : headers.indexOf(
+              'last_name'
+            );
+
+
+      if (
+        numberIndex < 0
+        || emailIndex < 0
+        || (
+          nameIndex < 0
+          && (
+            firstNameIndex < 0
+            || lastNameIndex < 0
+          )
+        )
+      ) {
+
+        this.studentRosterError =
+          (
+            'Colonnes obligatoires : '
+            + 'student_number, full_name, email.'
+          );
+
+        this.studentRosterCount = 0;
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      const preview:
+        Array<{
+          student_number: string;
+          full_name: string;
+          email: string;
+        }> = [];
+
+
+      const seen =
+        new Set<string>();
+
+
+      for (
+        let index = 1;
+        index < lines.length;
+        index++
+      ) {
+
+        const values =
+          this.parseStudentRosterCsvLine(
+            lines[index],
+            delimiter
+          );
+
+
+        const studentNumber =
+          String(
+            values[
+              numberIndex
+            ]
+            || ''
+          ).trim();
+
+
+        let fullName = '';
+
+        if (
+          nameIndex >= 0
+        ) {
+
+          fullName =
+            String(
+              values[
+                nameIndex
+              ]
+              || ''
+            ).trim();
+
+        } else {
+
+          fullName =
+            (
+              String(
+                values[
+                  firstNameIndex
+                ]
+                || ''
+              ).trim()
+              + ' '
+              + String(
+                values[
+                  lastNameIndex
+                ]
+                || ''
+              ).trim()
+            ).trim();
+        }
+
+
+        const email =
+          String(
+            values[
+              emailIndex
+            ]
+            || ''
+          ).trim();
+
+
+        if (
+          !studentNumber
+          && !fullName
+          && !email
+        ) {
+          continue;
+        }
+
+
+        if (
+          !studentNumber
+          || !fullName
+          || !email
+          || !email.includes('@')
+        ) {
+
+          this.studentRosterError =
+            (
+              `Ligne ${index + 1} `
+              + 'du CSV invalide.'
+            );
+
+          this.studentRosterCount = 0;
+
+          this.refreshView();
+
+          return;
+        }
+
+
+        const key =
+          studentNumber.toLowerCase();
+
+
+        if (
+          seen.has(key)
+        ) {
+
+          this.studentRosterError =
+            (
+              'Étudiant dupliqué : '
+              + studentNumber
+            );
+
+          this.studentRosterCount = 0;
+
+          this.refreshView();
+
+          return;
+        }
+
+
+        seen.add(key);
+
+
+        preview.push({
+          student_number:
+            studentNumber,
+
+          full_name:
+            fullName,
+
+          email:
+            email
+        });
+      }
+
+
+      if (
+        preview.length === 0
+      ) {
+
+        this.studentRosterError =
+          'Le CSV ne contient aucun étudiant.';
+
+        this.studentRosterCount = 0;
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      this.studentRosterCount =
+        preview.length;
+
+      this.studentRosterPreview =
+        preview.slice(
+          0,
+          6
+        );
+
+
+      this.refreshView();
+    };
+
+
+    reader.onerror = () => {
+
+      this.studentRosterError =
+        'Impossible de lire le fichier CSV.';
+
+      this.studentRosterCount = 0;
+
+      this.refreshView();
+    };
+
+
+    reader.readAsText(
+      file,
+      'UTF-8'
+    );
+  }
+
+
+  clearStudentRoster(): void {
+
+    this.studentRosterFile = null;
+    this.studentRosterFilename = '';
+    this.studentRosterCount = 0;
+    this.studentRosterError = '';
+    this.studentRosterPreview = [];
+
+    const input =
+      document.querySelector(
+        '.student-roster-input'
+      ) as HTMLInputElement | null;
+
+    if (input) {
+      input.value = '';
+    }
+
+    this.refreshView();
+  }
+
+
+  downloadStudentRosterTemplate(): void {
+
+    const content =
+      [
+        'student_number,full_name,email',
+        'etu001,Etudiant Test,etu001@isen.fr',
+        'etu002,Jean Dupont,jean.dupont@isen.fr'
+      ].join('\n');
+
+
+    const blob =
+      new Blob(
+        [content],
+        {
+          type:
+            'text/csv;charset=utf-8'
+        }
+      );
+
+
+    this.saveBlob(
+      blob,
+      'modele_etudiants_secureexam.csv'
+    );
+  }
+
+
+  executeCreateConfig(): void {
+
+    this.error = '';
+    this.success = '';
+
+
+    const selectedPackageNames =
+      this.getSelectedEnvironmentPackageNames();
+
+
+    if (
+      selectedPackageNames.length
+      === 0
+    ) {
+
+      this.error =
+        'Sélectionnez au moins un logiciel pour cet examen.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const rosterFile =
+      this.studentRosterFile;
+
+
+    if (
+      !rosterFile
+      || !this.hasValidStudentRoster
+    ) {
+
+      this.error =
+        (
+          'Le fichier CSV des étudiants '
+          + 'est obligatoire.'
+        );
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const formData =
+      new FormData();
+
+
+    formData.append(
+      'exam_id',
+      this.newConfig.exam_id
+    );
+
+    formData.append(
+      'exam_name',
+      (
+        this.newConfig.exam_name
+        || this.newConfig.exam_id
+      )
+    );
+
+    formData.append(
+      'exam_date',
+      this.newConfig.exam_date
+    );
+
+    formData.append(
+      'exam_time',
+      this.newConfig.exam_time
+    );
+
+    formData.append(
+      'packages_json',
+      JSON.stringify(
+        selectedPackageNames
+      )
+    );
+
+    formData.append(
+      'sudo',
+      String(
+        this.newConfig.sudo
+      )
+    );
+
+    formData.append(
+      'internet',
+      String(
+        this.newConfig.internet
+      )
+    );
+
+    formData.append(
+      'educ_access',
+      String(
+        this.newConfig.educ_access
+      )
+    );
+
+    formData.append(
+      'allowed_domains_json',
+      JSON.stringify(
+        this.newConfig.allowed_domains_text
+          .split(',')
+          .map(
+            domain =>
+              domain.trim()
+          )
+          .filter(
+            domain =>
+              domain.length > 0
+          )
+      )
+    );
+
+    formData.append(
+      'roster_file',
+      rosterFile,
+      rosterFile.name
+    );
+
+
+    const headers =
+      this.getTeacherHeaders();
+
+
+    this.loading = true;
+
+
+    this.http.post<any>(
+      `${this.apiUrl}/configs`,
+      formData,
+      {
+        headers
+      }
+    )
+      .subscribe({
+
+        next: (data) => {
+
+          this.loading = false;
+
+          this.success =
+            (
+              'Configuration créée avec succès. '
+              + `${data?.roster?.students_count || this.studentRosterCount} `
+              + 'étudiant(s) enregistrés.'
+            );
+
+
+          this.clearStudentRoster();
+
+          this.loadDashboard();
+
+          this.refreshView();
+        },
+
+
+        error: (err) => {
+
+          console.error(
+            err
+          );
+
+
+          this.loading = false;
+
+
+          const configErrorMessage =
+            this.getApiErrorMessage(
+              err,
+              (
+                'Erreur lors de la création '
+                + 'de la configuration.'
+              )
+            );
+
+
+          if (
+            err.status === 409
+          ) {
+
+            window.alert(
+              configErrorMessage
+            );
           }
+
+
+          this.error =
+            configErrorMessage;
+
+
+          if (
+            err.error?.detail?.message
+            === 'Paquets non autorisés'
+          ) {
+
+            const invalidPackages =
+              err.error.detail
+                .invalid_packages
+                ?.join(', ')
+              || '';
+
+
+            this.error =
+              (
+                'Paquets non autorisés : '
+                + invalidPackages
+              );
+          }
+
 
           this.refreshView();
         }
+
       });
   }
+
 
   viewConfig(config: ExamConfigFile): void {
     this.error = '';
@@ -1935,6 +5763,389 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
         this.error =
           'Impossible de télécharger la soumission.';
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  // ======================================================
+  // SECUREEXAM_TEACHER_DELIVERY_METHODS_V3
+  // ======================================================
+
+  loadTeacherExamDeliveryStatus(): void {
+
+    if (
+      !this.dashboard
+      || !this.accessToken
+    ) {
+      return;
+    }
+
+    const headers =
+      this.getTeacherHeaders();
+
+    this.http.get<any[]>(
+      `${this.apiUrl}/teacher/exam-delivery`,
+      {
+        headers
+      }
+    ).subscribe({
+
+      next: (items) => {
+
+        const deliveryByExam =
+          new Map<string, any>();
+
+        for (
+          const item
+          of items || []
+        ) {
+
+          const examId =
+            String(
+              item?.exam_id
+              || ''
+            ).trim();
+
+          if (examId) {
+
+            deliveryByExam.set(
+              examId,
+              item
+            );
+          }
+        }
+
+
+        if (this.dashboard) {
+
+          this.dashboard.configs =
+            (
+              this.dashboard.configs
+              || []
+            ).map(
+              config => {
+
+                const examId =
+                  String(
+                    config.exam_id
+                    || config.filename.replace(
+                      /\.json$/i,
+                      ''
+                    )
+                    || ''
+                  ).trim();
+
+
+                const delivery =
+                  deliveryByExam.get(
+                    examId
+                  );
+
+
+                if (!delivery) {
+
+                  return {
+                    ...config,
+
+                    roster_count:
+                      config.roster_count
+                      || 0,
+
+                    roster_status:
+                      config.roster_status
+                      || 'READY',
+
+                    sent_at:
+                      config.sent_at
+                      || null
+                  };
+                }
+
+
+                return {
+                  ...config,
+
+                  delivery_config_id:
+                    delivery.config_id,
+
+                  roster_filename:
+                    delivery.roster_filename
+                    || null,
+
+                  roster_count:
+                    Number(
+                      delivery.roster_count
+                      || 0
+                    ),
+
+                  roster_status:
+                    String(
+                      delivery.roster_status
+                      || 'READY'
+                    ),
+
+                  sent_at:
+                    delivery.sent_at
+                    || null
+                };
+              }
+            );
+        }
+
+
+        this.refreshView();
+      },
+
+
+      error: (err) => {
+
+        console.error(
+          'Erreur statut diffusion professeur',
+          err
+        );
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  isTeacherExamSent(
+    config: ExamConfigFile
+  ): boolean {
+
+    return (
+      String(
+        config.roster_status
+        || ''
+      ).toUpperCase()
+      === 'SENT'
+    );
+  }
+
+
+
+  sendExamToStudentsFromTeacher(
+    config: ExamConfigFile
+  ): void {
+
+    this.error = '';
+    this.success = '';
+
+
+    const examId =
+      String(
+        config.exam_id
+        || config.filename.replace(
+          /\.json$/i,
+          ''
+        )
+        || ''
+      ).trim();
+
+
+    if (!examId) {
+
+      this.error =
+        'Code examen introuvable.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    if (
+      this.isTeacherExamSent(
+        config
+      )
+    ) {
+
+      this.success =
+        'Cet examen a d?j? ?t? envoy?.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    const examLabel =
+      config.exam_name
+      || examId;
+
+
+    const count =
+      Number(
+        config.roster_count
+        || 0
+      );
+
+
+    let confirmText =
+      `Envoyer "${examLabel}" aux ?tudiants ?`;
+
+
+    if (count > 0) {
+
+      confirmText =
+        `Envoyer "${examLabel}" `
+        + `aux ${count} ?tudiant(s) `
+        + 'de la liste CSV ?';
+    }
+
+
+    confirmText +=
+      '\n\n'
+      + 'L?examen appara?tra dans '
+      + 'leur espace ?tudiant.';
+
+
+    const confirmed =
+      window.confirm(
+        confirmText
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    this.teacherDeliveryLoadingExamId =
+      examId;
+
+    this.refreshView();
+
+
+    const headers =
+      this.getTeacherHeaders();
+
+
+    this.http.post<any>(
+      (
+        `${this.apiUrl}`
+        + '/teacher/exam-delivery/'
+        + `${encodeURIComponent(examId)}`
+        + '/send'
+      ),
+      {},
+      {
+        headers
+      }
+    ).subscribe({
+
+      next: (response) => {
+
+        this.teacherDeliveryLoadingExamId =
+          '';
+
+
+        config.roster_status =
+          'SENT';
+
+
+        config.sent_at =
+          response?.sent_at
+          || config.sent_at
+          || null;
+
+
+        if (
+          response?.already_sent
+        ) {
+
+          this.success =
+            (
+              'Cet examen avait d?j? ?t? '
+              + 'envoy? aux ?tudiants.'
+            );
+
+        } else {
+
+          this.success =
+            response?.message
+            || (
+              'Examen envoy? avec succ?s '
+              + 'aux ?tudiants.'
+            );
+        }
+
+
+        this.loadTeacherExamDeliveryStatus();
+
+        this.refreshView();
+      },
+
+
+      error: (err) => {
+
+        console.error(err);
+
+        this.teacherDeliveryLoadingExamId =
+          '';
+
+
+        const detail =
+          err?.error?.detail;
+
+
+        if (
+          detail
+          && typeof detail === 'object'
+          && Array.isArray(
+            detail.missing_students
+          )
+        ) {
+
+          const missing =
+            detail.missing_students
+              .map(
+                (student: any) =>
+                  student.student_number
+              )
+              .filter(
+                (value: any) =>
+                  !!value
+              )
+              .join(', ');
+
+
+          this.error =
+            (
+              detail.message
+              || 'Envoi impossible.'
+            )
+            + (
+                missing
+                  ? (
+                      ' Compte(s) ?tudiant(s) '
+                      + 'introuvable(s) : '
+                      + missing
+                      + '.'
+                    )
+                  : ''
+              );
+
+        } else {
+
+          this.error =
+            this.getApiErrorMessage(
+              err,
+              (
+                'Impossible d?envoyer '
+                + 'l?examen aux ?tudiants.'
+              )
+            );
+        }
+
 
         this.refreshView();
       }
@@ -2305,7 +6516,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
   getProfileSupportApiUrl(): string {
-    return this.apiUrl || `http://${window.location.hostname}:8000`;
+    return this.apiUrl || `/api`;
   }
 
   refreshProfileSupportIcons(): void {
@@ -2524,16 +6735,47 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
   createConfig(): void {
+
     this.openCreateConfigConfirmation();
   }
 
 
-  openCreateConfigConfirmation(formValue?: any): void {
-    this.pendingCreateConfigPreview = this.getCreateConfigSnapshot(formValue);
-    this.showCreateConfigConfirmModal = true;
+  openCreateConfigConfirmation(
+    formValue?: any
+  ): void {
+
+    this.error = '';
+
+
+    if (
+      !this.hasValidStudentRoster
+    ) {
+
+      this.error =
+        'La liste CSV des étudiants est obligatoire '
+        + 'avant de créer l’examen.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    this.pendingCreateConfigPreview =
+      this.getCreateConfigSnapshot(
+        formValue
+      );
+
+
+    this.showCreateConfigConfirmModal =
+      true;
+
+
     this.refreshCreateConfigModalIcons();
-    (this as any).refreshView?.();
+
+    this.refreshView();
   }
+
 
   closeCreateConfigConfirmation(): void {
     this.showCreateConfigConfirmModal = false;

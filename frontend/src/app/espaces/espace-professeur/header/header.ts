@@ -79,7 +79,7 @@ export class HeaderComponent implements OnInit, AfterViewInit {
 
 
   getApiBaseUrl(): string {
-    return `http://${window.location.hostname}:8000`;
+    return `/api`;
   }
 
   getStoredAuthToken(): string {

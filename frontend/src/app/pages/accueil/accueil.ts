@@ -1,31 +1,73 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, EventEmitter, Output } from '@angular/core';
-import { PublicHeaderComponent } from '../../components/public-header/public-header';
+
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  Output
+} from '@angular/core';
+
+import {
+  PublicHeaderComponent
+} from '../../components/public-header/public-header';
+
 
 declare const lucide: any;
+
 
 @Component({
   selector: 'app-accueil',
   standalone: true,
-  imports: [CommonModule, PublicHeaderComponent],
+
+  imports: [
+    CommonModule,
+    PublicHeaderComponent
+  ],
+
   templateUrl: './accueil.html',
   styleUrl: './accueil.css'
 })
-export class AccueilComponent implements AfterViewInit {
+export class AccueilComponent
+implements AfterViewInit {
+
+  @Output()
+  professorSelected =
+    new EventEmitter<void>();
+
+
+  @Output()
+  adminSelected =
+    new EventEmitter<void>();
+
+
+  @Output()
+  studentSelected =
+    new EventEmitter<void>();
+
+
+  @Output()
+  supportRequested =
+    new EventEmitter<void>();
+
+
   openSupportPage(): void {
-    window.location.href = '/support';
+
+    window.location.href =
+      '/support';
   }
 
 
-  @Output() professorSelected = new EventEmitter<void>();
-  @Output() supervisorSelected = new EventEmitter<void>();
-  @Output() supportRequested = new EventEmitter<void>();
-
   ngAfterViewInit(): void {
+
     setTimeout(() => {
-      if (typeof lucide !== 'undefined') {
+
+      if (
+        typeof lucide
+        !== 'undefined'
+      ) {
         lucide.createIcons();
       }
+
     });
   }
 }

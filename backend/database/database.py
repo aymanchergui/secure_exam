@@ -16,6 +16,193 @@ def get_connection():
     return connection
 
 
+def migrate_submissions_to_blob(connection):
+    """
+    Migration automatique de l'ancien stockage disque
+    vers le stockage SQLite BLOB.
+
+    Ancien :
+        submissions.file_path
+
+    Nouveau :
+        submissions.content_type
+        submissions.file_data
+    """
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "PRAGMA table_info(submissions)"
+    )
+
+    columns = {
+        row["name"]
+        for row in cursor.fetchall()
+    }
+
+    if not columns:
+        return
+
+    # Déjà entièrement migré.
+    if (
+        "file_data" in columns
+        and "content_type" in columns
+        and "file_path" not in columns
+    ):
+        return
+
+    cursor.execute("""
+        SELECT *
+        FROM submissions
+        ORDER BY id ASC
+    """)
+
+    rows = cursor.fetchall()
+
+    migrated_rows = []
+
+    for row in rows:
+        keys = row.keys()
+
+        file_data = None
+
+        if "file_data" in keys:
+            file_data = row["file_data"]
+
+        content_type = "application/zip"
+
+        if (
+            "content_type" in keys
+            and row["content_type"]
+        ):
+            content_type = str(
+                row["content_type"]
+            )
+
+        # Ancien stockage sur disque.
+        if file_data is None:
+            legacy_file_path = ""
+
+            if "file_path" in keys:
+                legacy_file_path = str(
+                    row["file_path"] or ""
+                ).strip()
+
+            if not legacy_file_path:
+                raise RuntimeError(
+                    "Migration impossible pour "
+                    f"{row['filename']} : "
+                    "aucun contenu BLOB et aucun chemin."
+                )
+
+            legacy_path = Path(
+                legacy_file_path
+            )
+
+            if not legacy_path.is_absolute():
+                legacy_path = (
+                    BACKEND_DIR
+                    / legacy_path
+                )
+
+            if not legacy_path.is_file():
+                raise RuntimeError(
+                    "Migration impossible : "
+                    f"fichier absent pour "
+                    f"{row['filename']} : "
+                    f"{legacy_path}"
+                )
+
+            file_data = (
+                legacy_path.read_bytes()
+            )
+
+        file_data = bytes(file_data)
+
+        if not file_data:
+            raise RuntimeError(
+                "Migration impossible : "
+                f"{row['filename']} est vide."
+            )
+
+        migrated_rows.append((
+            row["id"],
+            row["exam_id"],
+            row["student_id"],
+            row["machine_id"],
+            row["filename"],
+            round(
+                len(file_data) / 1024,
+                2
+            ),
+            content_type,
+            sqlite3.Binary(file_data),
+            row["created_at"]
+        ))
+
+    cursor.execute("""
+        DROP TABLE IF EXISTS
+        submissions_blob_migration
+    """)
+
+    cursor.execute("""
+        CREATE TABLE
+        submissions_blob_migration (
+            id INTEGER
+                PRIMARY KEY AUTOINCREMENT,
+
+            exam_id TEXT NOT NULL,
+
+            student_id TEXT NOT NULL,
+
+            machine_id TEXT NOT NULL,
+
+            filename TEXT
+                NOT NULL UNIQUE,
+
+            size_kb REAL NOT NULL,
+
+            content_type TEXT
+                NOT NULL
+                DEFAULT 'application/zip',
+
+            file_data BLOB NOT NULL,
+
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    if migrated_rows:
+        cursor.executemany("""
+            INSERT INTO
+            submissions_blob_migration (
+                id,
+                exam_id,
+                student_id,
+                machine_id,
+                filename,
+                size_kb,
+                content_type,
+                file_data,
+                created_at
+            )
+            VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )
+        """, migrated_rows)
+
+    cursor.execute("""
+        DROP TABLE submissions
+    """)
+
+    cursor.execute("""
+        ALTER TABLE
+        submissions_blob_migration
+        RENAME TO submissions
+    """)
+
+    connection.commit()
+
+
 def init_database():
     connection = get_connection()
     cursor = connection.cursor()
@@ -94,11 +281,14 @@ def init_database():
             student_id TEXT NOT NULL,
             machine_id TEXT NOT NULL,
             filename TEXT NOT NULL UNIQUE,
-            file_path TEXT NOT NULL,
             size_kb REAL NOT NULL,
+            content_type TEXT NOT NULL DEFAULT 'application/zip',
+            file_data BLOB NOT NULL,
             created_at TEXT NOT NULL
         )
     """)
+
+    migrate_submissions_to_blob(connection)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS machine_status (

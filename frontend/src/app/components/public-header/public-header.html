@@ -1,22 +1,30 @@
 <header class="auth-header">
+
   <div class="auth-header-left">
+
     <img
       src="/assets/isen_logo.png"
-      alt="ISEN Toulon"
+      alt="ISEN Yncréa Méditerranée"
       class="auth-school-logo"
     >
+
   </div>
 
   <div class="auth-header-center">
+
     <img
       src="/assets/secure_exam_logo.png"
-      alt="ISEN SecureExam"
+      alt="SecureExam"
       class="auth-secure-logo"
     >
+
   </div>
 
   <div class="auth-header-right">
-    <span class="auth-header-year">© {{ currentYear }} ISEN Toulon</span>
+
+    <span class="auth-header-year">
+      © {{ currentYear }} ISEN Toulon
+    </span>
 
     <button
       type="button"
@@ -25,21 +33,32 @@
     >
       Licence & crédits
     </button>
+
   </div>
+
 </header>
 
-<div class="project-info-backdrop" *ngIf="showProjectInfoModal">
+
+<div
+  class="project-info-backdrop"
+  *ngIf="showProjectInfoModal"
+>
+
   <div class="project-info-modal">
+
     <div class="project-info-header">
+
       <div>
+
         <h2>
           <i data-lucide="info"></i>
           Licence & crédits
         </h2>
 
         <p>
-          Informations professionnelles relatives au projet ISEN SecureExam.
+          Informations relatives à la plateforme SecureExam.
         </p>
+
       </div>
 
       <button
@@ -50,55 +69,87 @@
       >
         <i data-lucide="x"></i>
       </button>
+
     </div>
 
+
     <div class="project-info-content">
+
       <div class="project-info-brand-card">
+
         <div class="project-info-brand-main">
+
           <img
             src="/assets/secure_exam_logo.png"
-            alt="ISEN SecureExam"
+            alt="SecureExam"
           >
 
           <div>
-            <strong>ISEN SecureExam</strong>
-            <span>ISEN Méditerranée / Toulon</span>
+
+            <strong>
+              SecureExam
+            </strong>
+
+            <span>
+              Plateforme académique sécurisée — ISEN Toulon
+            </span>
+
           </div>
+
         </div>
 
         <div class="project-version-badge">
           <span></span>
           <strong>v{{ appVersion }}</strong>
         </div>
+
       </div>
+
 
       <div class="project-info-section">
-        <h3>Présentation du projet</h3>
+
+        <h3>
+          Présentation de la plateforme
+        </h3>
+
         <p>
-          ISEN SecureExam est une plateforme académique permettant de préparer,
+          SecureExam est une plateforme académique permettant de préparer,
           générer et appliquer des environnements Linux sécurisés pour les examens.
-          Le projet couvre la configuration des paquets autorisés, des droits système,
-          des accès réseau, ainsi que la récupération des rendus étudiants.
+          La solution permet de définir les paquets autorisés, les droits système
+          et les accès réseau, tout en assurant la gestion et la récupération
+          des rendus étudiants.
         </p>
+
       </div>
 
+
       <div class="project-info-grid">
+
         <div class="project-info-card">
+
           <div class="project-info-card-icon">
-            <i data-lucide="graduation-cap"></i>
+            <i data-lucide="code-2"></i>
           </div>
 
           <div class="project-info-card-body">
-            <h3>Développeur</h3>
+
+            <h3>
+              Développé par
+            </h3>
+
             <p>
-              <strong>Ayman CHERGUI</strong><br>
-              Étudiant ingénieur à l’ISEN.
+              <strong>M. Ayman CHERGUI</strong><br>
+              Ingénieur diplômé de l’ISEN Yncréa Méditerranée.
             </p>
 
             <div class="project-info-links">
-              <a href="mailto:aymanch.business@gmail.com">
+
+              <a href="mailto:contact@aymanchergui.com">
                 <i data-lucide="mail"></i>
-                <span>aymanch.business@gmail.com</span>
+
+                <span>
+                  contact@aymanchergui.com
+                </span>
               </a>
 
               <a
@@ -107,28 +158,44 @@
                 rel="noopener noreferrer"
               >
                 <i data-lucide="globe"></i>
-                <span>aymanchergui.com</span>
+
+                <span>
+                  aymanchergui.com
+                </span>
               </a>
+
             </div>
+
           </div>
+
         </div>
 
+
         <div class="project-info-card">
+
           <div class="project-info-card-icon">
             <i data-lucide="briefcase-business"></i>
           </div>
 
           <div class="project-info-card-body">
-            <h3>Client / Référent</h3>
+
+            <h3>
+              Référent du projet
+            </h3>
+
             <p>
-              <strong>Willy DUQUENOY</strong><br>
-              Directeur des Systèmes d’Information.
+              <strong>M. Willy DUQUENOY</strong><br>
+              Directeur des Systèmes d’Information à l’ISEN Yncréa Méditerranée.
             </p>
 
             <div class="project-info-links">
+
               <a href="mailto:willy.duquenoy@yncrea.fr">
                 <i data-lucide="mail"></i>
-                <span>willy.duquenoy@yncrea.fr</span>
+
+                <span>
+                  willy.duquenoy@yncrea.fr
+                </span>
               </a>
 
               <a
@@ -137,44 +204,74 @@
                 rel="noopener noreferrer"
               >
                 <i data-lucide="external-link"></i>
-                <span>Profil ISEN Méditerranée</span>
+
+                <span>
+                  Profil ISEN Méditerranée
+                </span>
               </a>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
 
+
       <div class="project-info-section">
-        <h3>Cadre académique</h3>
+
+        <h3>
+          Cadre académique
+        </h3>
+
         <p>
-          Ce projet est réalisé dans le cadre d’un projet bureau d’étude ISEN 2025-2026.
-          Il a pour objectif de proposer une solution reproductible, sécurisée et
-          exploitable pour la configuration d’environnements d’examen sous Linux.
+          Cette plateforme est réalisée dans le cadre d’un Bureau d’Études
+          à l’ISEN Yncréa Méditerranée, campus de Toulon,
+          durant l’année universitaire 2025–2026.
+          Elle a pour objectif de proposer une solution reproductible,
+          sécurisée et exploitable pour la préparation et l’application
+          d’environnements d’examen sécurisés.
         </p>
+
       </div>
 
+
       <div class="project-info-section">
-        <h3>Technologies utilisées</h3>
+
+        <h3>
+          Technologies utilisées
+        </h3>
 
         <div class="project-tech-list">
+
           <span>Angular</span>
           <span>FastAPI</span>
           <span>SQLite</span>
           <span>NixOS</span>
           <span>Python</span>
           <span>Linux</span>
-          <span>Scripts client SecureExam</span>
+          <span>SecureExam Agent</span>
+
         </div>
+
       </div>
 
+
       <div class="project-info-note">
+
         <i data-lucide="shield-check"></i>
+
         <span>
-          Cette application est développée dans un cadre pédagogique et démonstratif.
-          Toute mise en production nécessite une validation technique, réseau et sécurité
-          par l’établissement.
+          Cette plateforme est développée dans un cadre académique.
+          Toute mise en production nécessite une validation technique,
+          réseau et sécurité par l’établissement.
         </span>
+
       </div>
+
     </div>
+
   </div>
+
 </div>

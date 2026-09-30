@@ -1,0 +1,2235 @@
+.admin-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(196, 0, 36, 0.14), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(17, 24, 39, 0.10), transparent 30%),
+    linear-gradient(135deg, #f7f8fb 0%, #eef1f5 100%);
+  color: #111827;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.admin-main {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 34px 0 42px;
+}
+
+.admin-panel {
+  width: 100%;
+  padding: 34px;
+  border-radius: 30px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow:
+    0 28px 76px rgba(15, 23, 42, 0.12),
+    0 10px 30px rgba(196, 0, 36, 0.05);
+}
+
+.admin-dashboard-panel {
+  text-align: left;
+}
+
+.admin-badge {
+  display: inline-flex;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(196, 0, 36, 0.08);
+  color: #c40024;
+  font-size: 12px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-panel h1,
+.admin-section-header h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: clamp(34px, 4vw, 54px);
+  font-weight: 950;
+  line-height: 1.04;
+  letter-spacing: -0.055em;
+}
+
+.admin-panel > p,
+.admin-section-header p {
+  max-width: 820px;
+  margin: 16px 0 0;
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.admin-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.admin-action-card {
+  min-height: 150px;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(196, 0, 36, 0.10);
+  border-radius: 24px;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    0 14px 34px rgba(15, 23, 42, 0.07),
+    0 6px 16px rgba(196, 0, 36, 0.035);
+  transition: 0.22s ease;
+}
+
+.admin-action-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(196, 0, 36, 0.20);
+  box-shadow:
+    0 20px 48px rgba(15, 23, 42, 0.10),
+    0 8px 20px rgba(196, 0, 36, 0.07);
+}
+
+.admin-action-icon {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+}
+
+.admin-action-icon.red {
+  background: rgba(196, 0, 36, 0.10);
+  color: #c40024;
+}
+
+.admin-action-icon.black {
+  background: rgba(17, 24, 39, 0.08);
+  color: #111827;
+}
+
+.admin-action-icon svg,
+.admin-action-icon i {
+  width: 26px;
+  height: 26px;
+  stroke-width: 2.4;
+}
+
+.admin-action-card h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.admin-action-card p {
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.admin-section-header {
+  margin-bottom: 26px;
+}
+
+/* Formulaires */
+
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.admin-form input,
+.admin-form select,
+.admin-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 650;
+  outline: none;
+  transition: 0.22s ease;
+}
+
+.admin-form input,
+.admin-form select {
+  height: 52px;
+  padding: 0 15px;
+}
+
+.admin-form textarea {
+  resize: vertical;
+  min-height: 120px;
+  padding: 14px 15px;
+  line-height: 1.5;
+}
+
+.admin-form input:focus,
+.admin-form select:focus,
+.admin-form textarea:focus {
+  border-color: #c40024;
+  box-shadow:
+    0 0 0 4px rgba(196, 0, 36, 0.10),
+    0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.admin-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.admin-primary-button,
+.admin-secondary-button {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: none;
+  border-radius: 14px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 950;
+  cursor: pointer;
+  transition: 0.22s ease;
+}
+
+.admin-primary-button {
+  background: linear-gradient(135deg, #111827 0%, #c40024 100%);
+  color: #ffffff;
+  box-shadow:
+    0 14px 28px rgba(196, 0, 36, 0.20),
+    0 8px 18px rgba(17, 24, 39, 0.12);
+}
+
+.admin-primary-button:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #020617 0%, #7a0015 100%);
+}
+
+.admin-primary-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
+.admin-secondary-button {
+  background: #111827;
+  color: #ffffff;
+}
+
+.admin-secondary-button:hover {
+  transform: translateY(-2px);
+  background: #020617;
+}
+
+.admin-primary-button svg,
+.admin-primary-button i,
+.admin-secondary-button svg,
+.admin-secondary-button i {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.4;
+}
+
+/* Messages */
+
+.admin-success,
+.admin-error {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.admin-success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.admin-error {
+  background: #fff1f2;
+  color: #7a0015;
+  border: 1px solid rgba(196, 0, 36, 0.18);
+}
+
+.admin-success svg,
+.admin-success i,
+.admin-error svg,
+.admin-error i {
+  width: 18px;
+  height: 18px;
+}
+
+/* Support list */
+
+.admin-requests {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid #eef0f3;
+}
+
+.admin-requests h2 {
+  margin: 0 0 16px;
+  color: #0f172a;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.035em;
+}
+
+.admin-request-card {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+  margin-bottom: 12px;
+}
+
+.admin-request-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.admin-request-top strong {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.admin-request-top span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(196, 0, 36, 0.08);
+  color: #c40024;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.admin-request-card p {
+  margin: 10px 0 0;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.admin-request-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-request-meta span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.admin-empty-state {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 24px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 20px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+.admin-empty-state.small {
+  min-height: 140px;
+}
+
+.admin-empty-state svg,
+.admin-empty-state i {
+  width: 34px;
+  height: 34px;
+  color: #c40024;
+  stroke-width: 2.2;
+}
+
+.admin-empty-state strong {
+  color: #111827;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.admin-empty-state span {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .admin-main {
+    width: calc(100% - 32px);
+    padding: 26px 0 34px;
+  }
+
+  .admin-panel {
+    padding: 26px;
+    border-radius: 24px;
+  }
+
+  .admin-dashboard-grid,
+  .admin-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-actions {
+    flex-direction: column;
+  }
+
+  .admin-primary-button,
+  .admin-secondary-button {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   SECUREEXAM SUPERVISOR NIXOS LIST
+   ========================================================= */
+
+.admin-nixos-panel {
+  margin: 26px auto;
+  width: min(1180px, calc(100% - 40px));
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.08);
+}
+
+.admin-nixos-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.admin-nixos-heading h2 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 22px;
+}
+
+.admin-nixos-heading p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.admin-nixos-refresh,
+.admin-nixos-view,
+.admin-nixos-download {
+  border: 0;
+  cursor: pointer;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-weight: 700;
+}
+
+.admin-nixos-refresh,
+.admin-nixos-view {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.admin-nixos-refresh:hover,
+.admin-nixos-view:hover {
+  background: #020617;
+}
+
+.admin-nixos-download {
+  background: #c40024;
+  color: #ffffff;
+}
+
+.admin-nixos-download:hover {
+  background: #a90020;
+}
+
+.admin-nixos-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.admin-nixos-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+}
+
+.admin-nixos-table th {
+  padding: 14px 16px;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #475569;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.admin-nixos-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eef2f7;
+  color: #334155;
+}
+
+.admin-nixos-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-nixos-exam,
+.admin-nixos-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-nixos-exam strong,
+.admin-nixos-date strong {
+  color: #111827;
+}
+
+.admin-nixos-exam span,
+.admin-nixos-date span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.admin-nixos-table code {
+  color: #991b1b;
+  background: #fff1f2;
+  border-radius: 8px;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.admin-nixos-loading,
+.admin-nixos-empty,
+.admin-nixos-error {
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-nixos-loading,
+.admin-nixos-empty {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.admin-nixos-error {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.admin-nixos-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(2, 6, 23, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.admin-nixos-modal {
+  width: min(1050px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.32);
+}
+
+.admin-nixos-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 24px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      #1b1829 0%,
+      #4c0a28 34%,
+      #7c0025 62%,
+      #a50024 82%,
+      #c40024 100%
+    );
+}
+
+.admin-nixos-modal-header h2 {
+  margin: 0 0 5px;
+  font-size: 21px;
+}
+
+.admin-nixos-modal-header span {
+  opacity: .82;
+  font-size: 13px;
+}
+
+.admin-nixos-close {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #0f172a;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.admin-nixos-close:hover {
+  background: #020617;
+}
+
+.admin-nixos-filebar {
+  padding: 11px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  color: #475569;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.admin-nixos-code {
+  flex: 1;
+  overflow: auto;
+  margin: 0;
+  padding: 22px;
+  background: #0b1020;
+  color: #e2e8f0;
+  font-family:
+    "Cascadia Code",
+    "JetBrains Mono",
+    Consolas,
+    monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+@media (max-width: 760px) {
+  .admin-nixos-panel {
+    width: calc(100% - 20px);
+    padding: 16px;
+  }
+
+  .admin-nixos-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-nixos-refresh {
+    width: 100%;
+  }
+
+  .admin-nixos-backdrop {
+    padding: 10px;
+  }
+
+  .admin-nixos-modal {
+    width: 100%;
+    max-height: 94vh;
+  }
+}
+
+
+
+/* =========================================================
+   SECUREEXAM_ADMIN_VISUAL_REPAIR_V2
+   ========================================================= */
+
+.admin-page {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow-x: hidden;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(196, 0, 36, 0.11),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(17, 24, 39, 0.08),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #f7f8fb 0%,
+      #eef1f5 100%
+    );
+
+  color: #111827;
+
+  font-family:
+    Inter,
+    Arial,
+    sans-serif;
+}
+
+
+/* MAIN */
+
+.admin-main {
+  width:
+    min(
+      1480px,
+      calc(100% - 48px)
+    );
+
+  margin:
+    0 auto;
+
+  padding:
+    34px 0 50px;
+}
+
+
+/* PANELS */
+
+.admin-panel,
+.admin-nixos-panel {
+  width: 100%;
+
+  padding:
+    30px;
+
+  margin-bottom:
+    26px;
+
+  border:
+    1px solid
+    rgba(226, 232, 240, .96);
+
+  border-radius:
+    26px;
+
+  background:
+    rgba(255,255,255,.98);
+
+  box-shadow:
+    0 22px 60px
+    rgba(15,23,42,.09),
+    0 8px 24px
+    rgba(196,0,36,.045);
+}
+
+
+.admin-dashboard-panel {
+  text-align: left;
+}
+
+
+/* BADGE */
+
+.admin-badge {
+  display:
+    inline-flex;
+
+  margin-bottom:
+    15px;
+
+  padding:
+    7px 13px;
+
+  border-radius:
+    999px;
+
+  background:
+    rgba(196,0,36,.08);
+
+  color:
+    #c40024;
+
+  font-size:
+    11px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .08em;
+
+  text-transform:
+    uppercase;
+}
+
+
+/* TITLES */
+
+.admin-panel h1 {
+  margin:
+    0;
+
+  color:
+    #0f172a;
+
+  font-size:
+    38px;
+
+  line-height:
+    1.05;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    -.04em;
+}
+
+
+.admin-panel > p {
+  max-width:
+    900px;
+
+  margin:
+    13px 0 0;
+
+  color:
+    #64748b;
+
+  line-height:
+    1.55;
+
+  font-size:
+    14px;
+
+  font-weight:
+    650;
+}
+
+
+/* DASHBOARD CARDS */
+
+.admin-dashboard-grid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap:
+    16px;
+
+  margin-top:
+    28px;
+}
+
+
+.admin-action-card {
+  min-height:
+    150px;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    16px;
+
+  padding:
+    20px;
+
+  border:
+    1px solid
+    rgba(196,0,36,.10);
+
+  border-radius:
+    20px;
+
+  background:
+    #ffffff;
+
+  text-align:
+    left;
+
+  color:
+    #111827;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 10px 28px
+    rgba(15,23,42,.06);
+
+  transition:
+    .22s ease;
+}
+
+
+.admin-action-card:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(196,0,36,.22);
+
+  box-shadow:
+    0 18px 40px
+    rgba(15,23,42,.10),
+    0 7px 18px
+    rgba(196,0,36,.07);
+}
+
+
+.admin-action-icon {
+  width:
+    50px;
+
+  height:
+    50px;
+
+  flex:
+    0 0 50px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    16px;
+}
+
+
+.admin-action-icon.red {
+  background:
+    rgba(196,0,36,.09);
+
+  color:
+    #c40024;
+}
+
+
+.admin-action-icon.black {
+  background:
+    rgba(17,24,39,.08);
+
+  color:
+    #111827;
+}
+
+
+.admin-action-icon svg,
+.admin-action-icon i {
+  width:
+    24px;
+
+  height:
+    24px;
+
+  stroke-width:
+    2.3;
+}
+
+
+.admin-action-card h2 {
+  margin:
+    0;
+
+  color:
+    #111827;
+
+  font-size:
+    18px;
+
+  font-weight:
+    950;
+}
+
+
+.admin-action-card p {
+  margin:
+    7px 0 0;
+
+  color:
+    #64748b;
+
+  line-height:
+    1.45;
+
+  font-size:
+    12px;
+
+  font-weight:
+    650;
+}
+
+
+/* =========================================================
+   NIXOS / DIFFUSION
+   ========================================================= */
+
+.admin-nixos-panel {
+  margin:
+    0 0 26px;
+
+  width:
+    100%;
+}
+
+
+.admin-nixos-heading {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+
+  margin-bottom:
+    20px;
+}
+
+
+.admin-nixos-heading h2 {
+  margin:
+    0 0 6px;
+
+  color:
+    #111827;
+
+  font-size:
+    23px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    -.025em;
+}
+
+
+.admin-nixos-heading p {
+  margin:
+    0;
+
+  color:
+    #64748b;
+
+  font-size:
+    13px;
+
+  font-weight:
+    650;
+}
+
+
+.admin-nixos-refresh {
+  min-height:
+    42px;
+
+  padding:
+    0 16px;
+
+  border:
+    0;
+
+  border-radius:
+    12px;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+
+  cursor:
+    pointer;
+
+  font-size:
+    12px;
+
+  font-weight:
+    850;
+
+  transition:
+    .2s ease;
+}
+
+
+.admin-nixos-refresh:hover {
+  transform:
+    translateY(-1px);
+
+  background:
+    #020617;
+}
+
+
+/* TABLE CONTAINER */
+
+.admin-nixos-table-wrap {
+  width:
+    100%;
+
+  overflow-x:
+    auto;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius:
+    17px;
+
+  background:
+    #ffffff;
+}
+
+
+.admin-nixos-table {
+  width:
+    100%;
+
+  min-width:
+    1380px;
+
+  border-collapse:
+    separate;
+
+  border-spacing:
+    0;
+
+  background:
+    #ffffff;
+}
+
+
+.admin-nixos-table thead {
+  background:
+    linear-gradient(
+      180deg,
+      #fff6f7 0%,
+      #fffafa 100%
+    );
+}
+
+
+.admin-nixos-table th {
+  padding:
+    13px 14px;
+
+  text-align:
+    left;
+
+  border-bottom:
+    1px solid
+    rgba(196,0,36,.10);
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.2;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .05em;
+
+  text-transform:
+    uppercase;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-nixos-table td {
+  padding:
+    15px 14px;
+
+  border-bottom:
+    1px solid
+    #eef2f7;
+
+  color:
+    #334155;
+
+  font-size:
+    12px;
+
+  vertical-align:
+    middle;
+}
+
+
+.admin-nixos-table tbody tr {
+  transition:
+    .18s ease;
+}
+
+
+.admin-nixos-table tbody tr:hover {
+  background:
+    rgba(196,0,36,.025);
+}
+
+
+.admin-nixos-table tbody tr:last-child td {
+  border-bottom:
+    0;
+}
+
+
+/* EXAM INFO */
+
+.admin-nixos-exam,
+.admin-nixos-date {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    4px;
+}
+
+
+.admin-nixos-exam strong,
+.admin-nixos-date strong {
+  color:
+    #111827;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-nixos-exam span,
+.admin-nixos-date span {
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-nixos-table code {
+  display:
+    inline-flex;
+
+  padding:
+    6px 8px;
+
+  border-radius:
+    8px;
+
+  background:
+    #fff1f2;
+
+  color:
+    #991b1b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  white-space:
+    nowrap;
+}
+
+
+/* BUTTONS */
+
+.admin-nixos-view,
+.admin-roster-view,
+.admin-nixos-download,
+.admin-send-exam {
+  min-height:
+    38px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    6px;
+
+  padding:
+    0 12px;
+
+  border:
+    0;
+
+  border-radius:
+    10px;
+
+  cursor:
+    pointer;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    11px;
+
+  font-weight:
+    850;
+
+  transition:
+    .2s ease;
+}
+
+
+.admin-nixos-view,
+.admin-roster-view {
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+}
+
+
+.admin-nixos-view:hover,
+.admin-roster-view:hover {
+  transform:
+    translateY(-1px);
+
+  background:
+    #020617;
+}
+
+
+.admin-nixos-download {
+  background:
+    #16a34a;
+
+  color:
+    #ffffff;
+}
+
+
+.admin-nixos-download:hover {
+  transform:
+    translateY(-1px);
+
+  background:
+    #15803d;
+}
+
+
+.admin-send-exam {
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #c40024 100%
+    );
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 8px 18px
+    rgba(196,0,36,.16);
+}
+
+
+.admin-send-exam:hover:not(:disabled) {
+  transform:
+    translateY(-1px);
+
+  background:
+    linear-gradient(
+      135deg,
+      #020617 0%,
+      #8b0018 100%
+    );
+}
+
+
+.admin-send-exam:disabled {
+  opacity:
+    .55;
+
+  cursor:
+    not-allowed;
+
+  transform:
+    none;
+}
+
+
+/* ROSTER */
+
+.admin-roster-count strong {
+  display:
+    block;
+
+  color:
+    #111827;
+
+  font-size:
+    17px;
+
+  font-weight:
+    950;
+}
+
+
+.admin-roster-count span {
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    750;
+}
+
+
+.admin-roster-filename {
+  display:
+    block;
+
+  max-width:
+    145px;
+
+  margin-top:
+    5px;
+
+  overflow:
+    hidden;
+
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-delivery-status {
+  display:
+    inline-flex;
+
+  padding:
+    6px 9px;
+
+  border-radius:
+    999px;
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .05em;
+
+  white-space:
+    nowrap;
+}
+
+
+.admin-delivery-status.ready {
+  background:
+    #fff7ed;
+
+  color:
+    #c2410c;
+}
+
+
+.admin-delivery-status.sent {
+  background:
+    #dcfce7;
+
+  color:
+    #15803d;
+}
+
+
+/* RESPONSIVE */
+
+@media (
+  max-width: 1200px
+) {
+
+  .admin-dashboard-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0,1fr)
+      );
+  }
+
+}
+
+
+@media (
+  max-width: 700px
+) {
+
+  .admin-main {
+    width:
+      calc(100% - 20px);
+  }
+
+
+  .admin-dashboard-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .admin-panel,
+  .admin-nixos-panel {
+    padding:
+      20px;
+  }
+
+}
+
+
+/* =========================================================
+   SECUREEXAM ADMIN ROSTER MODAL V2
+   ========================================================= */
+
+.admin-roster-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 12000 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 28px !important;
+
+  background:
+    rgba(2, 6, 23, 0.70) !important;
+
+  backdrop-filter:
+    blur(8px) !important;
+
+  -webkit-backdrop-filter:
+    blur(8px) !important;
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.admin-roster-modal {
+  width:
+    min(1000px, 95vw) !important;
+
+  max-height:
+    88vh !important;
+
+  display:
+    flex !important;
+
+  flex-direction:
+    column !important;
+
+  overflow:
+    hidden !important;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.16) !important;
+
+  border-radius:
+    26px !important;
+
+  background:
+    #ffffff !important;
+
+  box-shadow:
+    0 36px 100px
+    rgba(0, 0, 0, 0.38),
+    0 12px 30px
+    rgba(196, 0, 36, 0.14) !important;
+
+  animation:
+    secureExamRosterModalIn
+    .20s ease-out !important;
+}
+
+
+@keyframes secureExamRosterModalIn {
+
+  from {
+    opacity: 0;
+    transform:
+      translateY(14px)
+      scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.admin-roster-modal-header {
+  flex:
+    0 0 auto !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap:
+    24px !important;
+
+  padding:
+    25px 28px !important;
+
+  color:
+    #ffffff !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1b1829 0%,
+      #4c0a28 34%,
+      #7c0025 62%,
+      #a50024 82%,
+      #c40024 100%
+    ) !important;
+}
+
+
+.admin-roster-modal-header > div {
+  min-width:
+    0 !important;
+}
+
+
+.admin-roster-modal-header > div > span {
+  display:
+    inline-flex !important;
+
+  margin-bottom:
+    7px !important;
+
+  color:
+    rgba(255, 255, 255, .70) !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    950 !important;
+
+  letter-spacing:
+    .12em !important;
+
+  text-transform:
+    uppercase !important;
+}
+
+
+.admin-roster-modal-header h2 {
+  margin:
+    0 !important;
+
+  color:
+    #ffffff !important;
+
+  font-size:
+    25px !important;
+
+  font-weight:
+    950 !important;
+
+  letter-spacing:
+    -.03em !important;
+}
+
+
+.admin-roster-modal-header p {
+  margin:
+    7px 0 0 !important;
+
+  color:
+    rgba(255, 255, 255, .80) !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    650 !important;
+}
+
+
+/* CLOSE */
+
+.admin-roster-close {
+  min-width:
+    92px !important;
+
+  height:
+    44px !important;
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  border:
+    1px solid
+    rgba(255,255,255,.10) !important;
+
+  border-radius:
+    13px !important;
+
+  background:
+    #0f172a !important;
+
+  color:
+    #ffffff !important;
+
+  cursor:
+    pointer !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    900 !important;
+
+  transition:
+    .2s ease !important;
+}
+
+
+.admin-roster-close:hover {
+  transform:
+    translateY(-1px) !important;
+
+  background:
+    #020617 !important;
+
+  box-shadow:
+    0 10px 20px
+    rgba(0,0,0,.22) !important;
+}
+
+
+/* =========================================================
+   BODY
+   ========================================================= */
+
+.admin-roster-modal-body {
+  flex:
+    1 1 auto !important;
+
+  min-height:
+    0 !important;
+
+  overflow:
+    auto !important;
+
+  padding:
+    24px 26px !important;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(196,0,36,.035),
+      transparent 35%
+    ),
+    #ffffff !important;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.admin-roster-modal-table {
+  width:
+    100% !important;
+
+  border-collapse:
+    separate !important;
+
+  border-spacing:
+    0 !important;
+
+  overflow:
+    hidden !important;
+
+  border:
+    1px solid
+    #e5e7eb !important;
+
+  border-radius:
+    17px !important;
+
+  background:
+    #ffffff !important;
+}
+
+
+.admin-roster-modal-table thead {
+  background:
+    linear-gradient(
+      180deg,
+      #fff5f7 0%,
+      #fffafa 100%
+    ) !important;
+}
+
+
+.admin-roster-modal-table th {
+  position:
+    sticky !important;
+
+  top:
+    0 !important;
+
+  z-index:
+    2 !important;
+
+  padding:
+    14px 16px !important;
+
+  text-align:
+    left !important;
+
+  border-bottom:
+    1px solid
+    rgba(196, 0, 36, .11) !important;
+
+  background:
+    #fff7f8 !important;
+
+  color:
+    #64748b !important;
+
+  font-size:
+    10px !important;
+
+  font-weight:
+    950 !important;
+
+  letter-spacing:
+    .065em !important;
+
+  text-transform:
+    uppercase !important;
+
+  white-space:
+    nowrap !important;
+}
+
+
+.admin-roster-modal-table td {
+  padding:
+    15px 16px !important;
+
+  border-bottom:
+    1px solid
+    #eef2f7 !important;
+
+  color:
+    #334155 !important;
+
+  font-size:
+    13px !important;
+
+  font-weight:
+    650 !important;
+}
+
+
+.admin-roster-modal-table tbody tr {
+  transition:
+    .18s ease !important;
+}
+
+
+.admin-roster-modal-table tbody tr:hover {
+  background:
+    rgba(196,0,36,.035) !important;
+}
+
+
+.admin-roster-modal-table tbody tr:last-child td {
+  border-bottom:
+    0 !important;
+}
+
+
+/* NUMERO ETUDIANT */
+
+.admin-roster-modal-table td strong {
+  color:
+    #c40024 !important;
+
+  font-weight:
+    950 !important;
+}
+
+
+/* PREMIERE COLONNE NUMERO LIGNE */
+
+.admin-roster-modal-table th:first-child,
+.admin-roster-modal-table td:first-child {
+  width:
+    60px !important;
+
+  text-align:
+    center !important;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.admin-roster-modal-footer {
+  flex:
+    0 0 auto !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    space-between !important;
+
+  gap:
+    18px !important;
+
+  padding:
+    18px 26px !important;
+
+  border-top:
+    1px solid
+    #e5e7eb !important;
+
+  background:
+    #f8fafc !important;
+}
+
+
+.admin-roster-modal-footer > span {
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  gap:
+    7px !important;
+
+  color:
+    #475569 !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    850 !important;
+}
+
+
+/* petit point statut */
+
+.admin-roster-modal-footer > span::before {
+  content:
+    "" !important;
+
+  width:
+    9px !important;
+
+  height:
+    9px !important;
+
+  border-radius:
+    50% !important;
+
+  background:
+    #16a34a !important;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(22,163,74,.12) !important;
+}
+
+
+/* =========================================================
+   ENVOYER AUX ETUDIANTS
+   ========================================================= */
+
+.admin-roster-modal-footer
+.admin-send-exam {
+  min-width:
+    205px !important;
+
+  height:
+    46px !important;
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  gap:
+    9px !important;
+
+  padding:
+    0 18px !important;
+
+  border:
+    none !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #7c0025 45%,
+      #c40024 100%
+    ) !important;
+
+  color:
+    #ffffff !important;
+
+  cursor:
+    pointer !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    950 !important;
+
+  box-shadow:
+    0 12px 26px
+    rgba(196,0,36,.22) !important;
+
+  transition:
+    .2s ease !important;
+}
+
+
+.admin-roster-modal-footer
+.admin-send-exam:hover:not(:disabled) {
+  transform:
+    translateY(-2px) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #020617 0%,
+      #8b0018 50%,
+      #c40024 100%
+    ) !important;
+
+  box-shadow:
+    0 16px 34px
+    rgba(196,0,36,.28) !important;
+}
+
+
+.admin-roster-modal-footer
+.admin-send-exam svg,
+.admin-roster-modal-footer
+.admin-send-exam i {
+  width:
+    18px !important;
+
+  height:
+    18px !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .admin-roster-backdrop {
+    padding:
+      10px !important;
+  }
+
+
+  .admin-roster-modal {
+    width:
+      100% !important;
+
+    max-height:
+      94vh !important;
+
+    border-radius:
+      20px !important;
+  }
+
+
+  .admin-roster-modal-header {
+    padding:
+      20px !important;
+  }
+
+
+  .admin-roster-modal-body {
+    padding:
+      14px !important;
+  }
+
+
+  .admin-roster-modal-footer {
+    flex-direction:
+      column !important;
+
+    align-items:
+      stretch !important;
+  }
+
+
+  .admin-roster-modal-footer
+  .admin-send-exam {
+    width:
+      100% !important;
+  }
+
+}

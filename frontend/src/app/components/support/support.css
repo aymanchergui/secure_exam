@@ -430,3 +430,1714 @@
     min-height: 130px;
   }
 }
+
+
+/* SECUREEXAM SUPPORT SPACES START */
+
+/* =========================================================
+   CARTE SUPPORT PLUS LARGE
+   ========================================================= */
+
+.support-card {
+  width:
+    min(
+      900px,
+      calc(100vw - 64px)
+    ) !important;
+
+  max-width:
+    900px !important;
+}
+
+
+/* =========================================================
+   SECTION CHOIX ESPACE
+   ========================================================= */
+
+.support-space-section {
+  margin:
+    2px
+    0
+    22px;
+
+  padding-bottom:
+    22px;
+
+  border-bottom:
+    1px solid #edf0f4;
+}
+
+.support-space-heading {
+  display:
+    flex;
+
+  align-items:
+    baseline;
+
+  justify-content:
+    space-between;
+
+  gap:
+    14px;
+
+  margin-bottom:
+    11px;
+}
+
+.support-space-heading > span {
+  color:
+    #374151;
+
+  font-size:
+    13.5px;
+
+  font-weight:
+    900;
+}
+
+.support-space-heading > small {
+  color:
+    #94a3b8;
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   GRID 3 CARTES
+   ========================================================= */
+
+.support-space-grid {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap:
+    11px;
+}
+
+
+/* =========================================================
+   CARTE GENERALE
+   ========================================================= */
+
+.support-space-card {
+  position:
+    relative;
+
+  min-width:
+    0;
+
+  min-height:
+    94px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    12px;
+
+  padding:
+    13px
+    38px
+    13px
+    13px;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius:
+    17px;
+
+  background:
+    #ffffff;
+
+  color:
+    #111827;
+
+  text-align:
+    left;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 8px 20px
+    rgba(15, 23, 42, 0.04);
+
+  transition:
+    transform .20s ease,
+    border-color .20s ease,
+    box-shadow .20s ease,
+    background .20s ease;
+}
+
+.support-space-card:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 14px 30px
+    rgba(15, 23, 42, 0.09);
+}
+
+
+/* =========================================================
+   ICONE
+   ========================================================= */
+
+.support-space-icon {
+  width:
+    43px;
+
+  height:
+    43px;
+
+  flex:
+    0 0 43px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    14px;
+
+  transition:
+    .20s ease;
+}
+
+.support-space-icon i,
+.support-space-icon svg {
+  width:
+    21px;
+
+  height:
+    21px;
+
+  stroke-width:
+    2.4;
+}
+
+
+/* =========================================================
+   TEXTE
+   ========================================================= */
+
+.support-space-content {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    4px;
+}
+
+.support-space-content strong {
+  color:
+    #111827;
+
+  font-size:
+    13px;
+
+  font-weight:
+    950;
+
+  line-height:
+    1.2;
+}
+
+.support-space-content span {
+  color:
+    #64748b;
+
+  font-size:
+    10.5px;
+
+  font-weight:
+    700;
+
+  line-height:
+    1.35;
+}
+
+
+/* =========================================================
+   CHECK
+   ========================================================= */
+
+.support-space-check {
+  position:
+    absolute;
+
+  top:
+    10px;
+
+  right:
+    10px;
+
+  width:
+    17px !important;
+
+  height:
+    17px !important;
+
+  opacity:
+    0;
+
+  transform:
+    scale(.75);
+
+  transition:
+    .20s ease;
+}
+
+.support-space-card.active
+.support-space-check {
+  opacity:
+    1;
+
+  transform:
+    scale(1);
+}
+
+
+/* =========================================================
+   ETUDIANT = BORDEAUX
+   ========================================================= */
+
+.support-space-card.student
+.support-space-icon {
+  background:
+    rgba(107, 67, 80, 0.10);
+
+  color:
+    #6B4350;
+}
+
+.support-space-card.student:hover {
+  border-color:
+    rgba(107, 67, 80, 0.25);
+}
+
+.support-space-card.student.active {
+  border-color:
+    rgba(107, 67, 80, 0.40);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(107,67,80,.09) 0%,
+      rgba(255,255,255,1) 100%
+    );
+
+  box-shadow:
+    0 12px 26px
+    rgba(107,67,80,.12);
+}
+
+.support-space-card.student.active
+.support-space-icon {
+  background:
+    #6B4350;
+
+  color:
+    #ffffff;
+}
+
+.support-space-card.student.active
+.support-space-check {
+  color:
+    #6B4350;
+}
+
+
+/* =========================================================
+   PROFESSEUR = ROUGE
+   ========================================================= */
+
+.support-space-card.professor
+.support-space-icon {
+  background:
+    rgba(196, 0, 36, 0.09);
+
+  color:
+    #c40024;
+}
+
+.support-space-card.professor:hover {
+  border-color:
+    rgba(196, 0, 36, 0.25);
+}
+
+.support-space-card.professor.active {
+  border-color:
+    rgba(196, 0, 36, 0.36);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(196,0,36,.075) 0%,
+      rgba(255,255,255,1) 100%
+    );
+
+  box-shadow:
+    0 12px 26px
+    rgba(196,0,36,.11);
+}
+
+.support-space-card.professor.active
+.support-space-icon {
+  background:
+    #c40024;
+
+  color:
+    #ffffff;
+}
+
+.support-space-card.professor.active
+.support-space-check {
+  color:
+    #c40024;
+}
+
+
+/* =========================================================
+   ADMIN = DARK
+   ========================================================= */
+
+.support-space-card.admin
+.support-space-icon {
+  background:
+    rgba(17, 24, 39, 0.08);
+
+  color:
+    #111827;
+}
+
+.support-space-card.admin:hover {
+  border-color:
+    rgba(17, 24, 39, 0.24);
+}
+
+.support-space-card.admin.active {
+  border-color:
+    rgba(17, 24, 39, 0.30);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(17,24,39,.075) 0%,
+      rgba(255,255,255,1) 100%
+    );
+
+  box-shadow:
+    0 12px 26px
+    rgba(17,24,39,.11);
+}
+
+.support-space-card.admin.active
+.support-space-icon {
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+}
+
+.support-space-card.admin.active
+.support-space-check {
+  color:
+    #111827;
+}
+
+
+/* =========================================================
+   NOTE DYNAMIQUE
+   ========================================================= */
+
+.support-note {
+  transition:
+    background .20s ease,
+    color .20s ease,
+    border-color .20s ease;
+}
+
+.support-note.student {
+  background:
+    rgba(107, 67, 80, 0.08);
+
+  color:
+    #6B4350;
+}
+
+.support-note.professor {
+  background:
+    rgba(196, 0, 36, 0.075);
+
+  color:
+    #8b0018;
+}
+
+.support-note.admin {
+  background:
+    rgba(17, 24, 39, 0.065);
+
+  color:
+    #111827;
+}
+
+.support-note strong {
+  font-weight:
+    950;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+  .support-main-layout {
+    width:
+      min(
+        900px,
+        calc(100% - 40px)
+      ) !important;
+  }
+
+  .support-card {
+    width:
+      100% !important;
+
+    max-width:
+      900px !important;
+  }
+
+}
+
+
+@media (max-width: 760px) {
+
+  .support-space-heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+    gap:
+      3px;
+  }
+
+  .support-space-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .support-space-card {
+    min-height:
+      78px;
+  }
+
+}
+
+
+@media (max-width: 560px) {
+
+  .support-space-card {
+    padding:
+      12px
+      38px
+      12px
+      12px;
+  }
+
+}
+
+/* SECUREEXAM SUPPORT SPACES END */
+
+
+/* SECUREEXAM SUPPORT PAGE FIT START */
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+
+.support-main-layout {
+  width: 100% !important;
+
+  margin:
+    22px
+    0
+    30px !important;
+}
+
+.support-content {
+  width: 100% !important;
+
+  padding:
+    0
+    clamp(24px, 4vw, 72px) !important;
+
+  box-sizing:
+    border-box;
+}
+
+
+/* =========================================================
+   CARTE SUPPORT
+   S'adapte à l'écran sans devenir énorme
+   ========================================================= */
+
+.support-card {
+  width:
+    min(
+      1160px,
+      100%
+    ) !important;
+
+  max-width:
+    1160px !important;
+
+  margin:
+    0 auto !important;
+
+  padding:
+    clamp(
+      24px,
+      2vw,
+      30px
+    ) !important;
+
+  box-sizing:
+    border-box;
+}
+
+
+/* Header légèrement plus compact */
+.support-header {
+  margin-bottom:
+    18px !important;
+}
+
+
+/* =========================================================
+   SELECTION DU STATUT
+   ========================================================= */
+
+.support-space-section {
+  margin:
+    0
+    0
+    18px !important;
+
+  padding-bottom:
+    18px !important;
+}
+
+
+/* Titre uniquement à gauche */
+.support-space-heading {
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    flex-start !important;
+
+  margin-bottom:
+    11px !important;
+}
+
+.support-space-heading > span {
+  color:
+    #374151 !important;
+
+  font-size:
+    14px !important;
+
+  font-weight:
+    900 !important;
+}
+
+
+/* Ancien sous-texte éventuel caché */
+.support-space-heading > small {
+  display:
+    none !important;
+}
+
+
+/* =========================================================
+   CARTES
+   ========================================================= */
+
+.support-space-grid {
+  gap:
+    12px !important;
+}
+
+.support-space-card {
+  min-height:
+    90px !important;
+
+  border:
+    1px solid
+    #e2e8f0 !important;
+
+  background:
+    #ffffff !important;
+
+  box-shadow:
+    0 7px 18px
+    rgba(15, 23, 42, 0.04) !important;
+
+  transition:
+    transform .20s ease,
+    border-color .20s ease,
+    background .20s ease,
+    box-shadow .20s ease !important;
+}
+
+
+/* =========================================================
+   HOVER
+   Même rouge clair pour les 3 statuts
+   ========================================================= */
+
+.support-space-card:hover {
+  transform:
+    translateY(-2px) !important;
+
+  border-color:
+    rgba(196, 0, 36, 0.24) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff1f3 0%,
+      #fff8f9 100%
+    ) !important;
+
+  box-shadow:
+    0 13px 28px
+    rgba(196, 0, 36, 0.09) !important;
+}
+
+
+/* =========================================================
+   CARTE SELECTIONNEE
+   Même style rouge clair pour étudiant / prof / admin
+   ========================================================= */
+
+.support-space-card.active {
+  border-color:
+    rgba(196, 0, 36, 0.34) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffecef 0%,
+      #fff6f7 100%
+    ) !important;
+
+  box-shadow:
+    0 14px 30px
+    rgba(196, 0, 36, 0.11) !important;
+}
+
+
+/* Toutes les icônes prennent le rouge au hover */
+.support-space-card:hover
+.support-space-icon {
+  background:
+    rgba(196, 0, 36, 0.10) !important;
+
+  color:
+    #c40024 !important;
+}
+
+
+/* Et au statut sélectionné */
+.support-space-card.active
+.support-space-icon {
+  background:
+    rgba(196, 0, 36, 0.13) !important;
+
+  color:
+    #c40024 !important;
+}
+
+
+/* Texte titre sélectionné */
+.support-space-card.active
+.support-space-content strong {
+  color:
+    #8b0018 !important;
+}
+
+
+/* Check sélectionné */
+.support-space-card.active
+.support-space-check {
+  color:
+    #c40024 !important;
+
+  opacity:
+    1 !important;
+
+  transform:
+    scale(1) !important;
+}
+
+
+/* =========================================================
+   FORMULAIRE PLUS COMPACT
+   ========================================================= */
+
+.support-form {
+  gap:
+    13px !important;
+}
+
+.form-grid {
+  gap:
+    14px !important;
+}
+
+.support-form textarea {
+  min-height:
+    clamp(
+      105px,
+      13vh,
+      135px
+    ) !important;
+
+  max-height:
+    170px !important;
+}
+
+.support-submit-button {
+  margin-top:
+    0 !important;
+}
+
+.support-note {
+  margin-top:
+    16px !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+  .support-main-layout {
+    width:
+      100% !important;
+
+    margin:
+      22px
+      0
+      32px !important;
+  }
+
+  .support-content {
+    padding:
+      0
+      24px !important;
+  }
+
+  .support-card {
+    width:
+      min(
+        900px,
+        100%
+      ) !important;
+  }
+
+}
+
+
+@media (max-width: 760px) {
+
+  .support-content {
+    padding:
+      0
+      16px !important;
+  }
+
+  .support-space-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .support-space-card {
+    min-height:
+      76px !important;
+  }
+
+}
+
+
+@media (max-width: 560px) {
+
+  .support-card {
+    padding:
+      20px !important;
+  }
+
+}
+
+/* SECUREEXAM SUPPORT PAGE FIT END */
+
+
+/* SECUREEXAM SUPPORT COMPACT FINAL START */
+
+/* =========================================================
+   LAYOUT GENERAL
+   ========================================================= */
+
+.support-main-layout {
+  width: 100% !important;
+
+  margin:
+    24px
+    0
+    34px !important;
+}
+
+.support-content {
+  width: 100% !important;
+
+  display: flex !important;
+
+  justify-content: center !important;
+
+  padding:
+    0
+    32px !important;
+
+  box-sizing:
+    border-box;
+}
+
+
+/* =========================================================
+   CARTE SUPPORT
+   Moins horizontale
+   ========================================================= */
+
+.support-card {
+  width:
+    min(
+      920px,
+      calc(100vw - 80px)
+    ) !important;
+
+  max-width:
+    920px !important;
+
+  margin:
+    0 auto !important;
+
+  padding:
+    28px !important;
+
+  box-sizing:
+    border-box;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.support-header {
+  margin-bottom:
+    20px !important;
+}
+
+.support-card h1 {
+  font-size:
+    28px !important;
+}
+
+.support-card p {
+  max-width:
+    760px;
+}
+
+
+/* =========================================================
+   SELECTION STATUT
+   ========================================================= */
+
+.support-space-section {
+  margin:
+    0
+    0
+    18px !important;
+
+  padding-bottom:
+    18px !important;
+}
+
+.support-space-heading {
+  margin-bottom:
+    10px !important;
+}
+
+
+/* =========================================================
+   3 CARTES
+   ========================================================= */
+
+.support-space-grid {
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    ) !important;
+
+  gap:
+    10px !important;
+}
+
+.support-space-card {
+  min-height:
+    86px !important;
+
+  padding:
+    12px
+    34px
+    12px
+    12px !important;
+
+  border-radius:
+    15px !important;
+}
+
+.support-space-icon {
+  width:
+    40px !important;
+
+  height:
+    40px !important;
+
+  flex:
+    0 0 40px !important;
+
+  border-radius:
+    12px !important;
+}
+
+.support-space-content strong {
+  font-size:
+    12.5px !important;
+}
+
+.support-space-content span {
+  font-size:
+    10px !important;
+
+  line-height:
+    1.3 !important;
+}
+
+
+/* =========================================================
+   HOVER + SELECTION
+   ROUGE CLAIR POUR TOUT LE MONDE
+   ========================================================= */
+
+.support-space-card:hover,
+.support-space-card.active {
+  border-color:
+    rgba(196, 0, 36, 0.28) !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff0f3 0%,
+      #fff8f9 100%
+    ) !important;
+
+  box-shadow:
+    0 12px 26px
+    rgba(196, 0, 36, 0.09) !important;
+}
+
+.support-space-card:hover
+.support-space-icon,
+.support-space-card.active
+.support-space-icon {
+  background:
+    rgba(196, 0, 36, 0.11) !important;
+
+  color:
+    #c40024 !important;
+}
+
+.support-space-card.active
+.support-space-content strong {
+  color:
+    #8b0018 !important;
+}
+
+.support-space-card.active
+.support-space-check {
+  color:
+    #c40024 !important;
+}
+
+
+/* =========================================================
+   FORMULAIRE
+   ========================================================= */
+
+.support-form {
+  gap:
+    14px !important;
+}
+
+.form-grid {
+  gap:
+    14px !important;
+}
+
+.support-form input,
+.support-form select {
+  height:
+    48px !important;
+}
+
+.support-form textarea {
+  min-height:
+    118px !important;
+
+  max-height:
+    170px !important;
+}
+
+.support-submit-button {
+  height:
+    48px !important;
+
+  margin-top:
+    0 !important;
+}
+
+
+/* =========================================================
+   ANCIEN BANDEAU STATUT
+   Même s'il restait quelque part : invisible
+   ========================================================= */
+
+.support-note {
+  display:
+    none !important;
+}
+
+
+/* =========================================================
+   LAPTOP
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .support-card {
+    width:
+      min(
+        860px,
+        calc(100vw - 60px)
+      ) !important;
+  }
+
+}
+
+
+/* =========================================================
+   TABLETTE
+   ========================================================= */
+
+@media (max-width: 760px) {
+
+  .support-content {
+    padding:
+      0
+      16px !important;
+  }
+
+  .support-card {
+    width:
+      100% !important;
+
+    padding:
+      24px !important;
+  }
+
+  .support-space-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .support-space-card {
+    min-height:
+      74px !important;
+  }
+
+  .form-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 520px) {
+
+  .support-card {
+    padding:
+      20px !important;
+  }
+
+}
+
+/* SECUREEXAM SUPPORT COMPACT FINAL END */
+
+
+/* SECUREEXAM SUPPORT RESPONSIVE FINAL START */
+
+/* =========================================================
+   BASE DESKTOP
+   ========================================================= */
+
+.support-main-layout {
+  width: 100% !important;
+
+  margin:
+    clamp(16px, 2.4vh, 28px)
+    0
+    clamp(24px, 3vh, 38px) !important;
+}
+
+.support-content {
+  width: 100% !important;
+
+  padding-left:
+    clamp(18px, 3vw, 54px) !important;
+
+  padding-right:
+    clamp(18px, 3vw, 54px) !important;
+
+  box-sizing: border-box;
+}
+
+.support-card {
+  width:
+    min(
+      920px,
+      calc(100vw - 96px)
+    ) !important;
+
+  max-width:
+    920px !important;
+
+  padding:
+    clamp(22px, 1.8vw, 28px) !important;
+
+  border-radius:
+    clamp(22px, 1.6vw, 28px) !important;
+}
+
+
+/* =========================================================
+   LAPTOP 14 / 15 POUCES
+   1280 -> 1599 px
+   ========================================================= */
+
+@media
+  (min-width: 1280px)
+  and (max-width: 1599px) {
+
+  .support-main-layout {
+    margin-top:
+      16px !important;
+
+    margin-bottom:
+      22px !important;
+  }
+
+  .support-card {
+    width:
+      min(
+        840px,
+        calc(100vw - 120px)
+      ) !important;
+
+    max-width:
+      840px !important;
+
+    padding:
+      22px !important;
+  }
+
+  .support-header {
+    gap:
+      12px !important;
+
+    margin-bottom:
+      16px !important;
+  }
+
+  .support-icon {
+    width:
+      46px !important;
+
+    height:
+      46px !important;
+
+    border-radius:
+      15px !important;
+  }
+
+  .support-card h1 {
+    font-size:
+      26px !important;
+  }
+
+  .support-card p {
+    margin-top:
+      5px !important;
+
+    font-size:
+      12.5px !important;
+
+    line-height:
+      1.42 !important;
+  }
+
+  .support-space-section {
+    margin-bottom:
+      14px !important;
+
+    padding-bottom:
+      14px !important;
+  }
+
+  .support-space-heading {
+    margin-bottom:
+      8px !important;
+  }
+
+  .support-space-grid {
+    gap:
+      8px !important;
+  }
+
+  .support-space-card {
+    min-height:
+      74px !important;
+
+    padding:
+      10px
+      30px
+      10px
+      10px !important;
+
+    gap:
+      9px !important;
+  }
+
+  .support-space-icon {
+    width:
+      36px !important;
+
+    height:
+      36px !important;
+
+    flex:
+      0 0 36px !important;
+
+    border-radius:
+      11px !important;
+  }
+
+  .support-space-icon svg,
+  .support-space-icon i {
+    width:
+      18px !important;
+
+    height:
+      18px !important;
+  }
+
+  .support-space-content strong {
+    font-size:
+      11.5px !important;
+  }
+
+  .support-space-content span {
+    font-size:
+      9.5px !important;
+
+    line-height:
+      1.25 !important;
+  }
+
+  .support-form {
+    gap:
+      11px !important;
+  }
+
+  .form-grid {
+    gap:
+      11px !important;
+  }
+
+  .support-form label {
+    gap:
+      5px !important;
+
+    font-size:
+      12.5px !important;
+  }
+
+  .support-form input,
+  .support-form select {
+    height:
+      44px !important;
+
+    font-size:
+      13px !important;
+  }
+
+  .support-form textarea {
+    min-height:
+      96px !important;
+
+    max-height:
+      135px !important;
+
+    font-size:
+      13px !important;
+  }
+
+  .support-submit-button {
+    height:
+      46px !important;
+
+    font-size:
+      13.5px !important;
+  }
+
+}
+
+
+/* =========================================================
+   LAPTOP AVEC PEU DE HAUTEUR
+   Ex: 1366x768 / 1536x864
+   ========================================================= */
+
+@media
+  (min-width: 1100px)
+  and (max-height: 850px) {
+
+  .support-main-layout {
+    margin-top:
+      12px !important;
+
+    margin-bottom:
+      18px !important;
+  }
+
+  .support-card {
+    padding-top:
+      18px !important;
+
+    padding-bottom:
+      18px !important;
+  }
+
+  .support-header {
+    margin-bottom:
+      12px !important;
+  }
+
+  .support-space-section {
+    margin-bottom:
+      11px !important;
+
+    padding-bottom:
+      11px !important;
+  }
+
+  .support-space-card {
+    min-height:
+      68px !important;
+  }
+
+  .support-form {
+    gap:
+      9px !important;
+  }
+
+  .support-form textarea {
+    min-height:
+      82px !important;
+
+    max-height:
+      110px !important;
+  }
+
+  .support-submit-button {
+    height:
+      44px !important;
+  }
+
+}
+
+
+/* =========================================================
+   FULL HD
+   ========================================================= */
+
+@media
+  (min-width: 1600px)
+  and (max-width: 2199px) {
+
+  .support-card {
+    width:
+      min(
+        940px,
+        calc(100vw - 120px)
+      ) !important;
+
+    max-width:
+      940px !important;
+
+    padding:
+      28px !important;
+  }
+
+  .support-space-card {
+    min-height:
+      86px !important;
+  }
+
+  .support-form textarea {
+    min-height:
+      118px !important;
+  }
+
+}
+
+
+/* =========================================================
+   GRAND ECRAN / 2K
+   ========================================================= */
+
+@media (min-width: 2200px) {
+
+  .support-card {
+    width:
+      min(
+        1080px,
+        62vw
+      ) !important;
+
+    max-width:
+      1080px !important;
+
+    padding:
+      34px !important;
+
+    border-radius:
+      30px !important;
+  }
+
+  .support-header {
+    margin-bottom:
+      24px !important;
+  }
+
+  .support-card h1 {
+    font-size:
+      32px !important;
+  }
+
+  .support-card p {
+    font-size:
+      14px !important;
+  }
+
+  .support-space-card {
+    min-height:
+      98px !important;
+  }
+
+  .support-space-content strong {
+    font-size:
+      14px !important;
+  }
+
+  .support-space-content span {
+    font-size:
+      11px !important;
+  }
+
+  .support-form input,
+  .support-form select {
+    height:
+      52px !important;
+  }
+
+  .support-form textarea {
+    min-height:
+      145px !important;
+  }
+
+  .support-submit-button {
+    height:
+      52px !important;
+  }
+
+}
+
+
+/* =========================================================
+   4K
+   ========================================================= */
+
+@media (min-width: 3000px) {
+
+  .support-card {
+    width:
+      min(
+        1180px,
+        55vw
+      ) !important;
+
+    max-width:
+      1180px !important;
+
+    padding:
+      38px !important;
+  }
+
+}
+
+
+/* =========================================================
+   TABLETTE
+   ========================================================= */
+
+@media
+  (min-width: 701px)
+  and (max-width: 1099px) {
+
+  .support-content {
+    padding:
+      0
+      22px !important;
+  }
+
+  .support-card {
+    width:
+      min(
+        820px,
+        100%
+      ) !important;
+
+    max-width:
+      820px !important;
+  }
+
+  .support-space-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      ) !important;
+  }
+
+  .support-space-card {
+    min-height:
+      82px !important;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .support-content {
+    padding:
+      0
+      14px !important;
+  }
+
+  .support-card {
+    width:
+      100% !important;
+
+    max-width:
+      none !important;
+
+    padding:
+      20px !important;
+  }
+
+  .support-space-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .form-grid {
+    grid-template-columns:
+      1fr !important;
+  }
+
+  .support-form textarea {
+    min-height:
+      105px !important;
+  }
+
+}
+
+/* SECUREEXAM SUPPORT RESPONSIVE FINAL END */

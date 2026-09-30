@@ -121,7 +121,7 @@
   stroke-width: 2.45;
 }
 
-.supervisor-card .dashboard-icon {
+.admin-card .dashboard-icon {
   background: rgba(17, 24, 39, 0.08);
   color: #111827;
 }
@@ -140,7 +140,7 @@
   letter-spacing: 0.08em;
 }
 
-.supervisor-card .dashboard-content span {
+.admin-card .dashboard-content span {
   color: #111827;
 }
 
@@ -161,7 +161,7 @@
   line-height: 1.5;
 }
 
-/* Flèches rouges */
+/* FlÃƒÂ¨ches rouges */
 .dashboard-arrow {
   position: absolute;
   right: 22px;
@@ -280,7 +280,7 @@
   padding: 28px 42px 24px !important;
 }
 
-/* Réduit le gap entre le titre et les grandes cartes */
+/* RÃƒÂ©duit le gap entre le titre et les grandes cartes */
 .dashboard-hero {
   margin: 0 auto 30px !important;
 }
@@ -296,7 +296,7 @@
   gap: 16px !important;
 }
 
-/* Petites cards un peu mieux espacées et modernes */
+/* Petites cards un peu mieux espacÃƒÂ©es et modernes */
 .dashboard-footer span {
   min-height: 32px !important;
   padding: 0 16px !important;
@@ -313,12 +313,12 @@
   padding: 34px 42px 32px !important;
 }
 
-/* Moins collé au header, mais pas trop */
+/* Moins collÃƒÂ© au header, mais pas trop */
 .dashboard-hero {
   margin: 0 auto 38px !important;
 }
 
-/* Petit espace contrôlé entre titre et description */
+/* Petit espace contrÃƒÂ´lÃƒÂ© entre titre et description */
 .dashboard-hero p {
   margin-top: 12px !important;
 }
@@ -344,7 +344,7 @@
   padding: 0 18px !important;
 }
 
-/* Sur grand écran, on descend légèrement le bloc du bas pour éviter le gros vide */
+/* Sur grand ÃƒÂ©cran, on descend lÃƒÂ©gÃƒÂ¨rement le bloc du bas pour ÃƒÂ©viter le gros vide */
 @media (min-height: 850px) {
   .dashboard-hero {
     margin-bottom: 44px !important;
@@ -398,10 +398,10 @@
 }
 
 /* =========================================================
-   DASHBOARD - BOUTON SURVEILLANT EN BLACK
+   DASHBOARD - BOUTON ADMIN EN BLACK
    ========================================================= */
 
-.supervisor-card .dashboard-arrow {
+.admin-card .dashboard-arrow {
   background: linear-gradient(135deg, #111827 0%, #020617 100%) !important;
   color: #ffffff !important;
   box-shadow:
@@ -409,7 +409,7 @@
     0 7px 16px rgba(15, 23, 42, 0.16) !important;
 }
 
-.supervisor-card:hover .dashboard-arrow {
+.admin-card:hover .dashboard-arrow {
   background: linear-gradient(135deg, #020617 0%, #111827 100%) !important;
   transform: translateX(4px);
 }
@@ -423,7 +423,7 @@
   overflow: hidden !important;
 }
 
-/* Carte professeur : bordure rouge à gauche */
+/* Carte professeur : bordure rouge ÃƒÂ  gauche */
 .professor-card::before {
   content: "";
   position: absolute;
@@ -436,8 +436,8 @@
   box-shadow: 0 10px 24px rgba(196, 0, 36, 0.22);
 }
 
-/* Carte surveillant : bordure noire à gauche */
-.supervisor-card::before {
+/* Carte administrateur : bordure noire ÃƒÂ  gauche */
+.admin-card::before {
   content: "";
   position: absolute;
   top: 22px;
@@ -454,7 +454,7 @@
    ========================================================= */
 
 .professor-card::before,
-.supervisor-card::before {
+.admin-card::before {
   top: 0 !important;
   left: 0 !important;
   width: 7px !important;
@@ -467,13 +467,13 @@
   background: linear-gradient(180deg, #c40024 0%, #7a0015 100%) !important;
 }
 
-/* Surveillant = noir */
-.supervisor-card::before {
+/* Administrateur = noir */
+.admin-card::before {
   background: linear-gradient(180deg, #111827 0%, #020617 100%) !important;
 }
 
 /* =========================================================
-   ACCUEIL - HOVER CARTE PROF ROUGE / SURVEILLANT NOIR
+   ACCUEIL - HOVER CARTE PROF ROUGE / ADMIN NOIR
    ========================================================= */
 
 /* Hover professeur = rouge */
@@ -499,25 +499,25 @@
   box-shadow: 0 16px 34px rgba(196, 0, 36, 0.28) !important;
 }
 
-/* Hover surveillant = noir */
-.supervisor-card:hover {
+/* Hover administrateur = noir */
+.admin-card:hover {
   border-color: rgba(17, 24, 39, 0.28) !important;
   box-shadow:
     0 30px 70px rgba(17, 24, 39, 0.18),
     0 12px 30px rgba(15, 23, 42, 0.12) !important;
 }
 
-.supervisor-card:hover::before {
+.admin-card:hover::before {
   width: 9px !important;
   background: linear-gradient(180deg, #111827 0%, #020617 100%) !important;
 }
 
-.supervisor-card:hover .dashboard-icon {
+.admin-card:hover .dashboard-icon {
   background: rgba(17, 24, 39, 0.12) !important;
   color: #111827 !important;
 }
 
-.supervisor-card:hover .dashboard-arrow {
+.admin-card:hover .dashboard-arrow {
   background: linear-gradient(135deg, #111827 0%, #020617 100%) !important;
   box-shadow: 0 16px 34px rgba(17, 24, 39, 0.26) !important;
 }
@@ -625,3 +625,1116 @@
     text-align: center;
   }
 }
+
+
+/* =========================================================
+   SECUREEXAM - 3 CARTES SUR UNE LIGNE
+   ========================================================= */
+
+.dashboard-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 24px !important;
+  align-items: stretch !important;
+}
+
+.dashboard-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* =========================================================
+   SECUREEXAM - CARTES PLUS LARGES
+   ========================================================= */
+
+.dashboard-main {
+  width: min(1580px, calc(100% - 70px)) !important;
+  max-width: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.dashboard-grid {
+  width: 100% !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 22px !important;
+}
+
+.dashboard-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  padding-left: 30px !important;
+  padding-right: 30px !important;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-main {
+    width: calc(100% - 40px) !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-main {
+    width: calc(100% - 20px) !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* SECUREEXAM FINAL COLORS START */
+
+/* =========================================================
+   PROFESSOR - RED
+   ========================================================= */
+
+.professor-card .dashboard-icon {
+  background: rgba(196, 0, 36, 0.10) !important;
+  color: #c40024 !important;
+}
+
+.professor-card .dashboard-content span {
+  color: #c40024 !important;
+}
+
+
+/* =========================================================
+   ADMIN - DARK
+   ========================================================= */
+
+.admin-card .dashboard-icon {
+  background: rgba(17, 24, 39, 0.08) !important;
+  color: #111827 !important;
+}
+
+.admin-card .dashboard-content span {
+  color: #111827 !important;
+}
+
+
+/* =========================================================
+   STUDENT - DARK VIOLET
+   ========================================================= */
+
+.student-card::before {
+  content: "";
+  position: absolute;
+  top: 0 !important;
+  left: 0 !important;
+
+  width: 7px !important;
+  height: 100% !important;
+
+  border-radius: 26px 0 0 26px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #5b21b6 0%,
+      #2e1065 100%
+    ) !important;
+
+  box-shadow:
+    0 10px 24px rgba(76, 29, 149, 0.25) !important;
+}
+
+.student-card .dashboard-icon {
+  background: rgba(76, 29, 149, 0.10) !important;
+  color: #4c1d95 !important;
+
+  box-shadow:
+    0 14px 28px rgba(76, 29, 149, 0.13) !important;
+}
+
+.student-card .dashboard-content span {
+  color: #4c1d95 !important;
+}
+
+.student-card .dashboard-arrow {
+  background:
+    linear-gradient(
+      135deg,
+      #5b21b6 0%,
+      #2e1065 100%
+    ) !important;
+
+  color: #ffffff !important;
+
+  box-shadow:
+    0 14px 28px rgba(76, 29, 149, 0.30),
+    0 7px 16px rgba(15, 23, 42, 0.12) !important;
+}
+
+.student-card:hover {
+  border-color: rgba(76, 29, 149, 0.32) !important;
+
+  box-shadow:
+    0 30px 70px rgba(76, 29, 149, 0.18),
+    0 12px 30px rgba(15, 23, 42, 0.10) !important;
+}
+
+.student-card:hover::before {
+  width: 9px !important;
+
+  background:
+    linear-gradient(
+      180deg,
+      #6d28d9 0%,
+      #2e1065 100%
+    ) !important;
+}
+
+.student-card:hover .dashboard-icon {
+  background: rgba(76, 29, 149, 0.15) !important;
+  color: #3b0764 !important;
+}
+
+.student-card:hover .dashboard-arrow {
+  background:
+    linear-gradient(
+      135deg,
+      #6d28d9 0%,
+      #3b0764 100%
+    ) !important;
+
+  box-shadow:
+    0 16px 34px rgba(76, 29, 149, 0.35) !important;
+
+  transform: translateX(4px);
+}
+
+
+/* Same icon proportions */
+
+.professor-card .dashboard-icon i,
+.professor-card .dashboard-icon svg,
+.admin-card .dashboard-icon i,
+.admin-card .dashboard-icon svg,
+.student-card .dashboard-icon i,
+.student-card .dashboard-icon svg {
+  width: 29px !important;
+  height: 29px !important;
+  stroke-width: 2.4 !important;
+}
+
+/* SECUREEXAM FINAL COLORS END */
+
+
+
+
+
+/* SECUREEXAM BRAND START */
+
+/* Ligne de marque principale */
+.dashboard-hero h1 .secureexam-brand {
+  display: flex !important;
+  align-items: baseline;
+  justify-content: center;
+  gap: 16px;
+
+  margin-top: 6px;
+
+  font-size: clamp(42px, 4.8vw, 64px) !important;
+  font-weight: 950;
+  line-height: 1;
+
+  letter-spacing: -0.05em;
+
+  background: linear-gradient(
+    135deg,
+    #c40024 0%,
+    #7a0015 100%
+  ) !important;
+
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Signature ISEN */
+.dashboard-hero h1 .secureexam-by {
+  display: inline-block;
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  font-size: clamp(14px, 1.45vw, 20px);
+  font-weight: 750;
+
+  letter-spacing: 0.03em;
+  line-height: 1;
+
+  color: #475569;
+
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+
+  opacity: 0.88;
+
+  white-space: nowrap;
+
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+
+  .dashboard-hero h1 .secureexam-brand {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 42px !important;
+  }
+
+  .dashboard-hero h1 .secureexam-by {
+    font-size: 14px;
+    transform: none;
+  }
+
+}
+
+/* SECUREEXAM BRAND END */
+
+
+/* SECUREEXAM MODERN BRAND START */
+
+.dashboard-hero h1 .secureexam-brand {
+  display: block !important;
+  margin-top: 6px;
+
+  font-size: clamp(42px, 4.8vw, 64px) !important;
+  font-weight: 950;
+  line-height: 1;
+
+  letter-spacing: -0.05em;
+
+  background: linear-gradient(
+    135deg,
+    #c40024 0%,
+    #7a0015 100%
+  ) !important;
+
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+
+  color: transparent !important;
+}
+
+.dashboard-hero h1 .secureexam-signature {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  margin-top: 12px;
+
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+
+  font-size: 11px !important;
+  font-weight: 800;
+
+  letter-spacing: 0.24em;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+
+  color: #64748b !important;
+
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+}
+
+.dashboard-hero h1 .secureexam-signature .signature-line {
+  display: block;
+
+  width: 34px;
+  height: 1px;
+
+  margin: 0;
+
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(100, 116, 139, 0.75) 100%
+  ) !important;
+}
+
+.dashboard-hero h1 .secureexam-signature .signature-line:last-child {
+  background: linear-gradient(
+    90deg,
+    rgba(100, 116, 139, 0.75) 0%,
+    transparent 100%
+  ) !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-hero h1 .secureexam-brand {
+    font-size: 42px !important;
+  }
+
+  .dashboard-hero h1 .secureexam-signature {
+    margin-top: 9px;
+
+    font-size: 9px !important;
+
+    letter-spacing: 0.20em;
+
+    gap: 9px;
+  }
+
+  .dashboard-hero h1 .secureexam-signature .signature-line {
+    width: 22px;
+  }
+}
+
+/* SECUREEXAM MODERN BRAND END */
+
+
+/* SECUREEXAM BRAND SPACING START */
+
+/* Plus d'air entre ISEN TOULON et le sous-titre */
+.dashboard-hero h1 .secureexam-signature {
+  margin-bottom: 20px !important;
+}
+
+/* SECUREEXAM BRAND SPACING END */
+
+
+/* SECUREEXAM RESPONSIVE DESKTOP START */
+
+/* =========================================================
+   SECUREEXAM - RESPONSIVE DESKTOP
+   1920x1080 = reference
+   2K / 4K = agrandissement progressif
+   ========================================================= */
+
+/* Desktop */
+@media (min-width: 1200px) {
+
+  .dashboard-main {
+    width: min(94vw, 2400px) !important;
+    max-width: none !important;
+
+    margin-left: auto !important;
+    margin-right: auto !important;
+
+    padding-left: clamp(20px, 2vw, 48px) !important;
+    padding-right: clamp(20px, 2vw, 48px) !important;
+
+    padding-top: clamp(24px, 3vh, 42px) !important;
+    padding-bottom: clamp(18px, 2.5vh, 32px) !important;
+  }
+
+  .dashboard-hero {
+    max-width: clamp(900px, 55vw, 1250px) !important;
+    margin-bottom: clamp(24px, 3vh, 38px) !important;
+  }
+
+  .dashboard-hero h1 {
+    font-size: clamp(42px, 2.8vw, 68px) !important;
+  }
+
+  .dashboard-hero h1 .secureexam-brand {
+    font-size: clamp(48px, 3.5vw, 78px) !important;
+  }
+
+  .dashboard-hero h1 .secureexam-signature {
+    font-size: clamp(10px, 0.65vw, 14px) !important;
+
+    margin-top: clamp(9px, 1vh, 14px) !important;
+    margin-bottom: clamp(16px, 1.8vh, 24px) !important;
+  }
+
+  .dashboard-hero p {
+    max-width: clamp(760px, 48vw, 1050px) !important;
+
+    font-size: clamp(14px, 0.82vw, 18px) !important;
+    line-height: 1.4 !important;
+  }
+
+  .dashboard-grid {
+    width: 100% !important;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: clamp(20px, 1.5vw, 36px) !important;
+  }
+
+  .dashboard-card {
+    min-height: clamp(205px, 20vh, 265px) !important;
+
+    padding:
+      clamp(24px, 1.6vw, 36px)
+      clamp(28px, 1.8vw, 42px) !important;
+
+    gap: clamp(18px, 1vw, 26px) !important;
+  }
+
+  .dashboard-icon {
+    width: clamp(58px, 3.5vw, 76px) !important;
+    height: clamp(58px, 3.5vw, 76px) !important;
+    flex-basis: clamp(58px, 3.5vw, 76px) !important;
+
+    border-radius: clamp(18px, 1.1vw, 24px) !important;
+  }
+
+  .dashboard-icon i,
+  .dashboard-icon svg {
+    width: clamp(28px, 1.65vw, 36px) !important;
+    height: clamp(28px, 1.65vw, 36px) !important;
+  }
+
+  .dashboard-content span {
+    font-size: clamp(11px, 0.68vw, 14px) !important;
+  }
+
+  .dashboard-content h2 {
+    font-size: clamp(24px, 1.45vw, 32px) !important;
+  }
+
+  .dashboard-content p {
+    font-size: clamp(13px, 0.78vw, 17px) !important;
+    line-height: 1.5 !important;
+  }
+
+  .dashboard-arrow {
+    width: clamp(44px, 2.7vw, 58px) !important;
+    height: clamp(44px, 2.7vw, 58px) !important;
+
+    right: clamp(20px, 1.4vw, 32px) !important;
+    bottom: clamp(18px, 1.3vw, 28px) !important;
+  }
+
+  .dashboard-footer {
+    width: 100% !important;
+
+    margin-top: clamp(24px, 3vh, 40px) !important;
+    gap: clamp(12px, 0.9vw, 20px) !important;
+  }
+
+  .dashboard-footer span {
+    min-height: clamp(30px, 2.2vw, 38px) !important;
+
+    padding-left: clamp(14px, 1vw, 22px) !important;
+    padding-right: clamp(14px, 1vw, 22px) !important;
+
+    font-size: clamp(12px, 0.7vw, 15px) !important;
+  }
+
+  .accueil-support-link {
+    margin-top: clamp(16px, 2vh, 28px) !important;
+
+    font-size: clamp(13px, 0.75vw, 16px) !important;
+  }
+}
+
+
+/* =========================================================
+   FULL HD 1920x1080
+   Compact pour tout garder visible
+   ========================================================= */
+
+@media
+  (min-width: 1600px)
+  and (max-width: 2200px)
+  and (min-height: 900px)
+  and (max-height: 1200px) {
+
+  .dashboard-main {
+    width: 94vw !important;
+
+    padding-top: 26px !important;
+    padding-bottom: 18px !important;
+  }
+
+  .dashboard-hero {
+    margin-bottom: 26px !important;
+  }
+
+  .dashboard-card {
+    min-height: 205px !important;
+  }
+
+  .dashboard-footer {
+    margin-top: 26px !important;
+  }
+
+  .accueil-support-link {
+    margin-top: 16px !important;
+  }
+}
+
+
+/* =========================================================
+   GRAND ECRAN 2K+
+   Utilise davantage l'espace disponible
+   ========================================================= */
+
+@media (min-width: 2201px) {
+
+  .dashboard-main {
+    width: min(92vw, 2400px) !important;
+  }
+
+  .dashboard-grid {
+    gap: clamp(28px, 1.5vw, 42px) !important;
+  }
+
+  .dashboard-card {
+    min-height: clamp(230px, 18vh, 285px) !important;
+  }
+}
+
+
+/* =========================================================
+   TRES GRAND ECRAN / 4K
+   Evite aussi d'avoir une interface minuscule
+   ========================================================= */
+
+@media (min-width: 3000px) {
+
+  .dashboard-main {
+    width: min(88vw, 2800px) !important;
+  }
+
+  .dashboard-hero {
+    max-width: 1350px !important;
+  }
+
+  .dashboard-grid {
+    gap: 42px !important;
+  }
+
+  .dashboard-card {
+    min-height: 280px !important;
+  }
+}
+
+
+/* =========================================================
+   LAPTOP / PETIT DESKTOP
+   ========================================================= */
+
+@media (min-width: 1101px) and (max-width: 1599px) {
+
+  .dashboard-main {
+    width: calc(100% - 48px) !important;
+
+    padding-top: 26px !important;
+    padding-bottom: 20px !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 18px !important;
+  }
+
+  .dashboard-card {
+    min-height: 205px !important;
+    padding: 24px !important;
+  }
+}
+
+
+/* Tablette */
+@media (min-width: 701px) and (max-width: 1100px) {
+
+  .dashboard-main {
+    width: calc(100% - 36px) !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* Mobile */
+@media (max-width: 700px) {
+
+  .dashboard-main {
+    width: calc(100% - 20px) !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* SECUREEXAM RESPONSIVE DESKTOP END */
+
+
+/* SECUREEXAM VERTICAL FILL START */
+
+/* =========================================================
+   ACCUEIL - UTILISATION COMPLETE DE LA HAUTEUR
+   ========================================================= */
+
+@media (min-width: 1200px) and (min-height: 760px) {
+
+  /*
+     dashboard-page est deja en flex column.
+     Le main occupe donc tout l'espace restant sous le header.
+  */
+  .dashboard-main {
+    flex: 1 1 auto !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    /*
+       Repartit automatiquement l'espace vertical disponible
+       entre Hero / Cards / Badges / Support.
+    */
+    justify-content: space-evenly !important;
+
+    padding-top: 12px !important;
+    padding-bottom: 18px !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* HERO */
+  .dashboard-hero {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .dashboard-hero h1 {
+    margin-top: 0 !important;
+  }
+
+  .dashboard-hero h1 .secureexam-signature {
+    margin-bottom: 16px !important;
+  }
+
+
+  /* CARTES */
+  .dashboard-grid {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+
+  /* BADGES */
+  .dashboard-footer {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+
+  /* SUPPORT */
+  .accueil-support-link {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   FULL HD 1920x1080
+   Un peu plus de presence pour les cartes
+   ========================================================= */
+
+@media
+  (min-width: 1600px)
+  and (min-height: 900px)
+  and (max-height: 1200px) {
+
+  .dashboard-card {
+    min-height: 220px !important;
+  }
+
+}
+
+
+/* =========================================================
+   GRAND ECRAN / 2K / 4K
+   L'espace supplementaire est distribue automatiquement
+   ========================================================= */
+
+@media (min-width: 2200px) and (min-height: 1200px) {
+
+  .dashboard-main {
+    padding-top: clamp(18px, 2vh, 34px) !important;
+    padding-bottom: clamp(20px, 2vh, 38px) !important;
+  }
+
+  .dashboard-card {
+    min-height: clamp(230px, 18vh, 290px) !important;
+  }
+
+}
+
+
+/* =========================================================
+   ECRAN BAS : comportement compact
+   ========================================================= */
+
+@media (min-width: 1200px) and (max-height: 759px) {
+
+  .dashboard-main {
+    justify-content: flex-start !important;
+  }
+
+}
+
+/* SECUREEXAM VERTICAL FILL END */
+
+
+/* SECUREEXAM HERO TEXT GAP START */
+
+/* Espace entre ISEN TOULON et la description */
+.dashboard-hero h1 + p {
+  margin-top: 28px !important;
+}
+
+/* La deuxième ligne reste proche de la première */
+.dashboard-hero h1 + p + p {
+  margin-top: 8px !important;
+}
+
+@media (max-width: 700px) {
+  .dashboard-hero h1 + p {
+    margin-top: 20px !important;
+  }
+
+  .dashboard-hero h1 + p + p {
+    margin-top: 6px !important;
+  }
+}
+
+/* SECUREEXAM HERO TEXT GAP END */
+
+
+/* SECUREEXAM SIGNATURE CONTRAST START */
+
+/* ISEN TOULON : noir, net et lisible */
+.dashboard-hero h1 .secureexam-signature {
+  color: #111827 !important;
+  opacity: 1 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.24em !important;
+}
+
+/* Traits autour de ISEN TOULON */
+.dashboard-hero h1 .secureexam-signature .signature-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(17, 24, 39, 0.55) 100%
+  ) !important;
+}
+
+.dashboard-hero h1 .secureexam-signature .signature-line:last-child {
+  background: linear-gradient(
+    90deg,
+    rgba(17, 24, 39, 0.55) 0%,
+    transparent 100%
+  ) !important;
+}
+
+/* Paragraphes : volontairement plus doux que ISEN TOULON */
+.dashboard-hero > p {
+  color: #64748b !important;
+  font-weight: 650 !important;
+}
+
+/* Premier paragraphe */
+.dashboard-hero h1 + p {
+  margin-top: 28px !important;
+}
+
+/* Deuxième paragraphe */
+.dashboard-hero h1 + p + p {
+  margin-top: 8px !important;
+  color: #718096 !important;
+}
+
+/* SECUREEXAM SIGNATURE CONTRAST END */
+
+
+/* SECUREEXAM STUDENT LOGIN PALETTE START */
+
+/* =========================================================
+   ESPACE ETUDIANT
+   Palette harmonisee avec la page de connexion etudiant
+   ========================================================= */
+
+.student-card {
+  border-color: rgba(93, 18, 42, 0.14) !important;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(93, 18, 42, 0.075),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fffafb 100%
+    ) !important;
+}
+
+/* Barre verticale */
+.student-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0 !important;
+  left: 0 !important;
+
+  width: 7px !important;
+  height: 100% !important;
+
+  border-radius: 26px 0 0 26px !important;
+
+  background: linear-gradient(
+    180deg,
+    #5D122A 0%,
+    #350C1C 100%
+  ) !important;
+
+  box-shadow:
+    0 10px 24px rgba(53, 12, 28, 0.28) !important;
+}
+
+/* Icone étudiant */
+.student-card .dashboard-icon {
+  background: rgba(93, 18, 42, 0.09) !important;
+
+  color: #693447 !important;
+
+  box-shadow:
+    0 14px 28px rgba(53, 12, 28, 0.11) !important;
+}
+
+/* ESPACE ETUDIANT */
+.student-card .dashboard-content span {
+  color: #5D122A !important;
+}
+
+/* Bouton flèche */
+.student-card .dashboard-arrow {
+  background: linear-gradient(
+    135deg,
+    #350C1C 0%,
+    #8E0525 100%
+  ) !important;
+
+  color: #ffffff !important;
+
+  box-shadow:
+    0 14px 30px rgba(93, 18, 42, 0.30),
+    0 7px 16px rgba(53, 12, 28, 0.16) !important;
+}
+
+
+/* =========================================================
+   HOVER
+   ========================================================= */
+
+.student-card:hover {
+  border-color: rgba(93, 18, 42, 0.30) !important;
+
+  box-shadow:
+    0 30px 70px rgba(93, 18, 42, 0.18),
+    0 12px 30px rgba(53, 12, 28, 0.10) !important;
+}
+
+.student-card:hover::before {
+  width: 9px !important;
+
+  background: linear-gradient(
+    180deg,
+    #8E0525 0%,
+    #350C1C 100%
+  ) !important;
+}
+
+.student-card:hover .dashboard-icon {
+  background: rgba(231, 86, 111, 0.13) !important;
+  color: #5D122A !important;
+}
+
+.student-card:hover .dashboard-arrow {
+  background: linear-gradient(
+    135deg,
+    #5D122A 0%,
+    #C40024 100%
+  ) !important;
+
+  transform: translateX(4px);
+
+  box-shadow:
+    0 16px 34px rgba(142, 5, 37, 0.34) !important;
+}
+
+/* SECUREEXAM STUDENT LOGIN PALETTE END */
+
+
+/* SECUREEXAM HOME BRAND FINAL START */
+
+/* =========================================================
+   SECUREEXAM = IDENTITE PRINCIPALE
+   ========================================================= */
+
+.dashboard-hero h1 .secureexam-brand-row {
+  display: flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 18px;
+
+  margin-top: 9px;
+
+  background: none !important;
+
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+
+  color: inherit !important;
+}
+
+
+/* Nom SecureExam */
+.dashboard-hero h1
+.secureexam-brand-row
+.secureexam-brand {
+  display: block !important;
+
+  margin: 0 !important;
+
+  font-size:
+    clamp(48px, 3.5vw, 78px) !important;
+
+  font-weight: 950 !important;
+
+  line-height: 1 !important;
+
+  letter-spacing: -0.05em !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #c40024 0%,
+      #7a0015 100%
+    ) !important;
+
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+
+  color: transparent !important;
+}
+
+
+/* Traits autour de SecureExam */
+.dashboard-hero h1
+.secureexam-brand-line {
+  display: block !important;
+
+  width: clamp(34px, 3vw, 54px);
+  height: 2px;
+
+  flex: 0 0 auto;
+
+  margin: 0;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(196, 0, 36, 0.78) 100%
+    ) !important;
+}
+
+.dashboard-hero h1
+.secureexam-brand-line:last-child {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(196, 0, 36, 0.78) 0%,
+      transparent 100%
+    ) !important;
+}
+
+
+/* ISEN TOULON n'est plus utilisé */
+.dashboard-hero h1 .secureexam-signature {
+  display: none !important;
+}
+
+
+/* Description sous SecureExam */
+.dashboard-hero h1 + p {
+  margin-top: 28px !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .dashboard-hero h1 .secureexam-brand-row {
+    gap: 10px;
+  }
+
+  .dashboard-hero h1
+  .secureexam-brand-row
+  .secureexam-brand {
+    font-size: 42px !important;
+  }
+
+  .dashboard-hero h1
+  .secureexam-brand-line {
+    width: 24px;
+  }
+
+  .dashboard-hero h1 + p {
+    margin-top: 20px !important;
+  }
+
+}
+
+/* SECUREEXAM HOME BRAND FINAL END */

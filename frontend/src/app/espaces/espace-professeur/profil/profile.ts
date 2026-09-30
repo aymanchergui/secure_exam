@@ -42,7 +42,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
 
   @Output() backRequested = new EventEmitter<void>();
 
-  private apiUrl = `http://${window.location.hostname}:8000`;
+  private apiUrl = `/api`;
 
   loading = false;
   saving = false;
@@ -257,7 +257,7 @@ export class ProfileComponent implements OnInit, AfterViewInit {
   };
 
   getProfileSupportApiUrl(): string {
-    return `http://${window.location.hostname}:8000`;
+    return `/api`;
   }
 
   refreshProfileSupportIcons(): void {

@@ -39,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "100kb",
-                  "maximumError": "150kb"
+                  "maximumWarning": "150kb",
+                  "maximumError": "180kb"
                 }
               ],
               "outputHashing": "all"
@@ -52,8 +52,8 @@
               "budgets": [
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "100kb",
-                  "maximumError": "150kb"
+                  "maximumWarning": "150kb",
+                  "maximumError": "180kb"
                 }
               ]
             }
@@ -70,7 +70,13 @@
               "buildTarget": "frontend:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "allowedHosts": [
+              "silk-derived-detached.ngrok-free.dev"
+            ],
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"

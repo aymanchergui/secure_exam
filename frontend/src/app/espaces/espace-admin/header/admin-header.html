@@ -1,21 +1,21 @@
-﻿<header class="supervisor-header">
-  <div class="supervisor-header-left">
+﻿<header class="admin-header">
+  <div class="admin-header-left">
     <img
       src="/assets/secure_exam_logo.png"
       alt="ISEN SecureExam"
-      class="supervisor-header-logo"
-      title="Retour au tableau de bord surveillant"
-      (click)="goToSupervisorDashboard()"
+      class="admin-header-logo"
+      title="Retour au tableau de bord administrateur"
+      (click)="goToAdminDashboard()"
     >
   </div>
 
-  <nav class="supervisor-header-nav">
+  <nav class="admin-header-nav">
     <a
       href="#dashboard"
       [class.active]="activeSection === 'dashboard'"
       (click)="goToSection('dashboard', $event)"
     >
-      <i data-lucide="layout-dashboard" class="supervisor-nav-icon"></i>
+      <i data-lucide="layout-dashboard" class="admin-nav-icon"></i>
       Dashboard
     </a>
 
@@ -24,7 +24,7 @@
       [class.active]="activeSection === 'configs'"
       (click)="goToSection('configs', $event)"
     >
-      <i data-lucide="download-cloud" class="supervisor-nav-icon"></i>
+      <i data-lucide="download-cloud" class="admin-nav-icon"></i>
       Configurations
     </a>
 
@@ -33,7 +33,7 @@
       [class.active]="activeSection === 'machines'"
       (click)="goToSection('machines', $event)"
     >
-      <i data-lucide="monitor-check" class="supervisor-nav-icon"></i>
+      <i data-lucide="monitor-check" class="admin-nav-icon"></i>
       Machines
     </a>
 
@@ -42,14 +42,14 @@
       [class.active]="activeSection === 'help'"
       (click)="goToSection('help', $event)"
     >
-      <i data-lucide="life-buoy" class="supervisor-nav-icon"></i>
+      <i data-lucide="life-buoy" class="admin-nav-icon"></i>
       Assistance
     </a>
   </nav>
 
-  <div class="supervisor-header-actions">
+  <div class="admin-header-actions">
     <button
-      class="supervisor-refresh-button"
+      class="admin-refresh-button"
       type="button"
       (click)="refresh()"
       title="Actualiser"
@@ -59,24 +59,24 @@
     </button>
 
     <button
-      class="supervisor-profile-button"
+      class="admin-profile-button"
       type="button"
-      title="Profil surveillant"
+      title="Profil admin"
       [class.active]="activeSection === 'profile'"
       (click)="goToSection('profile')"
     >
-      <span class="supervisor-profile-avatar">
+      <span class="admin-profile-avatar">
         <i data-lucide="shield-user"></i>
       </span>
 
-      <span class="supervisor-profile-info">
-        <span class="supervisor-profile-name">{{ supervisorName }}</span>
-        <span class="supervisor-profile-role">Surveillant</span>
+      <span class="admin-profile-info">
+        <span class="admin-profile-name">{{ adminName }}</span>
+        <span class="admin-profile-role">Administrateur</span>
       </span>
     </button>
 
     <button
-      class="supervisor-logout-button"
+      class="admin-logout-button"
       type="button"
       (click)="logout()"
       title="Se déconnecter"

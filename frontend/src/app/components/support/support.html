@@ -1,120 +1,312 @@
 <section class="support-page">
-  <app-public-header class="support-auth-header"></app-public-header>
+
+  <app-public-header
+    class="support-auth-header">
+  </app-public-header>
 
   <div class="support-main-layout">
+
     <div class="support-return-row">
-    <button
-      type="button"
-      class="support-back-button"
-      (click)="goBackToAuthentication()"
-    >
-      <i data-lucide="arrow-left"></i>
-      <span>Retour à l'accueil</span>
-    </button>
-  </div>
 
-  <div class="support-content">
-    <div class="support-card">
-      <div class="support-header">
-        <div class="support-icon">
-          <i data-lucide="life-buoy"></i>
-        </div>
+      <button
+        type="button"
+        class="support-back-button"
+        (click)="goBackToAuthentication()"
+      >
+        <i data-lucide="arrow-left"></i>
+        <span>Retour à l'accueil</span>
+      </button>
 
-        <div>
-          <h1>Support</h1>
-          <p>
-            Décrivez votre problème d'accès à la plateforme. L'équipe support pourra
-            traiter votre demande plus rapidement.
-          </p>
-        </div>
-      </div>
-
-      <form class="support-form" (ngSubmit)="submitSupportRequest()">
-        <div class="form-grid">
-          <label>
-            Nom complet
-            <div class="input-wrapper">
-              <i data-lucide="user-round"></i>
-              <input
-                type="text"
-                name="fullName"
-                [(ngModel)]="supportRequest.fullName"
-                placeholder="Votre nom"
-              >
-            </div>
-          </label>
-
-          <label>
-            Email
-            <div class="input-wrapper">
-              <i data-lucide="mail"></i>
-              <input
-                type="email"
-                name="email"
-                [(ngModel)]="supportRequest.email"
-                placeholder="prenom.nom@isen.fr"
-              >
-            </div>
-          </label>
-        </div>
-
-        <label>
-          Type de problème
-          <div class="input-wrapper">
-            <i data-lucide="circle-help"></i>
-            <select
-              name="subject"
-              [(ngModel)]="supportRequest.subject"
-            >
-              <option>Problème de connexion</option>
-              <option>Mot de passe oublié</option>
-              <option>Compte enseignant bloqué</option>
-              <option>Serveur indisponible</option>
-              <option>Autre problème</option>
-            </select>
-          </div>
-        </label>
-
-        <label>
-          Message
-          <div class="textarea-wrapper">
-            <i data-lucide="message-square-text"></i>
-            <textarea
-              name="message"
-              [(ngModel)]="supportRequest.message"
-              rows="6"
-              placeholder="Expliquez le problème rencontré..."
-            ></textarea>
-          </div>
-        </label>
-
-        <button
-          type="submit"
-          class="support-submit-button"
-          [disabled]="loading"
-        >
-          <i [attr.data-lucide]="loading ? 'loader-circle' : 'send'"></i>
-          {{ loading ? 'Envoi en cours...' : 'Envoyer la demande' }}
-        </button>
-
-        <div *ngIf="errorMessage" class="support-error">
-          <i data-lucide="circle-alert"></i>
-          {{ errorMessage }}
-        </div>
-
-        <div *ngIf="successMessage" class="support-success">
-          <i data-lucide="circle-check"></i>
-          {{ successMessage }}
-        </div>
-      </form>
-
-      <div class="support-note">
-        <i data-lucide="shield-check"></i>
-        <span>
-          Cette demande concerne l'accès à la plateforme ISEN SecureExam.
-        </span>
-      </div>
     </div>
+
+
+    <div class="support-content">
+
+      <div class="support-card">
+
+        <div class="support-header">
+
+          <div class="support-icon">
+            <i data-lucide="life-buoy"></i>
+          </div>
+
+          <div>
+
+            <h1>
+              Support
+            </h1>
+
+            <p>
+              Sélectionnez votre espace puis décrivez
+              le problème rencontré. L'équipe support
+              pourra traiter votre demande plus rapidement.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             CHOIX DE L'ESPACE
+             ===================================================== -->
+
+        <section class="support-space-section">
+
+          <div class="support-space-heading">
+            <span>
+              Sélectionnez votre statut
+            </span>
+          </div>
+
+
+          <div class="support-space-grid">
+
+            <!-- ETUDIANT -->
+
+            <button
+              type="button"
+              class="support-space-card student"
+              [class.active]="supportSpace === 'student'"
+              [attr.aria-pressed]="supportSpace === 'student'"
+              (click)="selectSupportSpace('student')"
+            >
+
+              <div class="support-space-icon">
+                <i data-lucide="graduation-cap"></i>
+              </div>
+
+              <div class="support-space-content">
+
+                <strong>
+                  Étudiant
+                </strong>
+
+                <span>
+                  Connexion, épreuve ou session sécurisée.
+                </span>
+
+              </div>
+
+              <i
+                class="support-space-check"
+                data-lucide="circle-check">
+              </i>
+
+            </button>
+
+
+            <!-- PROFESSEUR -->
+
+            <button
+              type="button"
+              class="support-space-card professor"
+              [class.active]="supportSpace === 'professor'"
+              [attr.aria-pressed]="supportSpace === 'professor'"
+              (click)="selectSupportSpace('professor')"
+            >
+
+              <div class="support-space-icon">
+                <i data-lucide="clipboard-list"></i>
+              </div>
+
+              <div class="support-space-content">
+
+                <strong>
+                  Professeur
+                </strong>
+
+                <span>
+                  Examen, configuration ou rendus étudiants.
+                </span>
+
+              </div>
+
+              <i
+                class="support-space-check"
+                data-lucide="circle-check">
+              </i>
+
+            </button>
+
+
+            <!-- ADMIN -->
+
+            <button
+              type="button"
+              class="support-space-card admin"
+              [class.active]="supportSpace === 'admin'"
+              [attr.aria-pressed]="supportSpace === 'admin'"
+              (click)="selectSupportSpace('admin')"
+            >
+
+              <div class="support-space-icon">
+                <i data-lucide="shield-check"></i>
+              </div>
+
+              <div class="support-space-content">
+
+                <strong>
+                  Administrateur
+                </strong>
+
+                <span>
+                  Diffusion, NixOS ou machines d'examen.
+                </span>
+
+              </div>
+
+              <i
+                class="support-space-check"
+                data-lucide="circle-check">
+              </i>
+
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             FORMULAIRE
+             ===================================================== -->
+
+        <form
+          class="support-form"
+          (ngSubmit)="submitSupportRequest()"
+        >
+
+          <div class="form-grid">
+
+            <label>
+
+              Nom complet
+
+              <div class="input-wrapper">
+
+                <i data-lucide="user-round"></i>
+
+                <input
+                  type="text"
+                  name="fullName"
+                  [(ngModel)]="supportRequest.fullName"
+                  placeholder="Votre nom"
+                >
+
+              </div>
+
+            </label>
+
+
+            <label>
+
+              Email
+
+              <div class="input-wrapper">
+
+                <i data-lucide="mail"></i>
+
+                <input
+                  type="email"
+                  name="email"
+                  [(ngModel)]="supportRequest.email"
+                  placeholder="prenom.nom@isen.fr"
+                >
+
+              </div>
+
+            </label>
+
+          </div>
+
+
+          <label>
+
+            Type de problème
+
+            <div class="input-wrapper">
+
+              <i data-lucide="circle-help"></i>
+
+              <select
+                name="subject"
+                [(ngModel)]="supportRequest.subject"
+              >
+
+                <option
+                  *ngFor="let option of problemOptions"
+                  [value]="option"
+                >
+                  {{ option }}
+                </option>
+
+              </select>
+
+            </div>
+
+          </label>
+
+
+          <label>
+
+            Message
+
+            <div class="textarea-wrapper">
+
+              <i data-lucide="message-square-text"></i>
+
+              <textarea
+                name="message"
+                [(ngModel)]="supportRequest.message"
+                rows="6"
+                placeholder="Expliquez le problème rencontré..."
+              ></textarea>
+
+            </div>
+
+          </label>
+
+
+          <button
+            type="submit"
+            class="support-submit-button"
+            [disabled]="loading"
+          >
+
+            <i
+              [attr.data-lucide]="
+                loading
+                  ? 'loader-circle'
+                  : 'send'
+              ">
+            </i>
+
+            {{
+              loading
+                ? 'Envoi en cours...'
+                : 'Envoyer la demande'
+            }}
+
+          </button>
+
+
+          <div
+            *ngIf="errorMessage"
+            class="support-error"
+          >
+
+            <i data-lucide="circle-alert"></i>
+
+            {{ errorMessage }}
+
+          </div>
+
+        </form>
+</div>
+
+    </div>
+
   </div>
-  </div>
+
 </section>

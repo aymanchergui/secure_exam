@@ -4,14 +4,14 @@ import { AfterViewInit, Component, EventEmitter, Input, Output } from '@angular/
 declare const lucide: any;
 
 @Component({
-  selector: 'app-supervisor-header',
+  selector: 'app-admin-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './supervisor-header.html',
-  styleUrl: './supervisor-header.css'
+  templateUrl: './admin-header.html',
+  styleUrl: './admin-header.css'
 })
-export class SupervisorHeaderComponent implements AfterViewInit {
-  @Input() supervisorName = 'Surveillant';
+export class AdminHeaderComponent implements AfterViewInit {
+  @Input() adminName = 'Administrateur';
   @Input() activeSection = 'dashboard';
 
   @Output() sectionRequested = new EventEmitter<string>();
@@ -39,7 +39,7 @@ export class SupervisorHeaderComponent implements AfterViewInit {
     });
   }
 
-  goToSupervisorDashboard(): void {
+  goToAdminDashboard(): void {
     this.goToSection('dashboard');
   }
 

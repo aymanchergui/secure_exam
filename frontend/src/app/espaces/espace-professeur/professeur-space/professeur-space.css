@@ -2534,7 +2534,7 @@ html {
 .filter-control,
 .package-filter,
 .package-pagination-controls,
-.supervisor-temporary-card {
+.admin-temporary-card {
   background: #ffffff !important;
   border-color: rgba(226, 232, 240, 0.95) !important;
 }
@@ -2543,7 +2543,7 @@ html {
 table,
 .package-management-table,
 .submission-table-wrapper,
-.supervisor-table-wrapper {
+.admin-table-wrapper {
   background: #ffffff !important;
   border-color: rgba(226, 232, 240, 0.95) !important;
 }
@@ -6630,4 +6630,6120 @@ label.full {
   }
 
 }
+
+
+
+/* =========================================================
+   SECUREEXAM STUDENT ROSTER V1
+   ========================================================= */
+
+.student-roster-section {
+  margin: 26px 0;
+  padding: 24px;
+  border: 1px solid rgba(196, 0, 36, .13);
+  border-radius: 24px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(196, 0, 36, .055),
+      transparent 34%
+    ),
+    #ffffff;
+  box-shadow:
+    0 12px 30px rgba(15,23,42,.055);
+}
+
+.student-roster-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 20px;
+}
+
+.student-roster-heading-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.student-roster-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(196,0,36,.09);
+  color: #c40024;
+}
+
+.student-roster-icon svg,
+.student-roster-icon i {
+  width: 23px;
+  height: 23px;
+}
+
+.student-roster-heading strong {
+  display: block;
+  color: #111827;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.student-roster-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.student-roster-template-button {
+  min-height: 42px;
+  background: #0f172a;
+  color: #fff;
+}
+
+.student-roster-template-button:hover {
+  background: #020617;
+}
+
+.student-roster-upload-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.student-roster-dropzone {
+  min-height: 88px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  padding: 17px 20px;
+  border: 2px dashed rgba(196,0,36,.24);
+  border-radius: 18px;
+  background: #fffafa;
+  cursor: pointer;
+  transition: .2s ease;
+}
+
+.student-roster-dropzone:hover {
+  border-color: #c40024;
+  background: #fff5f6;
+}
+
+.student-roster-input {
+  display: none;
+}
+
+.student-roster-upload-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #c40024;
+  color: #fff;
+}
+
+.student-roster-upload-icon svg,
+.student-roster-upload-icon i {
+  width: 22px;
+  height: 22px;
+}
+
+.student-roster-upload-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.student-roster-upload-copy strong {
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.student-roster-upload-copy span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-roster-valid {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #bbf7d0;
+  border-radius: 15px;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.student-roster-valid > svg,
+.student-roster-valid > i {
+  width: 22px;
+  height: 22px;
+}
+
+.student-roster-valid strong,
+.student-roster-valid span {
+  display: block;
+}
+
+.student-roster-valid strong {
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.student-roster-valid span {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.student-roster-error {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff1f2;
+  color: #be123c;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.student-roster-preview {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 17px;
+  background: #fbfcfe;
+}
+
+.student-roster-preview-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 13px;
+}
+
+.student-roster-preview-title strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.student-roster-preview-title span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.student-roster-clear {
+  min-height: 36px;
+  padding: 0 12px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+}
+
+.student-roster-preview-table {
+  overflow-x: auto;
+}
+
+.student-roster-preview-table table {
+  margin: 0;
+}
+
+.student-roster-preview-table th,
+.student-roster-preview-table td {
+  padding: 10px 12px;
+  font-size: 11px;
+}
+
+.student-roster-preview-more {
+  display: block;
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.create-config-review-roster {
+  display: grid;
+  gap: 13px;
+}
+
+.create-config-review-roster-file {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  border: 1px solid #dde4ec;
+  border-radius: 16px;
+  background: #fbfcfe;
+}
+
+.create-config-review-roster-file > svg,
+.create-config-review-roster-file > i {
+  width: 25px;
+  height: 25px;
+  color: #c40024;
+}
+
+.create-config-review-roster-file span,
+.create-config-review-roster-file strong {
+  display: block;
+}
+
+.create-config-review-roster-file span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.create-config-review-roster-file strong {
+  margin-top: 4px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.create-config-review-roster-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 9px;
+}
+
+.create-config-review-roster-list > div {
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.create-config-review-roster-list strong,
+.create-config-review-roster-list span {
+  display: block;
+}
+
+.create-config-review-roster-list strong {
+  color: #c40024;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.create-config-review-roster-list span {
+  margin-top: 4px;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+@media (max-width: 800px) {
+  .student-roster-heading,
+  .student-roster-upload-card {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-roster-template-button {
+    width: 100%;
+  }
+
+  .create-config-review-roster-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   SECUREEXAM EXAM ENVIRONMENTS V1
+   ========================================================= */
+
+.exam-environment-section {
+  margin: 0;
+  padding: 0;
+}
+
+
+.exam-environment-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 22px;
+}
+
+
+.exam-environment-heading {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+}
+
+
+.exam-environment-heading-icon {
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 46px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background:
+    rgba(196, 0, 36, .09);
+
+  color:
+    #c40024;
+}
+
+
+.exam-environment-heading-icon svg,
+.exam-environment-heading-icon i {
+  width: 23px;
+  height: 23px;
+
+  stroke-width: 2.4;
+}
+
+
+.exam-environment-heading strong {
+  display: block;
+
+  color: #0f172a;
+
+  font-size: 16px;
+  font-weight: 950;
+}
+
+
+.exam-environment-heading p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  font-weight: 650;
+}
+
+
+/* LIBRARY BUTTON */
+
+.exam-package-library-button {
+  min-height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 0 17px;
+
+  border: 1px solid #111827;
+  border-radius: 13px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+
+.exam-package-library-button:hover {
+  background: #020617;
+
+  box-shadow:
+    0 11px 24px
+    rgba(15,23,42,.17);
+}
+
+
+/* =========================================================
+   PRESET GRID
+   ========================================================= */
+
+.exam-environment-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 16px;
+}
+
+
+.exam-environment-card {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 20px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    22px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fbfcfe 100%
+    );
+
+  box-shadow:
+    0 10px 28px
+    rgba(15,23,42,.055);
+
+  transition:
+    .22s ease;
+}
+
+
+.exam-environment-card:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(196,0,36,.20);
+
+  box-shadow:
+    0 18px 38px
+    rgba(15,23,42,.09),
+    0 8px 20px
+    rgba(196,0,36,.055);
+}
+
+
+.exam-environment-card.selected {
+  border:
+    2px solid
+    #c40024;
+
+  box-shadow:
+    0 18px 42px
+    rgba(196,0,36,.12);
+}
+
+
+.exam-environment-card.not-ready {
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fafafa 100%
+    );
+}
+
+
+/* TOP */
+
+.exam-environment-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+.exam-environment-icon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #7c0025 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 9px 20px
+    rgba(124,0,37,.16);
+}
+
+
+.exam-environment-icon svg,
+.exam-environment-icon i {
+  width: 22px;
+  height: 22px;
+
+  stroke-width: 2.35;
+}
+
+
+.exam-environment-ready {
+  display: inline-flex;
+
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  background: #dcfce7;
+  color: #15803d;
+
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .055em;
+}
+
+
+.exam-environment-ready.missing {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+
+/* COPY */
+
+.exam-environment-copy {
+  margin-top: 17px;
+}
+
+
+.exam-environment-category {
+  color: #c40024;
+
+  font-size: 9px;
+  font-weight: 950;
+
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+
+.exam-environment-copy h3 {
+  margin: 5px 0 8px;
+
+  color: #111827;
+
+  font-size: 20px;
+  font-weight: 950;
+
+  letter-spacing: -.025em;
+}
+
+
+.exam-environment-copy p {
+  min-height: 54px;
+
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 11.5px;
+  font-weight: 650;
+
+  line-height: 1.55;
+}
+
+
+/* PACKAGE CHIPS */
+
+.exam-environment-packages {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 7px;
+
+  margin-top: 16px;
+}
+
+
+.exam-environment-packages > span {
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+  color: #334155;
+
+  font-size: 10px;
+  font-weight: 850;
+}
+
+
+.exam-environment-packages > span.unavailable {
+  background: #fff1f2;
+  color: #be123c;
+
+  text-decoration:
+    line-through;
+}
+
+
+/* SECURITY */
+
+.exam-environment-security {
+  display: grid;
+
+  gap: 7px;
+
+  margin-top: 16px;
+  padding-top: 15px;
+
+  border-top:
+    1px solid #eef2f7;
+}
+
+
+.exam-environment-security > span {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #64748b;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+
+.exam-environment-security svg,
+.exam-environment-security i {
+  width: 14px;
+  height: 14px;
+
+  color: #c40024;
+}
+
+
+/* ACTIONS */
+
+.exam-environment-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 8px;
+
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+
+.exam-environment-actions button {
+  min-height: 42px;
+
+  border-radius: 11px;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+
+.exam-environment-use {
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #c40024 100%
+    );
+
+  color: #fff;
+}
+
+
+.exam-environment-use:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #020617 0%,
+      #8b0018 100%
+    );
+}
+
+
+.exam-environment-customize {
+  border: 1px solid #d8dee8 !important;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+
+.exam-environment-customize:hover {
+  border-color:
+    rgba(196,0,36,.24)
+    !important;
+
+  color:
+    #c40024
+    !important;
+}
+
+
+/* =========================================================
+   CUSTOM CARD
+   ========================================================= */
+
+.exam-custom-environment-card {
+  width: 100%;
+
+  min-height: 88px;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0,1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 16px;
+
+  margin-top: 16px;
+  padding: 17px 20px;
+
+  border:
+    1px dashed
+    rgba(196,0,36,.32);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fffafa 0%,
+      #ffffff 100%
+    );
+
+  color: #111827;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+
+.exam-custom-environment-card:hover,
+.exam-custom-environment-card.selected {
+  border-style: solid;
+  border-color: #c40024;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff4f6 0%,
+      #ffffff 100%
+    );
+
+  box-shadow:
+    0 12px 28px
+    rgba(196,0,36,.08);
+}
+
+
+.exam-custom-environment-icon {
+  width: 48px;
+  height: 48px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background: #c40024;
+  color: #ffffff;
+}
+
+
+.exam-custom-environment-copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.exam-custom-environment-copy strong {
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 950;
+}
+
+
+.exam-custom-environment-copy > span {
+  color: #64748b;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+
+.exam-custom-environment-action {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #c40024;
+
+  font-size: 11px;
+  font-weight: 950;
+}
+
+
+/* =========================================================
+   SELECTED
+   ========================================================= */
+
+.selected-environment {
+  position: relative;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(190px, auto)
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  margin-top: 20px;
+  padding: 17px 19px;
+
+  border:
+    1px solid
+    rgba(196,0,36,.14);
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7f8 0%,
+      #ffffff 72%
+    );
+}
+
+
+.selected-environment-main {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.selected-environment-label {
+  color: #c40024;
+
+  font-size: 8px;
+  font-weight: 950;
+
+  letter-spacing: .1em;
+}
+
+
+.selected-environment-main strong {
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 950;
+}
+
+
+.selected-environment-count {
+  color: #64748b;
+
+  font-size: 10px;
+  font-weight: 750;
+}
+
+
+.selected-environment-packages {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 6px;
+}
+
+
+.selected-environment-packages > span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 6px 8px;
+
+  border-radius: 999px;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e7eb;
+
+  color: #334155;
+
+  font-size: 9px;
+  font-weight: 850;
+}
+
+
+.selected-environment-packages svg,
+.selected-environment-packages i {
+  width: 12px;
+  height: 12px;
+
+  color: #c40024;
+}
+
+
+.selected-environment-empty {
+  color: #94a3b8;
+
+  font-size: 11px;
+  font-weight: 750;
+}
+
+
+.selected-environment-edit {
+  min-height: 42px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   PACKAGE LIBRARY MODAL
+   ========================================================= */
+
+.exam-package-library-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 12000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 26px;
+
+  background:
+    rgba(2,6,23,.68);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+
+.exam-package-library-modal {
+  width:
+    min(
+      1000px,
+      96vw
+    );
+
+  max-height:
+    88vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-radius: 26px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 34px 100px
+    rgba(0,0,0,.34);
+}
+
+
+/* HEADER */
+
+.exam-package-library-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 23px 26px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1b1829 0%,
+      #4c0a28 34%,
+      #7c0025 62%,
+      #a50024 82%,
+      #c40024 100%
+    );
+
+  color: #ffffff;
+}
+
+
+.exam-package-library-heading {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+.exam-package-library-icon {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 17px;
+
+  background:
+    rgba(255,255,255,.12);
+}
+
+
+.exam-package-library-heading > div > span {
+  font-size: 8px;
+  font-weight: 950;
+
+  letter-spacing: .14em;
+
+  opacity: .72;
+}
+
+
+.exam-package-library-heading h2 {
+  margin: 3px 0;
+
+  color: #ffffff;
+
+  font-size: 22px;
+  font-weight: 950;
+}
+
+
+.exam-package-library-heading p {
+  margin: 0;
+
+  color:
+    rgba(255,255,255,.78);
+
+  font-size: 11px;
+}
+
+
+.exam-package-library-close {
+  width: 44px;
+  height: 44px;
+
+  padding: 0;
+
+  border-radius: 13px;
+
+  background: #0f172a;
+  color: #ffffff;
+}
+
+
+/* TOOLBAR */
+
+.exam-package-library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 16px 22px;
+
+  border-bottom:
+    1px solid #e5e7eb;
+}
+
+
+.exam-package-library-search {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  min-height: 44px;
+
+  padding: 0 13px;
+
+  border: 1px solid #d8dee8;
+  border-radius: 12px;
+
+  background: #f8fafc;
+}
+
+
+.exam-package-library-search svg,
+.exam-package-library-search i {
+  width: 17px;
+  height: 17px;
+
+  color: #64748b;
+}
+
+
+.exam-package-library-search input {
+  width: 100%;
+
+  padding: 0;
+
+  border: 0 !important;
+
+  background: transparent;
+
+  box-shadow: none !important;
+
+  outline: none;
+
+  font-size: 12px;
+}
+
+
+.exam-package-library-selected-count {
+  padding: 8px 11px;
+
+  border-radius: 999px;
+
+  background: #fff1f2;
+  color: #c40024;
+
+  font-size: 10px;
+  font-weight: 950;
+
+  white-space: nowrap;
+}
+
+
+/* BODY */
+
+.exam-package-library-body {
+  flex: 1;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0,1fr)
+    );
+
+  align-content: start;
+
+  gap: 11px;
+
+  overflow-y: auto;
+
+  padding: 20px 22px;
+}
+
+
+.exam-library-package {
+  width: 100%;
+
+  min-height: 95px;
+
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0,1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  color: #111827;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: .18s ease;
+}
+
+
+.exam-library-package:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(196,0,36,.20);
+
+  box-shadow:
+    0 9px 20px
+    rgba(15,23,42,.07);
+}
+
+
+.exam-library-package.selected {
+  border-color: #c40024;
+
+  background: #fff7f8;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(196,0,36,.08);
+}
+
+
+.exam-library-package.inactive {
+  opacity: .48;
+
+  cursor: not-allowed;
+
+  filter: grayscale(.7);
+}
+
+
+.exam-library-package-check {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+
+  background: #f1f5f9;
+  color: #334155;
+}
+
+
+.exam-library-package.selected
+.exam-library-package-check {
+  background: #c40024;
+  color: #ffffff;
+}
+
+
+.exam-library-package-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.exam-library-package-info strong {
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 950;
+}
+
+
+.exam-library-package-info > span {
+  color: #64748b;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+
+.exam-library-package-info small {
+  margin-top: 3px;
+
+  color: #94a3b8;
+
+  font-size: 9px;
+
+  line-height: 1.4;
+}
+
+
+.exam-library-package-status {
+  padding: 6px 8px;
+
+  border-radius: 999px;
+
+  font-size: 8px;
+  font-weight: 950;
+}
+
+
+.exam-library-package-status.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+
+.exam-library-package-status.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+
+.exam-package-library-empty {
+  grid-column: 1 / -1;
+
+  padding: 30px;
+
+  color: #64748b;
+
+  text-align: center;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+/* FOOTER */
+
+.exam-package-library-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding: 17px 22px;
+
+  border-top:
+    1px solid #e5e7eb;
+
+  background: #f8fafc;
+}
+
+
+.exam-package-library-cancel,
+.exam-package-library-confirm {
+  min-height: 44px;
+
+  padding: 0 17px;
+
+  border-radius: 12px;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+
+.exam-package-library-cancel {
+  background: #111827;
+  color: #ffffff;
+}
+
+
+.exam-package-library-confirm {
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #c40024 100%
+    );
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .exam-environment-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0,1fr)
+      );
+  }
+
+
+  .selected-environment {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .exam-environment-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+
+  .exam-package-library-button {
+    width: 100%;
+  }
+
+
+  .exam-environment-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .exam-environment-actions {
+    grid-template-columns: 1fr;
+  }
+
+
+  .exam-custom-environment-card {
+    grid-template-columns:
+      auto 1fr;
+  }
+
+
+  .exam-custom-environment-action {
+    grid-column: 2;
+  }
+
+
+  .exam-package-library-backdrop {
+    padding: 10px;
+  }
+
+
+  .exam-package-library-modal {
+    width: 100%;
+
+    max-height: 94vh;
+  }
+
+
+  .exam-package-library-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+
+  .exam-package-library-body {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =========================================================
+   SECUREEXAM PROFESSIONAL ENVIRONMENTS V2
+   ========================================================= */
+
+
+/* Les politiques réseau ne font PAS partie
+   des presets logiciels. */
+
+.exam-environment-security {
+  display: none !important;
+}
+
+
+/* =========================================================
+   HEADER ACTIONS
+   ========================================================= */
+
+.exam-environment-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+
+.exam-my-configs-button,
+.exam-library-add-real-package {
+  min-height: 46px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 15px;
+
+  border:
+    1px solid #d8dee8;
+
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  color: #111827;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  cursor: pointer;
+}
+
+
+.exam-my-configs-button:hover,
+.exam-library-add-real-package:hover {
+  border-color:
+    rgba(196,0,36,.24);
+
+  color: #c40024;
+
+  background: #fff8f9;
+}
+
+
+.exam-my-configs-button > span {
+  min-width: 23px;
+  height: 23px;
+
+  display: inline-grid;
+  place-items: center;
+
+  padding: 0 6px;
+
+  border-radius: 999px;
+
+  background: #fff1f2;
+
+  color: #c40024;
+
+  font-size: 9px;
+  font-weight: 950;
+}
+
+
+/* =========================================================
+   NAME / SAVED CONFIG MODALS
+   ========================================================= */
+
+.custom-env-backdrop {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 13000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(2, 6, 23, .70);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+
+.custom-env-name-modal {
+  width:
+    min(
+      520px,
+      96vw
+    );
+
+  padding: 28px;
+
+  border-radius: 26px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 35px 100px
+    rgba(0,0,0,.30);
+
+  text-align: center;
+}
+
+
+.custom-env-modal-icon {
+  width: 58px;
+  height: 58px;
+
+  display: grid;
+  place-items: center;
+
+  margin:
+    0 auto 15px;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #c40024 100%
+    );
+
+  color: #ffffff;
+}
+
+
+.custom-env-modal-kicker {
+  color: #c40024;
+
+  font-size: 9px;
+  font-weight: 950;
+
+  letter-spacing: .11em;
+}
+
+
+.custom-env-name-modal h2 {
+  margin:
+    6px 0 8px;
+
+  color: #111827;
+
+  font-size: 23px;
+  font-weight: 950;
+}
+
+
+.custom-env-name-modal > p {
+  margin:
+    0 auto 22px;
+
+  max-width: 390px;
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  line-height: 1.55;
+}
+
+
+.custom-env-name-field {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 8px;
+
+  text-align: left;
+
+  color: #334155;
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+
+.custom-env-name-field input {
+  width: 100%;
+
+  min-height: 49px;
+
+  padding: 0 14px;
+
+  border:
+    1px solid #d8dee8;
+
+  border-radius: 13px;
+
+  outline: none;
+
+  font-size: 13px;
+
+  font-weight: 750;
+}
+
+
+.custom-env-name-field input:focus {
+  border-color: #c40024;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(196,0,36,.08);
+}
+
+
+.custom-env-name-actions {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 9px;
+
+  margin-top: 20px;
+}
+
+
+.custom-env-name-actions button {
+  min-height: 46px;
+
+  border: 0;
+
+  border-radius: 12px;
+
+  font-size: 11px;
+  font-weight: 950;
+
+  cursor: pointer;
+}
+
+
+.custom-env-cancel {
+  background: #111827;
+
+  color: #ffffff;
+}
+
+
+.custom-env-continue {
+  background:
+    linear-gradient(
+      135deg,
+      #7c0016,
+      #c40024
+    );
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   MES CONFIGS
+   ========================================================= */
+
+.custom-env-list-modal {
+  width:
+    min(
+      850px,
+      96vw
+    );
+
+  max-height:
+    88vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-radius: 26px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 35px 100px
+    rgba(0,0,0,.34);
+}
+
+
+.custom-env-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 24px 26px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1b1829 0%,
+      #4c0a28 34%,
+      #7c0025 62%,
+      #a50024 82%,
+      #c40024 100%
+    );
+
+  color: #ffffff;
+}
+
+
+.custom-env-list-header > div > span {
+  color:
+    rgba(255,255,255,.65);
+
+  font-size: 8px;
+  font-weight: 950;
+
+  letter-spacing: .14em;
+}
+
+
+.custom-env-list-header h2 {
+  margin:
+    4px 0;
+
+  color: #ffffff;
+
+  font-size: 22px;
+
+  font-weight: 950;
+}
+
+
+.custom-env-list-header p {
+  margin: 0;
+
+  color:
+    rgba(255,255,255,.76);
+
+  font-size: 11px;
+}
+
+
+.custom-env-close {
+  width: 43px;
+  height: 43px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  border-radius: 13px;
+
+  background: #0f172a;
+
+  color: #ffffff;
+}
+
+
+.custom-env-list-body {
+  overflow-y: auto;
+
+  padding: 20px;
+
+  background: #f8fafc;
+}
+
+
+.custom-env-loading,
+.custom-env-empty {
+  padding: 35px 20px;
+
+  border:
+    1px dashed #cbd5e1;
+
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  color: #64748b;
+
+  text-align: center;
+}
+
+
+.custom-env-empty {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+
+.custom-env-empty svg,
+.custom-env-empty i {
+  width: 32px;
+  height: 32px;
+
+  margin-bottom: 5px;
+
+  color: #c40024;
+}
+
+
+.custom-env-empty strong {
+  color: #111827;
+
+  font-size: 14px;
+}
+
+
+.custom-env-empty span {
+  font-size: 11px;
+}
+
+
+.custom-env-saved-card {
+  display: grid;
+
+  grid-template-columns:
+    minmax(180px,.8fr)
+    minmax(0,1.5fr)
+    auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding: 16px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius: 17px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 7px 20px
+    rgba(15,23,42,.045);
+}
+
+
+.custom-env-saved-card
++ .custom-env-saved-card {
+  margin-top: 10px;
+}
+
+
+.custom-env-saved-top {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+
+.custom-env-saved-icon {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 42px;
+
+  border-radius: 13px;
+
+  background:
+    rgba(196,0,36,.08);
+
+  color: #c40024;
+}
+
+
+.custom-env-saved-top h3 {
+  margin: 0;
+
+  color: #111827;
+
+  font-size: 13px;
+
+  font-weight: 950;
+}
+
+
+.custom-env-saved-top span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #64748b;
+
+  font-size: 9px;
+}
+
+
+.custom-env-saved-packages {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+
+.custom-env-saved-packages > span {
+  padding: 5px 7px;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+
+  color: #475569;
+
+  font-size: 8px;
+
+  font-weight: 850;
+}
+
+
+.custom-env-saved-actions {
+  display: flex;
+
+  gap: 6px;
+}
+
+
+.custom-env-saved-actions button {
+  min-height: 38px;
+
+  padding: 0 11px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  font-size: 9px;
+
+  font-weight: 900;
+}
+
+
+.custom-env-use {
+  background: #111827;
+
+  color: #ffffff;
+}
+
+
+.custom-env-edit {
+  background: #fff1f2;
+
+  color: #c40024;
+}
+
+
+.custom-env-delete {
+  width: 38px;
+
+  padding: 0 !important;
+
+  background: #fee2e2;
+
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   VRAI AJOUT DE PAQUET
+   ========================================================= */
+
+.exam-library-real-package-form {
+  padding: 18px 22px;
+
+  border-bottom:
+    1px solid #e5e7eb;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7f8,
+      #ffffff
+    );
+}
+
+
+.exam-library-real-package-title {
+  margin-bottom: 15px;
+}
+
+
+.exam-library-real-package-title strong {
+  display: block;
+
+  color: #111827;
+
+  font-size: 13px;
+
+  font-weight: 950;
+}
+
+
+.exam-library-real-package-title span {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #64748b;
+
+  font-size: 10px;
+}
+
+
+.exam-library-real-package-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 12px;
+}
+
+
+.exam-library-real-package-grid
+label {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+
+  color: #475569;
+
+  font-size: 10px;
+
+  font-weight: 900;
+}
+
+
+.exam-library-real-package-grid
+label.full {
+  grid-column: 1 / -1;
+}
+
+
+.exam-library-real-package-grid
+input,
+.exam-library-real-package-grid
+select {
+  min-height: 43px;
+
+  padding: 0 12px;
+
+  border:
+    1px solid #d8dee8;
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  outline: none;
+}
+
+
+.exam-library-confirm-real-package {
+  min-height: 43px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-top: 14px;
+
+  padding: 0 15px;
+
+  border: 0;
+
+  border-radius: 11px;
+
+  background: #111827;
+
+  color: #ffffff;
+
+  font-size: 10px;
+
+  font-weight: 950;
+}
+
+
+.exam-library-confirm-real-package:hover:not(:disabled) {
+  background: #c40024;
+}
+
+
+.exam-library-confirm-real-package:disabled {
+  opacity: .45;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   RESPONSIVE V2
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .exam-environment-header {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+
+  .exam-environment-header-actions {
+    width: 100%;
+  }
+
+
+  .exam-environment-header-actions
+  button {
+    flex: 1;
+  }
+
+
+  .custom-env-saved-card {
+    grid-template-columns: 1fr;
+  }
+
+
+  .custom-env-saved-actions {
+    justify-content: flex-end;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .exam-environment-header-actions {
+    flex-direction: column;
+  }
+
+
+  .exam-environment-header-actions
+  button {
+    width: 100%;
+  }
+
+
+  .custom-env-name-actions,
+  .exam-library-real-package-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .exam-library-real-package-grid
+  label.full {
+    grid-column: auto;
+  }
+
+}
+
+
+/* =========================================================
+   SECUREEXAM PERSONALIZED ENVIRONMENT CARD V5
+   ========================================================= */
+
+.exam-environment-card-personalized {
+  position: relative;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(196, 0, 36, .055),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fffafb 100%
+    );
+}
+
+
+/* distinction discrète des presets SecureExam */
+
+.exam-environment-card-personalized::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 22px;
+  right: 22px;
+
+  height: 3px;
+
+  border-radius:
+    0 0 999px 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #111827 0%,
+      #7c0025 50%,
+      #c40024 100%
+    );
+
+  opacity: .82;
+}
+
+
+/* SELECTED */
+
+.exam-environment-card-personalized.selected {
+  border:
+    2px solid
+    #c40024 !important;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(196, 0, 36, .08),
+      transparent 34%
+    ),
+    linear-gradient(
+      180deg,
+      #fffafa 0%,
+      #ffffff 100%
+    ) !important;
+
+  box-shadow:
+    0 18px 42px
+    rgba(196, 0, 36, .13)
+    !important;
+}
+
+
+/* ICON */
+
+.exam-environment-icon.personalized {
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #5f0927 50%,
+      #c40024 100%
+    ) !important;
+
+  box-shadow:
+    0 10px 22px
+    rgba(124, 0, 37, .20);
+}
+
+
+/* BADGE */
+
+.exam-environment-ready.personalized {
+  background:
+    linear-gradient(
+      135deg,
+      #fff1f2 0%,
+      #ffe4e6 100%
+    ) !important;
+
+  color:
+    #be123c !important;
+
+  border:
+    1px solid
+    rgba(190, 18, 60, .10);
+
+  letter-spacing:
+    .065em;
+}
+
+
+/* CATEGORY */
+
+.exam-environment-category.personalized {
+  color:
+    #9f1239 !important;
+}
+
+
+/* OWNER */
+
+.custom-environment-owner-info {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin-top: 15px;
+
+  padding-top: 13px;
+
+  border-top:
+    1px solid #eef2f7;
+
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    850;
+}
+
+
+.custom-environment-owner-info svg,
+.custom-environment-owner-info i {
+  width: 14px;
+  height: 14px;
+
+  color:
+    #c40024;
+}
+
+
+/* actions toujours en bas */
+
+.exam-environment-card-personalized
+.exam-environment-actions {
+  margin-top: auto;
+}
+
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM TOOLS ZONE V8
+   ========================================================= */
+
+.exam-custom-zone {
+  margin-top:
+    18px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid
+    rgba(196, 0, 36, .10);
+
+  border-radius:
+    22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,247,248,.72) 0%,
+      #ffffff 70%
+    );
+
+  box-shadow:
+    0 10px 28px
+    rgba(15,23,42,.035);
+}
+
+
+/* la carte de création est maintenant
+   contenue dans la zone */
+
+.exam-custom-zone
+.exam-custom-environment-card {
+  margin-top:
+    0 !important;
+
+  border:
+    1px dashed
+    rgba(196,0,36,.27);
+
+  background:
+    rgba(255,255,255,.78);
+}
+
+
+/* =========================================================
+   ACTIONS PERSONNALISEES
+   ========================================================= */
+
+.exam-custom-tools-row {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    10px;
+
+  margin-top:
+    12px;
+
+  padding:
+    12px 4px 2px;
+}
+
+
+.exam-custom-tools-row
+.exam-my-configs-button,
+.exam-custom-tools-row
+.exam-package-library-button {
+  min-height:
+    46px;
+}
+
+
+/* bibliothèque reste action principale */
+
+.exam-custom-tools-row
+.exam-package-library-button {
+  padding:
+    0 18px;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+
+  border:
+    1px solid #111827;
+
+  border-radius:
+    13px;
+
+  box-shadow:
+    0 9px 22px
+    rgba(15,23,42,.12);
+}
+
+
+.exam-custom-tools-row
+.exam-package-library-button:hover {
+  background:
+    #020617;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* mes configs = action secondaire */
+
+.exam-custom-tools-row
+.exam-my-configs-button {
+  background:
+    #ffffff;
+
+  border:
+    1px solid #d8dee8;
+
+  color:
+    #111827;
+
+  box-shadow:
+    0 5px 14px
+    rgba(15,23,42,.04);
+}
+
+
+.exam-custom-tools-row
+.exam-my-configs-button:hover {
+  border-color:
+    rgba(196,0,36,.22);
+
+  color:
+    #c40024;
+
+  background:
+    #fffafb;
+}
+
+
+/* HEADER REDEVIENT SIMPLE */
+
+.exam-environment-header {
+  align-items:
+    center;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+
+  .exam-custom-tools-row {
+    flex-direction:
+      column;
+
+    align-items:
+      stretch;
+  }
+
+
+  .exam-custom-tools-row
+  .exam-my-configs-button,
+  .exam-custom-tools-row
+  .exam-package-library-button {
+    width:
+      100%;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM OR DIVIDER V9
+   ========================================================= */
+
+
+/* =========================================================
+   BOUTONS EN PREMIER
+   ========================================================= */
+
+.exam-custom-zone
+.exam-custom-tools-row {
+  margin:
+    0 !important;
+
+  padding:
+    4px 4px 10px !important;
+
+  justify-content:
+    flex-end;
+}
+
+
+/* =========================================================
+   SEPARATEUR OU
+   ========================================================= */
+
+.exam-custom-or-divider {
+  width:
+    100%;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(40px, 1fr)
+    auto
+    minmax(40px, 1fr);
+
+  align-items:
+    center;
+
+  gap:
+    14px;
+
+  margin:
+    8px 0 14px;
+}
+
+
+.exam-custom-or-divider > span {
+  height:
+    1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      #d9dee7 18%,
+      #d9dee7 82%,
+      transparent 100%
+    );
+}
+
+
+.exam-custom-or-divider > strong {
+  min-width:
+    44px;
+
+  height:
+    30px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    0 11px;
+
+  border:
+    1px solid
+    rgba(196,0,36,.10);
+
+  border-radius:
+    999px;
+
+  background:
+    #ffffff;
+
+  color:
+    #94a3b8;
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .12em;
+
+  box-shadow:
+    0 4px 12px
+    rgba(15,23,42,.035);
+}
+
+
+/* =========================================================
+   CARTE CREATION APRES LE OU
+   ========================================================= */
+
+.exam-custom-zone
+.exam-custom-environment-card {
+  margin:
+    0 !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .exam-custom-zone
+  .exam-custom-tools-row {
+    padding:
+      0 0 10px !important;
+  }
+
+
+  .exam-custom-or-divider {
+    margin:
+      6px 0 12px;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM OFFICIAL CUSTOM DIVIDER V10
+   ========================================================= */
+
+
+/* =========================================================
+   SEPARATION PRESETS / PERSONNALISE
+   ========================================================= */
+
+.exam-official-custom-divider {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(80px, 1fr)
+    auto
+    minmax(80px, 1fr);
+
+  align-items: center;
+
+  gap: 17px;
+
+  margin:
+    25px 0 20px;
+}
+
+
+.exam-official-custom-divider > span {
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      #d7dce5 12%,
+      #cbd2dc 50%,
+      #d7dce5 88%,
+      transparent 100%
+    );
+}
+
+
+.exam-official-custom-divider > strong {
+  min-width: 48px;
+
+  height: 32px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding:
+    0 12px;
+
+  border:
+    1px solid
+    rgba(196,0,36,.12);
+
+  border-radius:
+    999px;
+
+  background:
+    #ffffff;
+
+  color:
+    #c40024;
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .14em;
+
+  box-shadow:
+    0 5px 15px
+    rgba(15,23,42,.04);
+}
+
+
+/* =========================================================
+   BLOC PERSONNALISE
+   ========================================================= */
+
+.exam-custom-zone {
+  margin-top:
+    0 !important;
+
+  padding:
+    18px !important;
+}
+
+
+.exam-custom-zone-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom:
+    15px;
+}
+
+
+.exam-custom-zone-heading > div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.exam-custom-zone-heading span {
+  color:
+    #c40024;
+
+  font-size:
+    8px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .11em;
+}
+
+
+.exam-custom-zone-heading strong {
+  color:
+    #111827;
+
+  font-size:
+    14px;
+
+  font-weight:
+    950;
+}
+
+
+/* boutons d'abord */
+
+.exam-custom-zone
+.exam-custom-tools-row {
+  margin:
+    0 0 13px !important;
+
+  padding:
+    0 !important;
+
+  justify-content:
+    flex-end;
+}
+
+
+/* puis création */
+
+.exam-custom-zone
+.exam-custom-environment-card {
+  margin:
+    0 !important;
+}
+
+
+/* ancien OU interne définitivement caché
+   si un vieux fragment CSS/HTML traîne */
+
+.exam-custom-zone
+.exam-custom-or-divider {
+  display:
+    none !important;
+}
+
+
+@media (max-width: 700px) {
+
+  .exam-official-custom-divider {
+    margin:
+      18px 0 15px;
+  }
+
+
+  .exam-custom-zone {
+    padding:
+      13px !important;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM HEADER ALIGN V11
+   ========================================================= */
+
+
+/* =========================================================
+   TITRE + BOUTONS SUR LA MEME LIGNE
+   ========================================================= */
+
+.exam-custom-zone {
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto !important;
+
+  align-items:
+    center !important;
+
+  column-gap:
+    22px !important;
+
+  row-gap:
+    16px !important;
+}
+
+
+.exam-custom-zone-heading {
+  grid-column:
+    1 !important;
+
+  grid-row:
+    1 !important;
+
+  margin:
+    0 !important;
+
+  min-width:
+    0;
+}
+
+
+/* les deux boutons à droite */
+
+.exam-custom-zone
+.exam-custom-tools-row {
+  grid-column:
+    2 !important;
+
+  grid-row:
+    1 !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    flex-end !important;
+
+  gap:
+    10px !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+}
+
+
+/* carte "Créer une configuration personnalisée"
+   prend toute la largeur en dessous */
+
+.exam-custom-zone
+.exam-custom-environment-card {
+  grid-column:
+    1 / -1 !important;
+
+  grid-row:
+    2 !important;
+
+  width:
+    100% !important;
+
+  margin:
+    0 !important;
+}
+
+
+/* =========================================================
+   TYPO TITRE
+   ========================================================= */
+
+.exam-custom-zone-heading span {
+  display:
+    block;
+
+  margin-bottom:
+    4px;
+
+  color:
+    #c40024;
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .12em;
+}
+
+
+.exam-custom-zone-heading strong {
+  display:
+    block;
+
+  color:
+    #111827;
+
+  font-size:
+    15px;
+
+  font-weight:
+    950;
+}
+
+
+/* =========================================================
+   CARTE SELECTIONNEE = BOUTON VERT
+   ========================================================= */
+
+.exam-environment-card.selected
+.exam-environment-use {
+  background:
+    linear-gradient(
+      135deg,
+      #15803d 0%,
+      #16a34a 55%,
+      #22c55e 100%
+    ) !important;
+
+  color:
+    #ffffff !important;
+
+  border-color:
+    transparent !important;
+
+  box-shadow:
+    0 10px 22px
+    rgba(22, 163, 74, .22)
+    !important;
+
+  cursor:
+    default !important;
+}
+
+
+.exam-environment-card.selected
+.exam-environment-use:hover {
+  transform:
+    none !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #15803d 0%,
+      #16a34a 55%,
+      #22c55e 100%
+    ) !important;
+}
+
+
+/* icône blanche */
+
+.exam-environment-card.selected
+.exam-environment-use svg,
+.exam-environment-card.selected
+.exam-environment-use i {
+  color:
+    #ffffff !important;
+
+  stroke:
+    #ffffff !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 950px) {
+
+  .exam-custom-zone {
+    grid-template-columns:
+      1fr !important;
+  }
+
+
+  .exam-custom-zone-heading {
+    grid-column:
+      1 !important;
+
+    grid-row:
+      auto !important;
+  }
+
+
+  .exam-custom-zone
+  .exam-custom-tools-row {
+    grid-column:
+      1 !important;
+
+    grid-row:
+      auto !important;
+
+    justify-content:
+      flex-start !important;
+  }
+
+
+  .exam-custom-zone
+  .exam-custom-environment-card {
+    grid-column:
+      1 !important;
+
+    grid-row:
+      auto !important;
+  }
+
+}
+
+
+@media (max-width: 650px) {
+
+  .exam-custom-zone
+  .exam-custom-tools-row {
+    flex-direction:
+      column !important;
+
+    align-items:
+      stretch !important;
+  }
+
+
+  .exam-custom-zone
+  .exam-custom-tools-row
+  button {
+    width:
+      100% !important;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM SELECTED ENVIRONMENT V13
+   ========================================================= */
+
+.selected-environment {
+  display: block !important;
+
+  margin-top:
+    22px;
+
+  padding:
+    20px 21px;
+
+  border:
+    1px solid
+    rgba(196,0,36,.13);
+
+  border-radius:
+    19px;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(196,0,36,.045),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      #fffafb 0%,
+      #ffffff 75%
+    );
+
+  box-shadow:
+    0 10px 28px
+    rgba(15,23,42,.045);
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.selected-environment-header {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+}
+
+
+.selected-environment-header > div {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    flex-start;
+
+  gap:
+    3px;
+}
+
+
+.selected-environment-label {
+  color:
+    #c40024;
+
+  font-size:
+    8px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .12em;
+}
+
+
+.selected-environment-header strong {
+  margin-top:
+    2px;
+
+  color:
+    #111827;
+
+  font-size:
+    18px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    -.015em;
+}
+
+
+.selected-environment-header small {
+  margin-top:
+    2px;
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+/* =========================================================
+   TYPE
+   ========================================================= */
+
+.selected-environment-type {
+  flex-shrink:
+    0;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    29px;
+
+  padding:
+    0 11px;
+
+  border-radius:
+    999px;
+
+  background:
+    #dcfce7;
+
+  color:
+    #15803d;
+
+  font-size:
+    8px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .08em;
+}
+
+
+.selected-environment-type.personalized {
+  background:
+    #fff1f2;
+
+  color:
+    #be123c;
+}
+
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.selected-environment-divider {
+  width:
+    100%;
+
+  height:
+    1px;
+
+  margin:
+    15px 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(196,0,36,.13),
+      #e5e7eb 45%,
+      transparent 100%
+    );
+}
+
+
+/* =========================================================
+   PACKAGES
+   ========================================================= */
+
+.selected-environment-packages {
+  display:
+    flex !important;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    7px;
+}
+
+
+.selected-environment-packages > span {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  padding:
+    7px 10px;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius:
+    999px;
+
+  background:
+    #ffffff;
+
+  color:
+    #334155;
+
+  font-size:
+    9px;
+
+  font-weight:
+    850;
+
+  box-shadow:
+    0 3px 9px
+    rgba(15,23,42,.025);
+}
+
+
+.selected-environment-packages svg,
+.selected-environment-packages i {
+  width:
+    13px;
+
+  height:
+    13px;
+
+  color:
+    #c40024;
+
+  stroke:
+    #c40024;
+}
+
+
+/* Aucun bouton d'édition dans ce résumé */
+
+.selected-environment-edit {
+  display:
+    none !important;
+}
+
+
+@media (max-width: 650px) {
+
+  .selected-environment-header {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+}
+
+
+
+
+/* =========================================================
+   SECUREEXAM SELECTED ENVIRONMENT V15
+   ========================================================= */
+
+.secureexam-selected-env-v15 {
+  margin:
+    24px 0 0;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    rgba(22, 163, 74, .22);
+
+  border-radius:
+    20px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 14px 34px
+    rgba(15, 23, 42, .06);
+}
+
+
+/* =========================================================
+   HEADER DU CHOIX
+   ========================================================= */
+
+.secureexam-selected-env-v15-top {
+  display:
+    grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  align-items:
+    center;
+
+  gap:
+    16px;
+
+  padding:
+    21px 22px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ecfdf3 0%,
+      #f7fff9 42%,
+      #ffffff 100%
+    );
+
+  border-bottom:
+    1px solid
+    #e9eef3;
+}
+
+
+/* check */
+
+.secureexam-selected-env-v15-check {
+  width:
+    48px;
+
+  height:
+    48px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    rgba(22, 163, 74, .14);
+
+  border-radius:
+    15px;
+
+  background:
+    #dcfce7;
+
+  color:
+    #16a34a;
+}
+
+
+.secureexam-selected-env-v15-check svg,
+.secureexam-selected-env-v15-check i {
+  width:
+    24px;
+
+  height:
+    24px;
+
+  stroke:
+    #16a34a;
+
+  color:
+    #16a34a;
+
+  stroke-width:
+    2.5;
+}
+
+
+/* texte */
+
+.secureexam-selected-env-v15-info {
+  min-width:
+    0;
+}
+
+
+.secureexam-selected-env-v15-info > span {
+  display:
+    block;
+
+  margin-bottom:
+    4px;
+
+  color:
+    #15803d;
+
+  font-size:
+    8px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .13em;
+}
+
+
+.secureexam-selected-env-v15-info h3 {
+  margin:
+    0;
+
+  color:
+    #0f172a;
+
+  font-size:
+    21px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    -.025em;
+}
+
+
+.secureexam-selected-env-v15-info p {
+  margin:
+    5px 0 0;
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    650;
+
+  line-height:
+    1.5;
+}
+
+
+/* compteur */
+
+.secureexam-selected-env-v15-count {
+  min-width:
+    86px;
+
+  padding:
+    11px 14px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    rgba(22, 163, 74, .13);
+
+  border-radius:
+    14px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 5px 15px
+    rgba(15, 23, 42, .04);
+}
+
+
+.secureexam-selected-env-v15-count strong {
+  color:
+    #15803d;
+
+  font-size:
+    21px;
+
+  font-weight:
+    950;
+
+  line-height:
+    1;
+}
+
+
+.secureexam-selected-env-v15-count small {
+  margin-top:
+    5px;
+
+  color:
+    #64748b;
+
+  font-size:
+    7px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .09em;
+}
+
+
+/* =========================================================
+   CONTENU
+   ========================================================= */
+
+.secureexam-selected-env-v15-content {
+  padding:
+    16px 22px 19px;
+}
+
+
+.secureexam-selected-env-v15-subtitle {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  margin-bottom:
+    12px;
+}
+
+
+.secureexam-selected-env-v15-subtitle > svg,
+.secureexam-selected-env-v15-subtitle > i {
+  width:
+    17px;
+
+  height:
+    17px;
+
+  color:
+    #c40024;
+
+  stroke:
+    #c40024;
+}
+
+
+.secureexam-selected-env-v15-subtitle > div {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    1px;
+}
+
+
+.secureexam-selected-env-v15-subtitle strong {
+  color:
+    #334155;
+
+  font-size:
+    10px;
+
+  font-weight:
+    950;
+}
+
+
+.secureexam-selected-env-v15-subtitle span {
+  color:
+    #94a3b8;
+
+  font-size:
+    8px;
+
+  font-weight:
+    650;
+}
+
+
+/* packages */
+
+.secureexam-selected-env-v15-packages {
+  display:
+    flex;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    8px;
+}
+
+
+.secureexam-selected-env-v15-packages > span {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  min-height:
+    31px;
+
+  padding:
+    0 11px;
+
+  border:
+    1px solid
+    #e3e8ef;
+
+  border-radius:
+    10px;
+
+  background:
+    #f8fafc;
+
+  color:
+    #334155;
+
+  font-size:
+    9px;
+
+  font-weight:
+    850;
+}
+
+
+.secureexam-selected-env-v15-packages > span svg,
+.secureexam-selected-env-v15-packages > span i {
+  width:
+    12px;
+
+  height:
+    12px;
+
+  color:
+    #16a34a;
+
+  stroke:
+    #16a34a;
+
+  stroke-width:
+    2.5;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .secureexam-selected-env-v15-top {
+    grid-template-columns:
+      auto
+      minmax(0, 1fr);
+  }
+
+
+  .secureexam-selected-env-v15-count {
+    grid-column:
+      1 / -1;
+
+    width:
+      100%;
+
+    flex-direction:
+      row;
+
+    gap:
+      7px;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM DELETE BUTTON V19
+   ========================================================= */
+
+.secureexam-custom-env-delete {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+
+  padding: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  background: #fee2e2;
+  color: #dc2626;
+
+  cursor: pointer;
+
+  flex-shrink: 0;
+
+  transition:
+    background .16s ease,
+    transform .16s ease,
+    box-shadow .16s ease;
+}
+
+
+.secureexam-custom-env-delete svg,
+.secureexam-custom-env-delete i {
+  width: 19px;
+  height: 19px;
+
+  stroke: #dc2626;
+  color: #dc2626;
+
+  stroke-width: 2.4;
+}
+
+
+.secureexam-custom-env-delete:hover {
+  background: #fecaca;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 7px 16px
+    rgba(220, 38, 38, .13);
+}
+
+
+.secureexam-custom-env-delete:active {
+  transform: none;
+}
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM ACTIONS V21
+   DELETE TOP RIGHT
+   ========================================================= */
+
+.exam-environment-card-personalized {
+  position: relative !important;
+}
+
+
+/* Poubelle en haut à droite de la carte */
+
+.exam-environment-card-personalized
+.secureexam-custom-delete-slot {
+  position: absolute !important;
+
+  top: 18px !important;
+  right: 18px !important;
+
+  z-index: 5;
+
+  margin: 0 !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-env-delete {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+
+  margin: 0 !important;
+
+  border-radius: 12px !important;
+}
+
+
+/* La zone du bas ne contient plus visuellement
+   que Sélectionner + Modifier */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  width: 100% !important;
+
+  display: block !important;
+
+  margin-top: 18px !important;
+}
+
+
+/* Les deux boutons du bas sur la même ligne */
+
+.exam-environment-card-personalized
+.secureexam-custom-main-actions {
+  width: 100% !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  gap: 10px !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-main-actions > button {
+  flex: 1 1 0 !important;
+
+  width: auto !important;
+
+  min-width: 0 !important;
+
+  min-height: 48px !important;
+
+  margin: 0 !important;
+}
+
+
+/* Laisser de l'espace en haut pour éviter
+   que le texte touche la poubelle */
+
+.exam-environment-card-personalized {
+  padding-right: 74px !important;
+}
+
+
+/* Mais les actions du bas récupèrent toute la largeur */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  width: calc(100% + 56px) !important;
+}
+
+
+/* Mobile */
+
+@media (max-width: 650px) {
+
+  .exam-environment-card-personalized
+  .secureexam-custom-delete-slot {
+    top: 14px !important;
+    right: 14px !important;
+  }
+
+
+  .exam-environment-card-personalized
+  .secureexam-custom-main-actions {
+    flex-direction: row !important;
+  }
+
+}
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM ACTIONS V21
+   DELETE TOP RIGHT
+   ========================================================= */
+
+.exam-environment-card-personalized {
+  position: relative !important;
+}
+
+
+/* Poubelle en haut à droite de la carte */
+
+.exam-environment-card-personalized
+.secureexam-custom-delete-slot {
+  position: absolute !important;
+
+  top: 18px !important;
+  right: 18px !important;
+
+  z-index: 5;
+
+  margin: 0 !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-env-delete {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+
+  margin: 0 !important;
+
+  border-radius: 12px !important;
+}
+
+
+/* La zone du bas ne contient plus visuellement
+   que Sélectionner + Modifier */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  width: 100% !important;
+
+  display: block !important;
+
+  margin-top: 18px !important;
+}
+
+
+/* Les deux boutons du bas sur la même ligne */
+
+.exam-environment-card-personalized
+.secureexam-custom-main-actions {
+  width: 100% !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  gap: 10px !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-main-actions > button {
+  flex: 1 1 0 !important;
+
+  width: auto !important;
+
+  min-width: 0 !important;
+
+  min-height: 48px !important;
+
+  margin: 0 !important;
+}
+
+
+/* Laisser de l'espace en haut pour éviter
+   que le texte touche la poubelle */
+
+.exam-environment-card-personalized {
+  padding-right: 74px !important;
+}
+
+
+/* Mais les actions du bas récupèrent toute la largeur */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  width: calc(100% + 56px) !important;
+}
+
+
+/* Mobile */
+
+@media (max-width: 650px) {
+
+  .exam-environment-card-personalized
+  .secureexam-custom-delete-slot {
+    top: 14px !important;
+    right: 14px !important;
+  }
+
+
+  .exam-environment-card-personalized
+  .secureexam-custom-main-actions {
+    flex-direction: row !important;
+  }
+
+}
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM ACTIONS V22
+   SELECT | EDIT | DELETE
+   ========================================================= */
+
+/* Annule le placement V21 de la poubelle */
+.exam-environment-card-personalized
+.secureexam-custom-delete-slot {
+  position: static !important;
+
+  top: auto !important;
+  right: auto !important;
+
+  margin: 0 !important;
+
+  flex: none !important;
+
+  order: 3 !important;
+}
+
+
+/* Annule la largeur bizarre ajoutée précédemment */
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  width: 100% !important;
+
+  margin-top: 18px !important;
+
+  padding: 0 !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    48px !important;
+
+  align-items: stretch !important;
+
+  gap: 10px !important;
+}
+
+
+/* Important :
+   les boutons sélection + modifier deviennent
+   directement des éléments de la grille principale */
+.exam-environment-card-personalized
+.secureexam-custom-main-actions {
+  display: contents !important;
+}
+
+
+/* Sélectionner / Sélectionnée */
+.exam-environment-card-personalized
+.secureexam-custom-main-actions > button:nth-child(1) {
+  grid-column: 1 !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  min-height: 48px !important;
+
+  margin: 0 !important;
+}
+
+
+/* Modifier */
+.exam-environment-card-personalized
+.secureexam-custom-main-actions > button:nth-child(2) {
+  grid-column: 2 !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  min-height: 48px !important;
+
+  margin: 0 !important;
+}
+
+
+/* Supprimer complètement à droite */
+.exam-environment-card-personalized
+.secureexam-custom-delete-slot {
+  grid-column: 3 !important;
+
+  width: 48px !important;
+
+  display: flex !important;
+
+  align-items: stretch !important;
+
+  justify-content: stretch !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-env-delete {
+  width: 48px !important;
+  height: 48px !important;
+
+  min-width: 48px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  border-radius: 13px !important;
+
+  display: inline-flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+}
+
+
+/* Annule l'espace artificiel ajouté par V21 */
+.exam-environment-card-personalized {
+  padding-right: 32px !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+  .exam-environment-card-personalized
+  .secureexam-custom-actions-v20 {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      44px !important;
+
+    gap: 7px !important;
+  }
+
+
+  .exam-environment-card-personalized
+  .secureexam-custom-env-delete {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 48px !important;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM ACTIONS V23
+   STRUCTURE FINALE
+   ========================================================= */
+
+.exam-environment-card-personalized {
+  padding-right:
+    24px !important;
+}
+
+
+/* UNE SEULE LIGNE */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v23 {
+  width:
+    100% !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    52px !important;
+
+  align-items:
+    stretch !important;
+
+  gap:
+    10px !important;
+
+  margin-top:
+    18px !important;
+
+  padding:
+    0 !important;
+}
+
+
+/* Chaque slot */
+
+.secureexam-custom-action-select,
+.secureexam-custom-action-edit,
+.secureexam-custom-action-delete {
+  display:
+    flex !important;
+
+  align-items:
+    stretch !important;
+
+  min-width:
+    0 !important;
+}
+
+
+/* SELECT */
+
+.secureexam-custom-action-select {
+  grid-column:
+    1 !important;
+}
+
+
+/* MODIFIER */
+
+.secureexam-custom-action-edit {
+  grid-column:
+    2 !important;
+}
+
+
+/* DELETE TOUJOURS A DROITE */
+
+.secureexam-custom-action-delete {
+  grid-column:
+    3 !important;
+
+  justify-content:
+    flex-end !important;
+}
+
+
+/* SELECT + MODIFIER */
+
+.secureexam-custom-action-select > button,
+.secureexam-custom-action-edit > button {
+  width:
+    100% !important;
+
+  min-width:
+    0 !important;
+
+  height:
+    52px !important;
+
+  min-height:
+    52px !important;
+
+  margin:
+    0 !important;
+}
+
+
+/* POUBELLE */
+
+.secureexam-custom-action-delete
+.secureexam-custom-env-delete {
+  position:
+    static !important;
+
+  top:
+    auto !important;
+
+  right:
+    auto !important;
+
+  width:
+    52px !important;
+
+  min-width:
+    52px !important;
+
+  height:
+    52px !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  border-radius:
+    13px !important;
+
+  flex:
+    none !important;
+}
+
+
+/* =========================================================
+   NEUTRALISER LES ANCIENS LAYOUTS V20/V21/V22
+   ========================================================= */
+
+.exam-environment-card-personalized
+.secureexam-custom-actions-v20 {
+  display:
+    none !important;
+}
+
+
+.exam-environment-card-personalized
+.secureexam-custom-delete-slot {
+  position:
+    static !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+  .exam-environment-card-personalized
+  .secureexam-custom-actions-v23 {
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr)
+      46px !important;
+
+    gap:
+      7px !important;
+  }
+
+
+  .secureexam-custom-action-select > button,
+  .secureexam-custom-action-edit > button {
+    height:
+      48px !important;
+
+    min-height:
+      48px !important;
+  }
+
+
+  .secureexam-custom-action-delete
+  .secureexam-custom-env-delete {
+    width:
+      46px !important;
+
+    min-width:
+      46px !important;
+
+    height:
+      48px !important;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM PRIVATE ENV HINT V24
+   ========================================================= */
+
+
+/* Petit indice discret dans les cartes personnalisées */
+
+.exam-environment-card-personalized
+.secureexam-private-hint-v24 {
+
+  width:
+    fit-content;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  padding:
+    5px 8px;
+
+  border:
+    1px solid
+    #e8edf3;
+
+  border-radius:
+    8px;
+
+  background:
+    #f8fafc;
+
+  color:
+    #64748b;
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    .015em;
+
+  white-space:
+    nowrap;
+}
+
+
+/* Petit cadenas */
+
+.exam-environment-card-personalized
+.secureexam-private-hint-v24 > svg,
+.exam-environment-card-personalized
+.secureexam-private-hint-v24 > i {
+
+  width:
+    12px;
+
+  height:
+    12px;
+
+  min-width:
+    12px;
+
+  color:
+    #94a3b8;
+
+  stroke:
+    #94a3b8;
+
+  stroke-width:
+    2.1;
+}
+
+
+/* Texte */
+
+.exam-environment-card-personalized
+.secureexam-private-hint-v24 > span {
+
+  color:
+    #64748b;
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+
+}
+
+
+/* Si l'ancien conteneur contient une grosse icône utilisateur,
+   on la rend beaucoup plus discrète */
+
+.exam-environment-card-personalized
+*:has(> .secureexam-private-hint-v24)
+> svg:not(.secureexam-private-hint-v24 svg),
+
+.exam-environment-card-personalized
+*:has(> .secureexam-private-hint-v24)
+> i:not(.secureexam-private-hint-v24 i) {
+
+  display:
+    none !important;
+}
+
+
+/* Le conteneur de l'indice ne doit pas prendre
+   toute la largeur ou ressembler à une section */
+
+.exam-environment-card-personalized
+*:has(> .secureexam-private-hint-v24) {
+
+  min-height:
+    0 !important;
+
+  margin:
+    11px 0 0 !important;
+
+  padding:
+    0 !important;
+
+  border:
+    0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* Mobile */
+
+@media (max-width: 650px) {
+
+  .exam-environment-card-personalized
+  .secureexam-private-hint-v24 {
+
+    white-space:
+      normal;
+
+    line-height:
+      1.25;
+  }
+
+}
+
+
+
+/* =========================================================
+   SECUREEXAM NIXOS DELETE ACTION V25
+   ========================================================= */
+
+.generated-nixos-delete {
+  min-height:
+    42px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+
+  padding:
+    0 16px;
+
+  border:
+    1px solid
+    rgba(220,38,38,.12);
+
+  border-radius:
+    12px;
+
+  background:
+    #dc002b;
+
+  color:
+    #ffffff;
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+
+  white-space:
+    nowrap;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 8px 18px
+    rgba(220,0,43,.15);
+
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    background .16s ease;
+}
+
+
+.generated-nixos-delete svg,
+.generated-nixos-delete i {
+  width:
+    15px;
+
+  height:
+    15px;
+
+  color:
+    #ffffff;
+
+  stroke:
+    #ffffff;
+}
+
+
+.generated-nixos-delete:hover {
+  background:
+    #bd0025;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 10px 22px
+    rgba(220,0,43,.20);
+}
+
+
+.generated-nixos-delete:active {
+  transform:
+    none;
+}
+
+
+/* garder les actions du tableau bien centrées */
+
+.generated-nixos-table td:last-child,
+.generated-nixos-table th:last-child {
+  text-align:
+    center;
+}
+
+
+
+
+/* =========================================================
+   SECUREEXAM PACKAGE TERMINAL V1
+   Personnalisation d'environnement via Nixpkgs
+   ========================================================= */
+
+.secureexam-package-terminal-editor {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background:
+    radial-gradient(circle at top right, rgba(196, 0, 36, 0.045), transparent 30%),
+    #f8fafc;
+}
+
+.secureexam-package-terminal-statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.secureexam-package-terminal-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.secureexam-package-terminal-title-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.secureexam-package-terminal-title-icon svg,
+.secureexam-package-terminal-title-icon i {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.35;
+}
+
+.secureexam-package-terminal-title strong {
+  display: block;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.secureexam-package-terminal-title > div > span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.secureexam-package-terminal-online {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 31px;
+  padding: 0 10px;
+  border: 1px solid #bbf7d0;
+  border-radius: 999px;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 9px;
+  font-weight: 950;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.secureexam-package-terminal-online > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, .12);
+}
+
+.secureexam-package-terminal-screen {
+  min-height: 245px;
+  max-height: 310px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 18px 20px;
+  border: 1px solid #1e293b;
+  border-radius: 18px 18px 8px 8px;
+  background:
+    radial-gradient(circle at top right, rgba(196, 0, 36, .16), transparent 33%),
+    linear-gradient(145deg, #020617 0%, #0f172a 68%, #111827 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 16px 34px rgba(15,23,42,.16);
+  color: #e2e8f0;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #0f172a;
+}
+
+.secureexam-package-terminal-screen::-webkit-scrollbar {
+  width: 9px;
+}
+
+.secureexam-package-terminal-screen::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.secureexam-package-terminal-screen::-webkit-scrollbar-thumb {
+  border: 2px solid #0f172a;
+  border-radius: 999px;
+  background: #475569;
+}
+
+.secureexam-package-terminal-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0 0 9px;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.secureexam-package-terminal-line.command {
+  margin-top: 12px;
+  color: #f8fafc;
+}
+
+.secureexam-package-terminal-line.success {
+  color: #86efac;
+}
+
+.secureexam-package-terminal-line.error-line {
+  color: #fca5a5;
+}
+
+.secureexam-package-terminal-line.info-line {
+  color: #94a3b8;
+}
+
+.secureexam-package-terminal-prompt {
+  flex: 0 0 auto;
+  color: #f87171;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.secureexam-package-terminal-symbol {
+  width: 16px;
+  flex: 0 0 16px;
+  font-weight: 950;
+  text-align: center;
+}
+
+.secureexam-package-terminal-text {
+  min-width: 0;
+  white-space: pre-wrap;
+}
+
+.secureexam-package-terminal-spinner {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 13px;
+  margin-top: 2px;
+  border: 2px solid rgba(148,163,184,.35);
+  border-top-color: #f87171;
+  border-radius: 50%;
+  animation: secureexamPackageTerminalSpin .72s linear infinite;
+}
+
+@keyframes secureexamPackageTerminalSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.secureexam-package-terminal-inputbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  margin-top: -14px;
+  padding: 9px 10px 9px 16px;
+  border: 1px solid #cbd5e1;
+  border-top-color: #334155;
+  border-radius: 0 0 16px 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15,23,42,.08);
+}
+
+.secureexam-package-terminal-input-prompt {
+  color: #c40024;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.secureexam-package-terminal-inputbar input {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  padding: 0 4px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #0f172a;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.secureexam-package-terminal-inputbar input::placeholder {
+  color: #94a3b8;
+}
+
+.secureexam-package-terminal-run {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.secureexam-package-terminal-run:hover:not(:disabled) {
+  background: #c40024;
+}
+
+.secureexam-package-terminal-run svg,
+.secureexam-package-terminal-run i {
+  width: 15px;
+  height: 15px;
+}
+
+.secureexam-package-terminal-examples {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.secureexam-package-terminal-examples > span {
+  margin-right: 2px;
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .055em;
+}
+
+.secureexam-package-terminal-examples button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-family: Consolas, "Cascadia Code", "Courier New", monospace;
+  font-size: 9px;
+  font-weight: 850;
+  box-shadow: none;
+}
+
+.secureexam-package-terminal-examples button:hover {
+  transform: none;
+  border-color: rgba(196,0,36,.24);
+  background: #fff7f8;
+  color: #c40024;
+  box-shadow: none;
+}
+
+.secureexam-package-terminal-selected {
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  background: #ffffff;
+}
+
+.secureexam-package-terminal-selected-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.secureexam-package-terminal-selected-header > div > span {
+  display: block;
+  color: #c40024;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .09em;
+}
+
+.secureexam-package-terminal-selected-header strong {
+  display: block;
+  margin-top: 3px;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.secureexam-package-terminal-count {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #fff1f2;
+  color: #c40024;
+  font-size: 9px;
+  font-weight: 950;
+}
+
+.secureexam-package-terminal-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 85px;
+  padding: 18px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.secureexam-package-terminal-empty svg,
+.secureexam-package-terminal-empty i {
+  width: 20px;
+  height: 20px;
+}
+
+.secureexam-package-terminal-empty code {
+  padding: 2px 5px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: Consolas, "Cascadia Code", monospace;
+  font-weight: 850;
+}
+
+.secureexam-package-terminal-package-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+}
+
+.secureexam-package-terminal-package {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+  background: #ffffff;
+}
+
+.secureexam-package-terminal-package-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #15803d;
+}
+
+.secureexam-package-terminal-package-icon svg,
+.secureexam-package-terminal-package-icon i {
+  width: 17px;
+  height: 17px;
+}
+
+.secureexam-package-terminal-package > div {
+  min-width: 0;
+}
+
+.secureexam-package-terminal-package strong {
+  display: block;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secureexam-package-terminal-package > div > span {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: #64748b;
+  font-family: Consolas, "Cascadia Code", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secureexam-package-terminal-remove {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #fecdd3;
+  border-radius: 9px;
+  background: #fff1f2;
+  color: #be123c;
+  box-shadow: none;
+}
+
+.secureexam-package-terminal-remove:hover:not(:disabled) {
+  transform: none;
+  background: #c40024;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.secureexam-package-terminal-remove svg,
+.secureexam-package-terminal-remove i {
+  width: 15px;
+  height: 15px;
+}
+
+@media (max-width: 760px) {
+  .secureexam-package-terminal-statusbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .secureexam-package-terminal-online {
+    align-self: flex-start;
+  }
+
+  .secureexam-package-terminal-inputbar {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .secureexam-package-terminal-input-prompt {
+    white-space: normal;
+  }
+
+  .secureexam-package-terminal-run {
+    width: 100%;
+  }
+
+  .secureexam-package-terminal-package-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   SECUREEXAM TERMINAL POPUP V2
+   Terminal réutilisable : environnement + bibliothèque
+   ========================================================= */
+
+.secureexam-custom-package-manager {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 22px 22px;
+  background: #f8fafc;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.secureexam-custom-package-manager-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.secureexam-custom-package-manager-top > div > span {
+  display: block;
+  color: #c40024;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .09em;
+}
+
+.secureexam-custom-package-manager-top strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.secureexam-custom-package-manager-top p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.secureexam-custom-add-package {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 11px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 950;
+}
+
+.secureexam-custom-add-package:hover {
+  background: #c40024;
+}
+
+.secureexam-custom-add-package svg,
+.secureexam-custom-add-package i {
+  width: 16px;
+  height: 16px;
+}
+
+.secureexam-terminal-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(15, 23, 42, .58);
+  backdrop-filter: blur(8px);
+}
+
+.secureexam-terminal-popup-modal {
+  width: min(900px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, .95);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 34px 90px rgba(15, 23, 42, .34);
+}
+
+.secureexam-terminal-popup-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #fff8f9 100%);
+}
+
+.secureexam-terminal-popup-heading {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.secureexam-terminal-popup-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.secureexam-terminal-popup-icon svg,
+.secureexam-terminal-popup-icon i {
+  width: 23px;
+  height: 23px;
+}
+
+.secureexam-terminal-popup-heading > div > span {
+  display: block;
+  color: #c40024;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .1em;
+}
+
+.secureexam-terminal-popup-heading h2 {
+  margin: 3px 0 0;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.secureexam-terminal-popup-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.secureexam-terminal-popup-close {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 0;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #0f172a;
+  box-shadow: none;
+}
+
+.secureexam-terminal-popup-close:hover {
+  transform: none;
+  background: #c40024;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.secureexam-terminal-popup-modal .secureexam-package-terminal-editor {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.secureexam-terminal-catalog-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 14px 15px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.secureexam-terminal-catalog-info > svg,
+.secureexam-terminal-catalog-info > i {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  color: #c40024;
+}
+
+.secureexam-terminal-catalog-info strong {
+  display: block;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.secureexam-terminal-catalog-info span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.secureexam-terminal-catalog-info code {
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-family: Consolas, "Cascadia Code", monospace;
+  font-weight: 850;
+}
+
+@media (max-width: 700px) {
+  .secureexam-custom-package-manager-top,
+  .secureexam-terminal-popup-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .secureexam-custom-add-package {
+    width: 100%;
+  }
+
+  .secureexam-terminal-popup-backdrop {
+    padding: 10px;
+  }
+
+  .secureexam-terminal-popup-modal {
+    width: 100%;
+    max-height: 96vh;
+    border-radius: 18px;
+  }
+}
+
+
+/* =========================================================
+   SECUREEXAM CUSTOM AVAILABLE PACKAGES V3
+   Liste des paquets disponible dans "Configurer l'environnement"
+   ========================================================= */
+
+.secureexam-custom-package-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.secureexam-custom-package-toolbar .exam-package-library-search {
+  width: 100%;
+}
+
+.secureexam-custom-available-heading {
+  margin: 6px 0 12px;
+}
+
+.secureexam-custom-available-heading > div > span {
+  display: block;
+  color: #c40024;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .09em;
+}
+
+.secureexam-custom-available-heading strong {
+  display: block;
+  margin-top: 4px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.secureexam-custom-available-heading p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.secureexam-custom-package-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+
+.secureexam-custom-package-list .exam-library-package {
+  min-height: 95px;
+}
+
+.secureexam-custom-package-list .exam-library-package.selected {
+  border-color: #c40024;
+  background: #fff7f8;
+  box-shadow: 0 9px 22px rgba(196, 0, 36, .08);
+}
+
+.secureexam-custom-package-list
+.exam-library-package.selected
+.exam-library-package-check {
+  background: #c40024;
+  color: #ffffff;
+}
+
+.secureexam-custom-package-no-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #64748b;
+}
+
+.secureexam-custom-package-no-result > svg,
+.secureexam-custom-package-no-result > i {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: #94a3b8;
+}
+
+.secureexam-custom-package-no-result strong {
+  display: block;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.secureexam-custom-package-no-result span {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+/* Un seul scroll : celui du panneau custom */
+.secureexam-custom-package-list {
+  overflow: visible;
+}
+
+@media (max-width: 700px) {
+  .secureexam-custom-package-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .secureexam-custom-package-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================
+   SECUREEXAM_NIXOS_INFO_BUTTON_STYLE_V1
+   ========================================================== */
+
+.generated-nixos-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.generated-nixos-info {
+  min-height: 46px;
+  padding: 0 17px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: 1px solid #d8dee8;
+  border-radius: 13px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font: inherit;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.generated-nixos-info:hover {
+  transform: translateY(-1px);
+
+  background: #f8fafc;
+  border-color: #aab4c3;
+
+  box-shadow:
+    0 8px 20px
+    rgba(15, 23, 42, 0.08);
+}
+
+.generated-nixos-info .btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Le popup peut contenir beaucoup d'informations */
+.generated-detail-popup-shell {
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+
+  .generated-nixos-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .generated-nixos-info,
+  .generated-nixos-view {
+    width: 100%;
+  }
+
+}
+
+/* ==========================================================
+   /SECUREEXAM_NIXOS_INFO_BUTTON_STYLE_V1
+   ========================================================== */
+
+
+/* SECUREEXAM_MODAL_SINGLE_SCROLL_V1 START */
+
+/*
+   Le backdrop et le shell NE scrollent plus.
+   Seul le panneau blanc intérieur possède le scroll.
+*/
+
+.generated-detail-popup-backdrop {
+  overflow: hidden !important;
+}
+
+.generated-detail-popup-shell {
+  width: min(1100px, calc(100vw - 40px)) !important;
+
+  max-height: 90vh !important;
+
+  overflow: hidden !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+
+  border-radius: 24px !important;
+}
+
+
+/* =========================================================
+   SEUL SCROLL AUTORISE
+   ========================================================= */
+
+.generated-config-detail-panel {
+  width: 100% !important;
+
+  max-height: 90vh !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  margin: 0 !important;
+
+  scrollbar-width: thin;
+  scrollbar-color: #b80d35 #f1f5f9;
+}
+
+
+/* Chrome / Edge */
+
+.generated-config-detail-panel::-webkit-scrollbar {
+  width: 9px;
+}
+
+.generated-config-detail-panel::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 20px;
+}
+
+.generated-config-detail-panel::-webkit-scrollbar-thumb {
+  background: #b80d35;
+  border-radius: 20px;
+
+  border: 2px solid #f1f5f9;
+}
+
+.generated-config-detail-panel::-webkit-scrollbar-thumb:hover {
+  background: #950b2d;
+}
+
+
+/* Evite un éventuel scroll imbriqué */
+
+.generated-detail-header,
+.generated-detail-section {
+  overflow: visible !important;
+}
+
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+  .generated-detail-popup-shell {
+    width: calc(100vw - 20px) !important;
+    max-height: 94vh !important;
+  }
+
+  .generated-config-detail-panel {
+    max-height: 94vh !important;
+  }
+
+}
+
+/* SECUREEXAM_MODAL_SINGLE_SCROLL_V1 END */
+
+
+
+
+/* =========================================================
+   SECUREEXAM_TEACHER_DELIVERY_STYLE_V2
+   ========================================================= */
+
+.teacher-delivery-cell {
+  min-width: 150px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+
+
+.teacher-delivery-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 25px;
+
+  padding:
+    0 9px;
+
+  border-radius:
+    999px;
+
+  font-size:
+    10px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .045em;
+
+  white-space:
+    nowrap;
+}
+
+
+.teacher-delivery-status.ready {
+  background:
+    #fff7ed;
+
+  color:
+    #c2410c;
+}
+
+
+.teacher-delivery-status.sent {
+  background:
+    #dcfce7;
+
+  color:
+    #15803d;
+}
+
+
+
+
+
+.teacher-delivery-count,
+.teacher-delivery-date {
+  display: block;
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    750;
+}
+
+
+.teacher-send-exam {
+  min-height:
+    42px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px;
+
+  padding:
+    0 14px;
+
+  border:
+    0;
+
+  border-radius:
+    11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #7c0025 46%,
+      #c40024 100%
+    );
+
+  color:
+    #ffffff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    900;
+
+  cursor:
+    pointer;
+
+  white-space:
+    nowrap;
+
+  box-shadow:
+    0 8px 18px
+    rgba(196, 0, 36, .16);
+
+  transition:
+    .18s ease;
+}
+
+
+.teacher-send-exam:hover:not(:disabled) {
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 12px 24px
+    rgba(196, 0, 36, .22);
+}
+
+
+.teacher-send-exam.sent {
+  background:
+    #15803d;
+}
+
+
+.teacher-send-exam:disabled {
+  opacity:
+    .52;
+
+  cursor:
+    not-allowed;
+
+  transform:
+    none;
+
+  box-shadow:
+    none;
+}
+
+
+.teacher-send-exam .btn-icon {
+  width:
+    17px;
+
+  height:
+    17px;
+}
+
+
+/*
+ * Nouvelle colonne :
+ * autorise le tableau ? d?passer horizontalement
+ * proprement sur petits ?crans.
+ */
+
+.generated-nixos-table-wrap {
+  overflow-x:
+    auto;
+}
+
+
+/* =========================================================
+   /SECUREEXAM_TEACHER_DELIVERY_STYLE_V2
+   ========================================================= */
+
 

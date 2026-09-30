@@ -1,4 +1,4 @@
-﻿.supervisor-header {
+﻿.admin-header {
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -24,7 +24,7 @@
 
 /* LEFT LOGO */
 
-.supervisor-header-left {
+.admin-header-left {
   display: flex;
   align-items: center;
   min-width: 235px;
@@ -32,7 +32,7 @@
   overflow: visible;
 }
 
-.supervisor-header-logo {
+.admin-header-logo {
   height: 54px;
   width: auto;
   object-fit: contain;
@@ -43,13 +43,13 @@
   cursor: pointer;
 }
 
-.supervisor-header-logo:hover {
+.admin-header-logo:hover {
   opacity: 0.94;
 }
 
 /* NAVIGATION */
 
-.supervisor-header-nav {
+.admin-header-nav {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,7 +58,7 @@
   min-width: 0;
 }
 
-.supervisor-header-nav a {
+.admin-header-nav a {
   position: relative;
 
   display: inline-flex;
@@ -81,13 +81,13 @@
   transition: 0.22s ease;
 }
 
-.supervisor-header-nav a:hover {
+.admin-header-nav a:hover {
   background: #f3f4f6;
   color: #111827;
   transform: translateY(-1px);
 }
 
-.supervisor-header-nav a + a::before {
+.admin-header-nav a + a::before {
   content: "";
   position: absolute;
   left: -9px;
@@ -105,7 +105,7 @@
   );
 }
 
-.supervisor-header-nav a.active {
+.admin-header-nav a.active {
   background: linear-gradient(135deg, #111827 0%, #020617 100%);
   color: #ffffff;
 
@@ -116,18 +116,18 @@
   transform: translateY(-1px);
 }
 
-.supervisor-header-nav a.active:hover {
+.admin-header-nav a.active:hover {
   background: linear-gradient(135deg, #111827 0%, #c40024 100%);
   color: #ffffff;
 }
 
-.supervisor-header-nav a.active .supervisor-nav-icon,
-.supervisor-header-nav a.active svg {
+.admin-header-nav a.active .admin-nav-icon,
+.admin-header-nav a.active svg {
   color: #ffffff;
   stroke: #ffffff;
 }
 
-.supervisor-header-nav a.active::after {
+.admin-header-nav a.active::after {
   content: "";
   position: absolute;
   bottom: -9px;
@@ -144,13 +144,13 @@
 
 /* ACTIONS */
 
-.supervisor-header-actions {
+.admin-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.supervisor-header-actions button {
+.admin-header-actions button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +173,7 @@
 
 /* REFRESH */
 
-.supervisor-refresh-button {
+.admin-refresh-button {
   width: 44px;
   height: 44px;
   padding: 0;
@@ -186,7 +186,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.supervisor-refresh-button:hover {
+.admin-refresh-button:hover {
   transform: translateY(-2px);
   background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
   box-shadow:
@@ -194,22 +194,22 @@
     0 8px 18px rgba(17, 24, 39, 0.18);
 }
 
-.supervisor-refresh-button svg,
-.supervisor-refresh-button i {
+.admin-refresh-button svg,
+.admin-refresh-button i {
   width: 20px;
   height: 20px;
   stroke-width: 2.4;
 }
 
-.supervisor-refresh-button:hover svg,
-.supervisor-refresh-button:hover i {
+.admin-refresh-button:hover svg,
+.admin-refresh-button:hover i {
   transform: rotate(90deg);
   transition: transform 0.28s ease;
 }
 
 /* PROFILE */
 
-.supervisor-profile-button {
+.admin-profile-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -234,8 +234,8 @@
   white-space: nowrap;
 }
 
-.supervisor-profile-button:hover,
-.supervisor-profile-button.active {
+.admin-profile-button:hover,
+.admin-profile-button.active {
   transform: translateY(-1px);
   background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
   color: #ffffff;
@@ -244,7 +244,7 @@
     0 8px 18px rgba(17, 24, 39, 0.16);
 }
 
-.supervisor-profile-avatar {
+.admin-profile-avatar {
   width: 38px;
   height: 38px;
 
@@ -260,40 +260,40 @@
   box-shadow: 0 8px 16px rgba(17, 24, 39, 0.20);
 }
 
-.supervisor-profile-avatar svg,
-.supervisor-profile-avatar i {
+.admin-profile-avatar svg,
+.admin-profile-avatar i {
   width: 19px;
   height: 19px;
   stroke-width: 2.4;
 }
 
-.supervisor-profile-info {
+.admin-profile-info {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.1;
 }
 
-.supervisor-profile-name {
+.admin-profile-name {
   font-size: 13px;
   font-weight: 850;
 }
 
-.supervisor-profile-role {
+.admin-profile-role {
   margin-top: 3px;
   font-size: 11px;
   font-weight: 750;
   color: #6b7280;
 }
 
-.supervisor-profile-button:hover .supervisor-profile-role,
-.supervisor-profile-button.active .supervisor-profile-role {
+.admin-profile-button:hover .admin-profile-role,
+.admin-profile-button.active .admin-profile-role {
   color: rgba(255, 255, 255, 0.72);
 }
 
 /* LOGOUT */
 
-.supervisor-logout-button {
+.admin-logout-button {
   width: 42px;
   height: 42px;
   padding: 0;
@@ -306,7 +306,7 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
-.supervisor-logout-button:hover {
+.admin-logout-button:hover {
   transform: translateY(-1px);
   background: linear-gradient(135deg, #111827 0%, #8b0018 100%);
   color: #ffffff;
@@ -316,8 +316,8 @@
     0 6px 14px rgba(17, 24, 39, 0.16);
 }
 
-.supervisor-logout-button i,
-.supervisor-logout-button svg {
+.admin-logout-button i,
+.admin-logout-button svg {
   width: 20px;
   height: 20px;
   stroke-width: 2.4;
@@ -325,7 +325,7 @@
 
 /* ICONS */
 
-.supervisor-nav-icon {
+.admin-nav-icon {
   width: 17px;
   height: 17px;
   stroke-width: 2.2;
@@ -335,67 +335,67 @@
 /* RESPONSIVE */
 
 @media (max-width: 1200px) {
-  .supervisor-header {
+  .admin-header {
     gap: 12px;
     padding: 12px 16px 12px 10px;
   }
 
-  .supervisor-header-left {
+  .admin-header-left {
     min-width: 215px;
   }
 
-  .supervisor-header-logo {
+  .admin-header-logo {
     transform: translateX(-6px) scale(2.25);
   }
 
-  .supervisor-header-nav a {
+  .admin-header-nav a {
     margin: 0 7px;
     padding: 8px 10px;
     font-size: 12.5px;
   }
 
-  .supervisor-header-nav a + a::before {
+  .admin-header-nav a + a::before {
     left: -7px;
   }
 
-  .supervisor-header-actions {
+  .admin-header-actions {
     gap: 7px;
   }
 
-  .supervisor-refresh-button {
+  .admin-refresh-button {
     width: 42px;
     height: 42px;
   }
 
-  .supervisor-logout-button {
+  .admin-logout-button {
     width: 40px;
     height: 40px;
   }
 
-  .supervisor-profile-button {
+  .admin-profile-button {
     padding: 6px 10px 6px 6px;
   }
 
-  .supervisor-profile-avatar {
+  .admin-profile-avatar {
     width: 36px;
     height: 36px;
   }
 }
 
 @media (max-width: 1050px) {
-  .supervisor-header {
+  .admin-header {
     flex-wrap: wrap;
   }
 
-  .supervisor-header-left {
+  .admin-header-left {
     min-width: 260px;
   }
 
-  .supervisor-header-logo {
+  .admin-header-logo {
     transform: translateX(-6px) scale(2.15);
   }
 
-  .supervisor-header-nav {
+  .admin-header-nav {
     order: 3;
     width: 100%;
     justify-content: flex-start;
@@ -404,50 +404,50 @@
     padding-bottom: 8px;
   }
 
-  .supervisor-header-nav a {
+  .admin-header-nav a {
     margin: 0 10px;
     padding: 9px 12px;
     font-size: 13px;
   }
 
-  .supervisor-header-nav a + a::before {
+  .admin-header-nav a + a::before {
     left: -10px;
   }
 }
 
 @media (max-width: 700px) {
-  .supervisor-header {
+  .admin-header {
     padding: 14px 18px;
   }
 
-  .supervisor-header-left {
+  .admin-header-left {
     width: 100%;
     min-width: 0;
     height: 52px;
   }
 
-  .supervisor-header-logo {
+  .admin-header-logo {
     height: 48px;
     transform: translateX(-4px) scale(1.45);
   }
 
-  .supervisor-header-actions {
+  .admin-header-actions {
     width: 100%;
     justify-content: flex-end;
   }
 
-  .supervisor-header-nav a {
+  .admin-header-nav a {
     margin: 0 10px;
     padding: 9px 13px;
     font-size: 13px;
   }
 
-  .supervisor-header-nav a + a::before {
+  .admin-header-nav a + a::before {
     left: -10px;
     height: 14px;
   }
 
-  .supervisor-header-nav a.active::after {
+  .admin-header-nav a.active::after {
     bottom: -8px;
     width: 28px;
     height: 3px;

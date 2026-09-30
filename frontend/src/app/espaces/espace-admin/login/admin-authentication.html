@@ -1,27 +1,27 @@
-<section class="supervisor-auth-page">
-  <app-public-header class="supervisor-auth-header"></app-public-header>
+<section class="admin-auth-page">
+  <app-public-header class="admin-auth-header"></app-public-header>
 
-  <main class="supervisor-auth-main">
-    <section class="supervisor-auth-top">
-      <button class="supervisor-auth-back-button" type="button" (click)="goBack()">
+  <main class="admin-auth-main">
+    <section class="admin-auth-top">
+      <button class="admin-auth-back-button" type="button" (click)="goBack()">
         <span>←</span>
         Retour à l'accueil
       </button>
 
-      <section class="supervisor-auth-title">
-        <h1>Espace Surveillant</h1>
+      <section class="admin-auth-title">
+        <h1>Espace Admin</h1>
         <p>
           Connectez-vous pour consulter les examens préparés et récupérer les
           configurations NixOS générées.
         </p>
       </section>
 
-      <div class="supervisor-auth-spacer"></div>
+      <div class="admin-auth-spacer"></div>
     </section>
 
-    <section class="supervisor-auth-card">
-      <div class="supervisor-auth-heading">
-        <div class="supervisor-auth-icon">
+    <section class="admin-auth-card">
+      <div class="admin-auth-heading">
+        <div class="admin-auth-icon">
           <i data-lucide="shield-check"></i>
         </div>
 
@@ -36,7 +36,7 @@
         <input
           type="text"
           [(ngModel)]="username"
-          placeholder="surveillant"
+          placeholder="administrateur"
           autocomplete="username"
         >
       </label>
@@ -53,7 +53,7 @@
       </label>
 
       <button
-        class="supervisor-auth-submit"
+        class="admin-auth-submit"
         type="button"
         [disabled]="isLoading"
         (click)="submitAuthentication()"
@@ -62,15 +62,15 @@
         {{ isLoading ? 'Connexion...' : 'Se connecter' }}
       </button>
 
-      <div *ngIf="authenticationError" class="supervisor-auth-error">
+      <div *ngIf="authenticationError" class="admin-auth-error">
         <i data-lucide="circle-alert"></i>
         {{ authenticationError }}
       </div>
 
-      <div class="supervisor-auth-support">
+      <div class="admin-auth-support">
         <span>Problème sur la plateforme ?</span>
 
-        <button class="supervisor-support-link" type="button" (click)="openSupport()">
+        <button class="admin-support-link" type="button" (click)="openSupport()">
           <i data-lucide="life-buoy"></i>
           Consulter le support
         </button>

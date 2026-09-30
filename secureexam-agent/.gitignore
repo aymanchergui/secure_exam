@@ -1,0 +1,4 @@
+config.local.ps1
+secureexam-agent.exe
+secureexam-agent
+*.log

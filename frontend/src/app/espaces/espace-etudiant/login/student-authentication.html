@@ -1,0 +1,170 @@
+<div class="student-login-page">
+
+  <app-public-header
+    class="student-public-header">
+  </app-public-header>
+
+  <main class="student-login-content">
+
+    <button
+      type="button"
+      class="student-back-button"
+      (click)="back()"
+    >
+      <span class="student-back-arrow">←</span>
+      Retour à l'accueil
+    </button>
+
+    <div class="student-page-heading">
+
+        <h1>
+          Espace Étudiant
+        </h1>
+
+        <p>
+          Connectez-vous pour accéder à votre examen
+          et à votre environnement SecureExam.
+        </p>
+
+      </div>
+
+    <div class="student-login-stage">
+
+
+      <div class="student-login-shell">
+
+      <section class="student-login-brand">
+<h1>
+          SECURE
+          <span>EXAM</span>
+        </h1>
+
+        <p>
+          Accédez à votre espace d'examen sécurisé,
+          consultez l'épreuve qui vous est affectée
+          et démarrez votre session SecureExam.
+        </p>
+
+        <div class="student-security-list">
+
+          <div>
+            <strong>01</strong>
+            <span>Authentification ENT</span>
+          </div>
+
+          <div>
+            <strong>02</strong>
+            <span>Épreuve affectée</span>
+          </div>
+
+          <div>
+            <strong>03</strong>
+            <span>Session sécurisée</span>
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="student-login-card">
+
+        <div class="student-login-card-head">
+
+          <span class="student-login-kicker">
+            Authentification
+          </span>
+
+          <h2>
+            Accès étudiant
+          </h2>
+
+          <p>
+            Utilisez vos identifiants ENT pour accéder à votre espace sécurisé.
+          </p>
+
+        </div>
+
+        <form
+          (ngSubmit)="login()"
+          class="student-login-form"
+        >
+
+          <label>
+
+            <span>
+              Identifiant ENT
+            </span>
+
+            <input
+              type="text"
+              name="username"
+              [(ngModel)]="username"
+              autocomplete="username"
+              placeholder="Votre identifiant ENT"
+              [disabled]="loading"
+            >
+
+          </label>
+
+          <label>
+
+            <span>
+              Mot de passe ENT
+            </span>
+
+            <input
+              type="password"
+              name="password"
+              [(ngModel)]="password"
+              autocomplete="current-password"
+              placeholder="Votre mot de passe ENT"
+              [disabled]="loading"
+            >
+
+          </label>
+
+          <div
+            class="student-login-error"
+            *ngIf="error"
+          >
+            {{ error }}
+          </div>
+
+          <button
+            type="submit"
+            class="student-login-submit"
+            [disabled]="loading"
+          >
+            {{
+              loading
+                ? 'Authentification...'
+                : 'S’authentifier'
+            }}
+          </button>
+
+        </form>
+
+        <div class="student-login-footer">
+
+          <div>
+            Problème de connexion ?
+            <a href="/support">
+              Envoyer une demande d’assistance
+            </a>
+          </div>
+
+          <div class="student-login-footer-note">
+            Signalez également le problème à votre surveillant.
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+      </div>
+
+  </main>
+
+</div>

@@ -4,132 +4,365 @@ import { Component, HostListener } from '@angular/core';
 import { AccueilComponent } from './pages/accueil/accueil';
 import { SupportComponent } from './components/support/support';
 import { ProfesseurSpaceComponent } from './espaces/espace-professeur/professeur-space/professeur-space';
-import { SupervisorAuthenticationComponent } from './espaces/espace-surveillant/login/supervisor-authentication';
-import { SupervisorSpaceComponent } from './espaces/espace-surveillant/dashboard/supervisor-space';
+import { AdminAuthenticationComponent } from './espaces/espace-admin/login/admin-authentication';
+import { AdminSpaceComponent } from './espaces/espace-admin/dashboard/admin-space';
+import { StudentAuthenticationComponent } from './espaces/espace-etudiant/login/student-authentication';
+import { StudentSpaceComponent } from './espaces/espace-etudiant/dashboard/student-space';
 
-type SecureExamSpace = 'dashboard' | 'professor' | 'supervisor' | 'support';
+
+type SecureExamSpace =
+  | 'dashboard'
+  | 'professor'
+  | 'admin'
+  | 'student'
+  | 'support';
+
+
+import { GlobalNotificationsComponent } from './components/global-notifications/global-notifications';
 
 @Component({
   selector: 'app-root',
   standalone: true,
+
   imports: [
+    GlobalNotificationsComponent,
     CommonModule,
     AccueilComponent,
     SupportComponent,
     ProfesseurSpaceComponent,
-    SupervisorAuthenticationComponent,
-    SupervisorSpaceComponent
+    AdminAuthenticationComponent,
+    AdminSpaceComponent,
+    StudentAuthenticationComponent,
+    StudentSpaceComponent
   ],
+
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
-  secureExamSpace: SecureExamSpace = this.resolveSecureExamSpaceFromPath();
 
-  isSupervisorAuthenticated = localStorage.getItem('secureexam_supervisor_token') !== null;
+  secureExamSpace: SecureExamSpace =
+    this.resolveSecureExamSpaceFromPath();
 
-  private resolveSecureExamSpaceFromPath(): SecureExamSpace {
-    const path = window.location.pathname.toLowerCase();
 
-    if (path === '/' || path === '') {
-      window.history.replaceState({}, '', '/accueil');
+  isAdminAuthenticated =
+    localStorage.getItem(
+      'secureexam_admin_token'
+    ) !== null;
+
+
+  isStudentAuthenticated =
+    localStorage.getItem(
+      'secureexam_student_token'
+    ) !== null;
+
+
+  private resolveSecureExamSpaceFromPath():
+    SecureExamSpace {
+
+    const path =
+      window.location.pathname.toLowerCase();
+
+    const studentToken =
+      localStorage.getItem(
+        'secureexam_student_token'
+      );
+
+    /*
+     * Si le navigateur revient accidentellement
+     * sur "/" alors qu'une session étudiant
+     * existe, on restaure l'espace étudiant.
+     */
+    if (
+      (
+        path === '/'
+        || path === ''
+      )
+      && studentToken
+    ) {
+
+      window.history.replaceState(
+        {},
+        '',
+        '/espace_etudiant/dashboard'
+      );
+
+      return 'student';
+    }
+
+    /*
+     * Un étudiant déjà connecté ne doit pas
+     * rester sur /login après un refresh.
+     */
+    if (
+      path === '/espace_etudiant/login'
+      && studentToken
+    ) {
+
+      window.history.replaceState(
+        {},
+        '',
+        '/espace_etudiant/dashboard'
+      );
+
+      return 'student';
+    }
+
+
+    if (
+      path === '/'
+      || path === ''
+    ) {
+      window.history.replaceState(
+        {},
+        '',
+        '/accueil'
+      );
+
       return 'dashboard';
     }
 
-    if (
-      path.startsWith('/support') ||
-      path.startsWith('/espace_prof/support') ||
-      path.startsWith('/espace_surveillant/support')
-    ) {
-      if (window.location.pathname !== '/support') {
-        window.history.replaceState({}, '', '/support');
-      }
 
+    if (
+      path.startsWith('/accueil')
+    ) {
+      return 'dashboard';
+    }
+
+
+    if (
+      path.startsWith('/support')
+    ) {
       return 'support';
     }
 
-    if (path.startsWith('/accueil')) {
-      return 'dashboard';
-    }
 
-    if (path.startsWith('/espace_prof')) {
+    if (
+      path.startsWith('/espace_prof')
+    ) {
       return 'professor';
     }
 
-    if (path.startsWith('/espace_surveillant')) {
-      const hasSupervisorToken = localStorage.getItem('secureexam_supervisor_token') !== null;
 
-      if (hasSupervisorToken && path.startsWith('/espace_surveillant/login')) {
-        window.history.replaceState({}, '', '/espace_surveillant/dashboard');
-      }
-
-      return 'supervisor';
+    if (
+      path.startsWith('/espace_admin')
+    ) {
+      return 'admin';
     }
 
-    window.history.replaceState({}, '', '/accueil');
+
+    if (
+      path.startsWith('/espace_etudiant')
+    ) {
+      return 'student';
+    }
+
+
+    window.history.replaceState(
+      {},
+      '',
+      '/accueil'
+    );
+
     return 'dashboard';
   }
 
-  private setSecureExamSpace(path: string, space: SecureExamSpace): void {
+
+  private setSecureExamSpace(
+    path: string,
+    space: SecureExamSpace
+  ): void {
+
     this.secureExamSpace = space;
 
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
+    if (
+      window.location.pathname
+      !== path
+    ) {
+      window.history.pushState(
+        {},
+        '',
+        path
+      );
     }
 
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto'
+    });
   }
+
 
   openProfessorSpace(): void {
-    this.setSecureExamSpace('/espace_prof/login', 'professor');
+
+    this.setSecureExamSpace(
+      '/espace_prof/login',
+      'professor'
+    );
   }
 
-  openSupervisorSpace(): void {
-    this.setSecureExamSpace('/espace_surveillant/login', 'supervisor');
+
+  openAdminSpace(): void {
+
+    this.setSecureExamSpace(
+      '/espace_admin/login',
+      'admin'
+    );
   }
+
+
+  openStudentSpace(): void {
+
+    this.setSecureExamSpace(
+      '/espace_etudiant/login',
+      'student'
+    );
+  }
+
 
   openPublicSupportPage(): void {
-    this.setSecureExamSpace('/support', 'support');
+
+    this.setSecureExamSpace(
+      '/support',
+      'support'
+    );
   }
 
-  openSupervisorSupportFromLogin(): void {
+
+  openAdminSupportFromLogin(): void {
+
     this.openPublicSupportPage();
   }
 
-  handleSupervisorAuthenticated(): void {
-    this.isSupervisorAuthenticated = true;
-    this.secureExamSpace = 'supervisor';
 
-    if (window.location.pathname !== '/espace_surveillant/dashboard') {
-      window.history.pushState({}, '', '/espace_surveillant/dashboard');
+  handleAdminAuthenticated(): void {
+
+    this.isAdminAuthenticated =
+      true;
+
+    this.secureExamSpace =
+      'admin';
+
+    if (
+      window.location.pathname
+      !== '/espace_admin/dashboard'
+    ) {
+      window.history.pushState(
+        {},
+        '',
+        '/espace_admin/dashboard'
+      );
     }
 
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto'
+    });
   }
 
-  logoutSupervisor(): void {
-    localStorage.removeItem('secureexam_supervisor_token');
-    localStorage.removeItem('secureexam_supervisor_username');
 
-    this.isSupervisorAuthenticated = false;
-    this.secureExamSpace = 'supervisor';
+  logoutAdmin(): void {
 
-    if (window.location.pathname !== '/espace_surveillant/login') {
-      window.history.pushState({}, '', '/espace_surveillant/login');
+    localStorage.removeItem(
+      'secureexam_admin_token'
+    );
+
+    localStorage.removeItem(
+      'secureexam_admin_username'
+    );
+
+    this.isAdminAuthenticated =
+      false;
+
+    this.setSecureExamSpace(
+      '/espace_admin/login',
+      'admin'
+    );
+  }
+
+
+  handleStudentAuthenticated(): void {
+
+    this.isStudentAuthenticated =
+      true;
+
+    this.secureExamSpace =
+      'student';
+
+    if (
+      window.location.pathname
+      !== '/espace_etudiant/dashboard'
+    ) {
+      window.history.pushState(
+        {},
+        '',
+        '/espace_etudiant/dashboard'
+      );
     }
 
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto'
+    });
   }
+
+
+  logoutStudent(): void {
+
+    localStorage.removeItem(
+      'secureexam_student_token'
+    );
+
+    localStorage.removeItem(
+      'secureexam_student_username'
+    );
+
+    localStorage.removeItem(
+      'secureexam_student_number'
+    );
+
+    localStorage.removeItem(
+      'secureexam_student_full_name'
+    );
+
+    this.isStudentAuthenticated =
+      false;
+
+    this.setSecureExamSpace(
+      '/espace_etudiant/login',
+      'student'
+    );
+  }
+
 
   backToMainDashboard(): void {
-    this.setSecureExamSpace('/accueil', 'dashboard');
+
+    this.setSecureExamSpace(
+      '/accueil',
+      'dashboard'
+    );
   }
+
 
   @HostListener('window:popstate')
   onPopState(): void {
-    this.isSupervisorAuthenticated = localStorage.getItem('secureexam_supervisor_token') !== null;
-    this.secureExamSpace = this.resolveSecureExamSpaceFromPath();
 
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    this.isAdminAuthenticated =
+      localStorage.getItem(
+        'secureexam_admin_token'
+      ) !== null;
+
+    this.isStudentAuthenticated =
+      localStorage.getItem(
+        'secureexam_student_token'
+      ) !== null;
+
+    this.secureExamSpace =
+      this.resolveSecureExamSpaceFromPath();
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'auto'
+    });
   }
 }

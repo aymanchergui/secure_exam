@@ -176,264 +176,1906 @@
           </div>
 
 
+
+          <!-- SECUREEXAM_STUDENT_ROSTER_UPLOAD_V1 -->
+
+          <div class="student-roster-section">
+
+            <div class="student-roster-heading">
+
+              <div class="student-roster-heading-left">
+
+                <div class="student-roster-icon">
+                  <i data-lucide="users-round"></i>
+                </div>
+
+                <div>
+
+                  <strong>
+                    Liste des étudiants
+                  </strong>
+
+                  <p>
+                    Le fichier CSV est obligatoire.
+                    Seuls les étudiants présents dans
+                    cette liste recevront l'examen.
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <button
+                type="button"
+                class="student-roster-template-button"
+                (click)="downloadStudentRosterTemplate()"
+              >
+                <i data-lucide="file-down"></i>
+                Modèle CSV
+              </button>
+
+            </div>
+
+
+            <div class="student-roster-upload-card">
+
+              <label class="student-roster-dropzone">
+
+                <input
+                  type="file"
+                  class="student-roster-input"
+                  accept=".csv,text/csv"
+                  (change)="onStudentRosterSelected($event)"
+                >
+
+                <span class="student-roster-upload-icon">
+                  <i data-lucide="file-spreadsheet"></i>
+                </span>
+
+
+                <span class="student-roster-upload-copy">
+
+                  <strong>
+                    {{
+                      studentRosterFilename
+                      || 'Sélectionner le fichier CSV'
+                    }}
+                  </strong>
+
+                  <span>
+                    Colonnes obligatoires :
+                    student_number, full_name, email
+                  </span>
+
+                </span>
+
+              </label>
+
+
+              <div
+                class="student-roster-valid"
+                *ngIf="hasValidStudentRoster"
+              >
+                <i data-lucide="circle-check"></i>
+
+                <div>
+
+                  <strong>
+                    CSV valide
+                  </strong>
+
+                  <span>
+                    {{
+                      studentRosterCount
+                    }}
+                    étudiant(s)
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              <div
+                class="student-roster-error"
+                *ngIf="studentRosterError"
+              >
+                <i data-lucide="circle-alert"></i>
+                {{ studentRosterError }}
+              </div>
+
+            </div>
+
+
+            <div
+              class="student-roster-preview"
+              *ngIf="hasValidStudentRoster"
+            >
+
+              <div class="student-roster-preview-title">
+
+                <div>
+
+                  <strong>
+                    Aperçu de la liste
+                  </strong>
+
+                  <span>
+                    {{
+                      studentRosterCount
+                    }}
+                    étudiant(s) au total
+                  </span>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  class="student-roster-clear"
+                  (click)="clearStudentRoster()"
+                >
+                  <i data-lucide="x"></i>
+                  Retirer
+                </button>
+
+              </div>
+
+
+              <div class="student-roster-preview-table">
+
+                <table>
+
+                  <thead>
+
+                    <tr>
+                      <th>N° étudiant</th>
+                      <th>Nom complet</th>
+                      <th>Email</th>
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    <tr
+                      *ngFor="
+                        let student
+                        of studentRosterPreview
+                      "
+                    >
+
+                      <td>
+                        {{
+                          student.student_number
+                        }}
+                      </td>
+
+                      <td>
+                        {{
+                          student.full_name
+                        }}
+                      </td>
+
+                      <td>
+                        {{
+                          student.email
+                        }}
+                      </td>
+
+                    </tr>
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+
+              <span
+                class="student-roster-preview-more"
+                *ngIf="
+                  studentRosterCount
+                  > studentRosterPreview.length
+                "
+              >
+                +
+                {{
+                  studentRosterCount
+                  - studentRosterPreview.length
+                }}
+                autre(s) étudiant(s)
+              </span>
+
+            </div>
+
+          </div>
+
           <div class="exam-workflow-divider">
           </div>
 
-<div class="options package-manager">
-          <div class="package-manager-header">
-  <div class="package-manager-info">
-              <strong>
-                <i data-lucide="package-check" class="inline-icon"></i>
-                Paquets autorisés
-              </strong>
+<!-- =====================================================
+     ENVIRONNEMENT D'EXAMEN PROFESSIONNEL V2
+     ===================================================== -->
 
-              <p class="package-manager-subtitle">
-                Sélectionnez les logiciels disponibles pour l’environnement d’examen.
-              </p>
-            </div>
+<div class="exam-environment-section">
 
-  <div class="package-manager-filter-slot">
-    <div class="package-filter">
-                <span class="package-filter-icon">
-                  <i data-lucide="filter"></i>
-                </span>
-                <button
-                  type="button"
-                  class="filter-pill"
-                  [class.active]="packageFilter === 'all'"
-                  (click)="setPackageFilter('all')">
-                  Tous
-                </button>
+  <div class="exam-environment-header">
 
-                <button
-                  type="button"
-                  class="filter-pill"
-                  [class.active]="packageFilter === 'active'"
-                  (click)="setPackageFilter('active')">
-                  Actifs
-                </button>
+    <div class="exam-environment-heading">
 
-                <button
-                  type="button"
-                  class="filter-pill"
-                  [class.active]="packageFilter === 'inactive'"
-                  (click)="setPackageFilter('inactive')">
-                  Désactivés
-                </button>
-              </div>
+      <div class="exam-environment-heading-icon">
+        <i data-lucide="boxes"></i>
+      </div>
+
+      <div>
+
+        <strong>
+          Environnement d’examen
+        </strong>
+
+        <p>
+          Sélectionnez un environnement logiciel prêt
+          à l’emploi ou construisez votre propre modèle.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    
+
   </div>
 
-  <div class="package-toolbar-buttons">
-    <button
-                type="button"
-                class="secondary package-create-toggle-button btn-create-action btn-neutral-action"
-                (click)="togglePackageCreationForm()">
-                <i data-lucide="package-plus" class="btn-icon"></i>
-                {{ showPackageCreationForm ? 'Fermer' : 'Ajouter un paquet' }}
-              </button>
 
-    <button
-                type="button"
-                class="btn-danger-outline package-delete-manager-button package-manage-button btn-neutral-action"
-                (click)="openPackageDeleteModal()">
-                <i data-lucide="settings"></i>
-                Gérer les paquets
-              </button>
+  <div class="exam-environment-grid">
+
+    <article
+      class="exam-environment-card"
+      *ngFor="
+        let environment
+        of examEnvironmentPresets
+      "
+      [class.selected]="
+        selectedEnvironmentId
+        === environment.id
+      "
+      [class.not-ready]="
+        !isEnvironmentReady(environment)
+      "
+    >
+
+      <div class="exam-environment-card-top">
+
+        <div class="exam-environment-icon">
+          <i
+            [attr.data-lucide]="
+              environment.icon
+            "
+          ></i>
+        </div>
+
+
+        <span
+          class="exam-environment-ready"
+          *ngIf="
+            isEnvironmentReady(environment)
+          "
+        >
+          PRÊTE
+        </span>
+
+
+        <span
+          class="
+            exam-environment-ready
+            missing
+          "
+          *ngIf="
+            !isEnvironmentReady(environment)
+          "
+        >
+          {{
+            getEnvironmentMissingPackages(
+              environment
+            ).length
+          }}
+          MANQUANT(S)
+        </span>
+
+      </div>
+
+
+      <div class="exam-environment-copy">
+
+        <span class="exam-environment-category">
+          {{ environment.subtitle }}
+        </span>
+
+        <h3>
+          {{ environment.title }}
+        </h3>
+
+        <p>
+          {{ environment.description }}
+        </p>
+
+      </div>
+
+
+      <div class="exam-environment-packages">
+
+        <span
+          *ngFor="
+            let packageRef
+            of environment.packageRefs
+          "
+          [class.unavailable]="
+            !findCatalogPackageForRequirement(
+              packageRef,
+              true
+            )
+          "
+        >
+          {{
+            getEnvironmentPackageLabel(
+              packageRef
+            )
+          }}
+        </span>
+
+      </div>
+
+
+      <!--
+        AUCUNE option de sécurité ici.
+        Internet / EDUC / sudo sont gérés
+        dans la section Options autorisées.
+      -->
+
+
+      <div class="exam-environment-actions">
+
+        <button
+          type="button"
+          class="exam-environment-use"
+          [disabled]="
+            !isEnvironmentReady(environment)
+          "
+          (click)="
+            selectExamEnvironment(
+              environment
+            )
+          "
+        >
+          <i data-lucide="check"></i>
+
+          {{
+            selectedEnvironmentId
+              === environment.id
+              && !selectedEnvironmentCustomized
+                ? 'Sélectionnée'
+                : 'Utiliser'
+          }}
+        </button>
+
+
+        <button
+          type="button"
+          class="exam-environment-customize"
+          [disabled]="
+            !isEnvironmentReady(environment)
+          "
+          (click)="
+            customizeExamEnvironment(
+              environment
+            )
+          "
+        >
+          <i data-lucide="copy-plus"></i>
+          Personnaliser
+        </button>
+
+      </div>
+
+    </article>
+
+  
+
+    <!-- SECUREEXAM_CUSTOM_ENVIRONMENT_CARDS_V5 -->
+
+    <!-- ==================================================
+         CONFIGURATIONS PERSONNALISEES DU PROFESSEUR
+         ================================================== -->
+
+    <article
+      class="
+        exam-environment-card
+        exam-environment-card-personalized
+      "
+      *ngFor="
+        let environment
+        of customEnvironments
+      "
+      [class.selected]="
+        selectedEnvironmentId
+        === 'custom-' + environment.id
+      "
+    >
+
+      <div class="exam-environment-card-top">
+
+        <div
+          class="
+            exam-environment-icon
+            personalized
+          "
+        >
+          <i data-lucide="sparkles"></i>
+        </div>
+
+
+        <span
+          class="
+            exam-environment-ready
+            personalized
+          "
+        >
+          PERSONNALISÉE
+        </span>
+
+      </div>
+
+
+      <div class="exam-environment-copy">
+
+        <span
+          class="
+            exam-environment-category
+            personalized
+          "
+        >
+          MA CONFIGURATION
+        </span>
+
+
+        <h3>
+          {{ environment.name }}
+        </h3>
+
+
+        <p>
+          Configuration personnelle enregistrée
+          dans votre espace professeur.
+        </p>
+
+      </div>
+
+
+      <div class="exam-environment-packages">
+
+        <span
+          *ngFor="
+            let packageName
+            of environment.packages
+          "
+        >
+          {{
+            getCreateConfigPackageDisplayName(
+              packageName
+            )
+          }}
+        </span>
+
+      </div>
+
+
+      <div class="custom-environment-owner-info">
+
+        <i data-lucide="user-round"></i>
+
+        <!-- SECUREEXAM_PRIVATE_ENV_HINT_V24 -->
+
+<span class="secureexam-private-hint-v24">
+
+  <i data-lucide="lock-keyhole"></i>
+
+  <span>
+    Privé · Professeur connecté uniquement
+  </span>
+
+</span>
+
+      </div>
+
+
+      <div class="exam-environment-actions">
+
+        
+        <!-- SECUREEXAM_CUSTOM_DELETE_V19 -->
+        
+
+
+
+
+        
+
+      </div>
+
+    
+
+  <!-- SECUREEXAM_CUSTOM_ACTIONS_V23_BEGIN -->
+
+  <div class="secureexam-custom-actions-v23">
+
+    <div class="secureexam-custom-action-select">
+      <button
+          type="button"
+          class="exam-environment-use"
+          (click)="
+            useCustomExamEnvironment(
+              environment
+            )
+          "
+        >
+
+          <i data-lucide="check"></i>
+
+          {{
+            selectedEnvironmentId
+            === 'custom-' + environment.id
+              ? 'Sélectionnée'
+              : 'Utiliser'
+          }}
+
+        </button>
+    </div>
+
+    <div class="secureexam-custom-action-edit">
+      <button
+          type="button"
+          class="exam-environment-customize"
+          (click)="
+            editCustomExamEnvironment(
+              environment
+            )
+          "
+        >
+
+          <i data-lucide="pencil"></i>
+
+          Modifier
+
+        </button>
+    </div>
+
+    <div class="secureexam-custom-action-delete">
+      <button
+          type="button"
+          class="secureexam-custom-env-delete"
+          title="Supprimer cet environnement"
+          aria-label="Supprimer cet environnement"
+          (click)="
+            $event.stopPropagation();
+            deleteCustomExamEnvironment(environment)
+          "
+        >
+          <i data-lucide="trash-2"></i>
+        </button>
+    </div>
+
   </div>
+
+  <!-- SECUREEXAM_CUSTOM_ACTIONS_V23_END -->
+
+</article>
+
 </div>
 
-          <div *ngIf="showPackageCreationForm" class="package-create-card">
-            <div class="package-create-header">
-              <div>
-                <h3>
-                  <i data-lucide="plus-circle" class="inline-icon"></i>
-                  Nouveau paquet logiciel
-                </h3>
 
-                <p>
-                  Ajoutez un paquet autorisé dans le catalogue SQLite.
-                </p>
-              </div>
-            </div>
+  <!-- SECUREEXAM_CUSTOM_TOOLS_ZONE_V8 -->
 
-            <div class="form-grid">
-              <label class="package-name-field">
-                Nom du paquet
-                <input
-                  [(ngModel)]="newPackage.name"
-                  (ngModelChange)="onPackageNameChanged()"
-                  type="text"
-                  placeholder="exemple : htop, git, make"
-                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
-                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
-                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
-                >
-              </label>
+<!-- SECUREEXAM_OFFICIAL_CUSTOM_DIVIDER_V10 -->
 
-              <label class="package-display-field">
-                Nom affiché
-                <input
-                  [ngModel]="getPackageDisplayFieldValue()"
-                  type="text"
-                  placeholder="généré après sélection"
-                  readonly
-                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
-                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
-                  [class.package-input-checking]="packageVerificationStatus === 'checking'"
-                >
-              </label>
-              <label class=" package-version-field">
-                Version du paquet
-                <select
-                  [(ngModel)]="selectedPackageCandidateNixName"
-                  (ngModelChange)="onPackageCandidateSelected()"
-                  [disabled]="packageVerificationStatus === 'checking' || packageSearchCandidates.length === 0"
-                  [class.package-input-valid]="packageVerificationStatus === 'valid'"
-                  [class.package-input-invalid]="packageVerificationStatus === 'invalid'"
-                  [class.package-input-checking]="packageVerificationStatus === 'checking'">
-                  <option value="">
-                    {{ packageVerificationStatus === 'checking' ? 'Chargement des versions...' : 'En attente de vérification' }}
-                  </option>
-                  <option
-                    *ngFor="let candidate of packageSearchCandidates"
-                    [ngValue]="candidate.nixName">
-                    {{ getPackageCandidateLabel(candidate) }}
-                  </option>
-                </select>
-              </label>
+<div class="exam-official-custom-divider">
 
-              <div
-                class="package-verification-hint"
-                *ngIf="packageVerificationMessage"
-                [class.valid]="packageVerificationStatus === 'valid'"
-                [class.invalid]="packageVerificationStatus === 'invalid'"
-                [class.checking]="packageVerificationStatus === 'checking'">
-                {{ packageVerificationMessage }}
-              </div>
+  <span></span>
 
-              <label class="full package-description-field">
-                Description
-                <input
-                  [(ngModel)]="newPackage.description"
-                  type="text"
-                  placeholder="exemple : Outil de supervision système en terminal."
-                >
-              </label>
-            </div>
+  <strong>
+    OU
+  </strong>
 
-            <div class="package-create-actions">
-              
-              
+  <span></span>
+
+</div>
 
 
-<button class="btn-create-action"
-                type="button"
-                (click)="createPackage()"
-                [disabled]="packageCreating || packageVerificationStatus !== 'valid' || !selectedPackageCandidateNixName">
-                <i data-lucide="plus" class="btn-icon"></i>
-                {{ packageCreating ? 'Ajout en cours...' : 'Ajouter le paquet' }}
-              </button>
-            </div>
+<div class="exam-custom-zone">
+
+  <div class="exam-custom-zone-heading">
+
+    <div>
+
+      <span>
+        ENVIRONNEMENTS PERSONNALISÉS
+      </span>
+
+      <strong>
+        Vos environnements sur mesure
+      </strong>
+
+    </div>
+
+  </div>
+
+
+<div class="exam-custom-tools-row">
+
+    <button
+      type="button"
+      class="exam-my-configs-button"
+      (click)="openMyCustomEnvironments()"
+    >
+      <i data-lucide="folder-cog"></i>
+
+      Mes environnements personnalisés
+
+      <span>
+        {{ customEnvironments.length }}
+      </span>
+    </button>
+
+
+    <button
+      type="button"
+      class="exam-package-library-button"
+      (click)="openPackageCatalog()"
+    >
+      <i data-lucide="library"></i>
+
+      Bibliothèque de paquets
+    </button>
+
+  </div>
+
+
+<button
+    type="button"
+    class="exam-custom-environment-card"
+    (click)="
+      createCustomExamEnvironment()
+    "
+  >
+
+    <span class="exam-custom-environment-icon">
+      <i data-lucide="plus"></i>
+    </span>
+
+
+    <span class="exam-custom-environment-copy">
+
+      <strong>
+        Créer un environnement personnalisé
+      </strong>
+
+      <span>
+        Donnez-lui un nom puis choisissez
+        exactement les logiciels nécessaires.
+      </span>
+
+    </span>
+
+
+    <span class="exam-custom-environment-action">
+      Créer
+      <i data-lucide="arrow-right"></i>
+    </span>
+
+  </button>
+
+</div>
+
+
+  <!-- =====================================================
+     ENVIRONNEMENT ACTUELLEMENT SELECTIONNE
+     ===================================================== -->
+
+
+<!-- SECUREEXAM_SELECTED_ENV_V15_BEGIN -->
+
+<div
+  class="secureexam-selected-env-v15"
+  *ngIf="
+    selectedEnvironmentId
+    && newConfig.packages.length > 0
+  "
+>
+
+  <div class="secureexam-selected-env-v15-top">
+
+    <div class="secureexam-selected-env-v15-check">
+
+      <i data-lucide="circle-check-big"></i>
+
+    </div>
+
+
+    <div class="secureexam-selected-env-v15-info">
+
+      <span>
+        ENVIRONNEMENT CHOISI POUR CET EXAMEN
+      </span>
+
+      <h3>
+        {{ selectedEnvironmentTitle }}
+      </h3>
+
+      <p>
+        C’est cet environnement qui sera appliqué
+        aux postes des étudiants pour cet examen.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div class="secureexam-selected-env-v15-content">
+
+    <div class="secureexam-selected-env-v15-subtitle">
+
+      <i data-lucide="boxes"></i>
+
+      <div>
+
+        <strong>
+          Paquets inclus
+        </strong>
+
+        <span>
+          Paquets réellement inclus dans cet environnement
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="secureexam-selected-env-v15-packages">
+
+      <span
+        *ngFor="
+          let packageName
+          of newConfig.packages
+        "
+      >
+
+        <i data-lucide="check"></i>
+
+        {{
+          getCreateConfigPackageDisplayName(
+            packageName
+          )
+        }}
+
+      </span>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- SECUREEXAM_SELECTED_ENV_V15_END -->
+
+
+</div>
+
+
+<!-- =====================================================
+     NOM CONFIGURATION PERSONNALISEE
+     ===================================================== -->
+
+<div
+  class="custom-env-backdrop"
+  *ngIf="
+    customEnvironmentNameModalOpen
+  "
+  (click)="
+    closeCustomEnvironmentNameModal()
+  "
+>
+
+  <div
+    class="custom-env-name-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="custom-env-modal-icon">
+      <i data-lucide="folder-plus"></i>
+    </div>
+
+
+    <span class="custom-env-modal-kicker">
+      CONFIGURATION PERSONNALISÉE
+    </span>
+
+
+    <h2>
+      {{
+        customEnvironmentEditingId !== null
+          ? 'Modifier l’environnement'
+          : 'Nommez votre environnement'
+      }}
+    </h2>
+
+
+    <p>
+      {{
+        customEnvironmentEditingId !== null
+          ? 'Modifiez son nom puis continuez pour ajuster ses logiciels.'
+          : 'Ce nom apparaîtra ensuite dans « Mes environnements personnalisés ».'
+      }}
+    </p>
+
+
+    <label class="custom-env-name-field">
+
+      Nom de l’environnement
+
+      <input
+        type="text"
+        [(ngModel)]="
+          customEnvironmentName
+        "
+        placeholder="
+          Ex : Python Data Science
+        "
+        maxlength="80"
+        (keyup.enter)="
+          confirmCustomEnvironmentName()
+        "
+      >
+
+    </label>
+
+
+    
+
+    <!-- CUSTOM_ENV_NAME_VALIDATION_V12 -->
+
+    <div
+      class="custom-environment-modal-error"
+      *ngIf="
+        customEnvironmentName.trim()
+        && getCustomEnvironmentNameValidationMessage()
+      "
+    >
+      <i data-lucide="circle-alert"></i>
+
+      {{
+        getCustomEnvironmentNameValidationMessage()
+      }}
+    </div>
+
+
+<div class="custom-env-name-actions">
+
+      <button
+        type="button"
+        class="custom-env-cancel"
+        (click)="
+          closeCustomEnvironmentNameModal()
+        "
+      >
+        Annuler
+      </button>
+
+
+      <button
+        type="button"
+        class="custom-env-continue"
+        [disabled]="
+          !customEnvironmentName.trim()
+          || !!getCustomEnvironmentNameValidationMessage()
+        "
+        (click)="
+          confirmCustomEnvironmentName()
+        "
+      >
+        Continuer
+
+        <i data-lucide="arrow-right"></i>
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     MES CONFIGURATIONS
+     ===================================================== -->
+
+<div
+  class="custom-env-backdrop"
+  *ngIf="
+    myCustomEnvironmentsOpen
+  "
+  (click)="
+    closeMyCustomEnvironments()
+  "
+>
+
+  <div
+    class="
+      custom-env-list-modal
+    "
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="custom-env-list-header">
+
+      <div>
+
+        <span>
+          SECUREEXAM
+        </span>
+
+        <h2>
+          Mes environnements personnalisés
+        </h2>
+
+        <p>
+          Vos environnements logiciels réutilisables.
+        </p>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="custom-env-close"
+        (click)="
+          closeMyCustomEnvironments()
+        "
+      >
+        <i data-lucide="x"></i>
+      </button>
+
+    </div>
+
+
+    <div class="custom-env-list-body">
+
+      <div
+        class="custom-env-loading"
+        *ngIf="
+          customEnvironmentsLoading
+        "
+      >
+        Chargement...
+      </div>
+
+
+      <div
+        class="custom-env-empty"
+        *ngIf="
+          !customEnvironmentsLoading
+          && customEnvironments.length === 0
+        "
+      >
+        <i data-lucide="folder-open"></i>
+
+        <strong>
+          Aucune environnement personnalisé
+        </strong>
+
+        <span>
+          Créez votre premier environnement
+          depuis l’écran de configuration.
+        </span>
+      </div>
+
+
+      <article
+        class="custom-env-saved-card"
+        *ngFor="
+          let environment
+          of customEnvironments
+        "
+      >
+
+        <div class="custom-env-saved-top">
+
+          <div class="custom-env-saved-icon">
+            <i data-lucide="boxes"></i>
           </div>
 
-          <div *ngIf="packagesLoading" class="info">
-            <i data-lucide="loader-circle" class="message-icon"></i>
-            Chargement du catalogue logiciel...
+          <div>
+
+            <h3>
+              {{ environment.name }}
+            </h3>
+
+            <span>
+              {{
+                environment.packages.length
+              }}
+              logiciel(s)
+            </span>
+
           </div>
-
-          <div *ngIf="!packagesLoading && displayedPackages.length === 0" class="error">
-            <i data-lucide="circle-alert" class="message-icon"></i>
-            Aucun paquet logiciel pour ce filtre.
-          </div>
-
-          <div class="packages-grid" *ngIf="!packagesLoading && displayedPackages.length > 0">
-            <div
-              class="package-card"
-              *ngFor="let packageItem of paginatedPackages"
-              [class.inactive]="!packageItem.isActive"
-              [title]="packageItem.description">
-
-              <div class="package-card-top">
-                <div class="package-identity">
-                  <i data-lucide="package" class="package-identity-icon"></i>
-
-                  <span class="package-title">
-                    {{ packageItem.displayName }}
-                    <span class="package-nix-name">NixOS : {{ packageItem.nixName }}</span>
-                    <span class="package-version-name">Version : {{ getPackageVersionLabel(packageItem) }}</span>
-                  </span>
-                </div>
-
-                <span class="package-status active" *ngIf="packageItem.isActive">
-                  Actif
-                </span>
-
-                <span class="package-status inactive" *ngIf="!packageItem.isActive">
-                  Désactivé
-                </span>
-              </div>
-
-              <div class="package-card-actions">
-                <button
-                  type="button"
-                  class="package-power-switch"
-                  [class.on]="packageItem.isActive"
-                  [class.off]="!packageItem.isActive"
-                  [disabled]="packageActionLoadingId === packageItem.id"
-                  [attr.aria-label]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
-                  [title]="packageItem.isActive ? 'Désactiver le paquet' : 'Réactiver le paquet'"
-                  (click)="togglePackageActivation(packageItem)">
-                  <span class="package-power-track">
-                    <span class="package-power-thumb"></span>
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div
-                      class="package-pagination"
-                      *ngIf="displayedPackages.length > packagePageSize"
-                    >
-                      <div class="package-pagination-info">
-                        {{ getPackagePaginationStart() }}-{{ getPackagePaginationEnd() }}
-                        sur {{ displayedPackages.length }} paquet(s)
-                      </div>
-          
-                      <div class="package-pagination-controls">
-                        <button
-                          type="button"
-                          class="package-page-arrow"
-                          [disabled]="packagePage === 1"
-                          (click)="goToPackagePage(packagePage - 1)"
-                        >
-                          <i data-lucide="chevron-left"></i>
-                        </button>
-          
-                        <button
-                          type="button"
-                          class="package-page-number"
-                          *ngFor="let page of getPackagePages()"
-                          [class.active]="packagePage === page"
-                          (click)="goToPackagePage(page)"
-                        >
-                          {{ page }}
-                        </button>
-          
-                        <button
-                          type="button"
-                          class="package-page-arrow"
-                          [disabled]="packagePage === getPackageTotalPages()"
-                          (click)="goToPackagePage(packagePage + 1)"
-                        >
-                          <i data-lucide="chevron-right"></i>
-                        </button>
-                      </div>
-                    </div>
 
         </div>
 
-        <div class="exam-options-header">
+
+        <div class="custom-env-saved-packages">
+
+          <span
+            *ngFor="
+              let packageName
+              of environment.packages
+            "
+          >
+            {{
+              getCreateConfigPackageDisplayName(
+                packageName
+              )
+            }}
+          </span>
+
+        </div>
+
+
+        <div class="custom-env-saved-actions">
+
+          <button
+            type="button"
+            class="custom-env-use"
+            (click)="
+              useCustomExamEnvironment(
+                environment
+              )
+            "
+          >
+            <i data-lucide="check"></i>
+            Utiliser
+          </button>
+
+
+          <button
+            type="button"
+            class="custom-env-edit"
+            (click)="
+              editCustomExamEnvironment(
+                environment
+              )
+            "
+          >
+            <i data-lucide="pencil"></i>
+            Modifier
+          </button>
+
+
+          <button
+            type="button"
+            class="custom-env-delete"
+            (click)="
+              deleteCustomExamEnvironment(
+                environment
+              )
+            "
+          >
+            <i data-lucide="trash-2"></i>
+          </button>
+
+        </div>
+
+      </article>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     BIBLIOTHEQUE REELLE DE PAQUETS
+     ===================================================== -->
+
+<div
+  class="exam-package-library-backdrop"
+  *ngIf="packageLibraryOpen"
+  (click)="closePackageLibrary()"
+>
+
+  <div
+    class="exam-package-library-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="exam-package-library-header">
+
+      <div class="exam-package-library-heading">
+
+        <div class="exam-package-library-icon">
+          <i data-lucide="library"></i>
+        </div>
+
+        <div>
+
+          <span>
+            SECUREEXAM
+          </span>
+
+          <h2>
+            {{
+              packageLibraryMode === 'custom'
+                ? 'Configurer l’environnement'
+                : 'Bibliothèque de paquets'
+            }}
+          </h2>
+
+          <p>
+            {{
+              packageLibraryMode === 'custom'
+                ? 'Gérez les logiciels de cet environnement. Le terminal Nixpkgs s’ouvre uniquement lorsque vous ajoutez un paquet.'
+                : 'Consultez les logiciels disponibles et ajoutez de nouveaux paquets via le terminal Nixpkgs.'
+            }}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="exam-package-library-close"
+        (click)="closePackageLibrary()"
+      >
+        <i data-lucide="x"></i>
+      </button>
+
+    </div>
+
+
+
+    <!-- SECUREEXAM_CUSTOM_PACKAGE_MANAGER_V2 -->
+
+    <div
+      class="secureexam-custom-package-manager"
+      *ngIf="packageLibraryMode === 'custom'"
+    >
+
+      <div class="secureexam-custom-package-manager-top">
+
+        <div>
+          <span>ENVIRONNEMENT PERSONNALISÉ</span>
+          <strong>Paquets de l’environnement</strong>
+          <p>
+            Ajoutez un logiciel avec le terminal Nixpkgs ou retirez
+            directement un paquet déjà sélectionné.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="secureexam-custom-add-package"
+          (click)="openPackageTerminalPopup('custom')"
+        >
+          <i data-lucide="terminal-square"></i>
+          Ajouter un paquet
+        </button>
+
+      </div>
+
+
+      <!-- ==================================================
+           RECHERCHE + LISTE DES PAQUETS DISPONIBLES
+           ================================================== -->
+
+      <div class="secureexam-custom-package-toolbar">
+
+        <div class="exam-package-library-search">
+
+          <i data-lucide="search"></i>
+
+          <input
+            type="text"
+            [(ngModel)]="packageLibrarySearch"
+            placeholder="Rechercher Python, GCC, PostgreSQL..."
+          >
+
+        </div>
+
+
+        <span class="exam-package-library-selected-count">
+          {{ newConfig.packages.length }}
+          sélectionné(s)
+        </span>
+
+      </div>
+
+
+      <div class="secureexam-custom-available-heading">
+
+        <div>
+
+          <span>
+            CATALOGUE SECUREEXAM
+          </span>
+
+          <strong>
+            Paquets disponibles
+          </strong>
+
+          <p>
+            Cliquez sur un paquet pour l’ajouter ou le retirer
+            de cet environnement.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="secureexam-custom-package-list"
+        *ngIf="packageLibraryItems.length > 0"
+      >
+
+        <button
+          type="button"
+          class="exam-library-package"
+          *ngFor="
+            let packageItem
+            of packageLibraryItems
+          "
+          [class.selected]="
+            isPackageSelectedInEnvironment(
+              packageItem
+            )
+          "
+          [class.inactive]="
+            !packageItem.isActive
+          "
+          [disabled]="
+            !packageItem.isActive
+          "
+          (click)="
+            toggleEnvironmentPackage(
+              packageItem
+            )
+          "
+        >
+
+          <span class="exam-library-package-check">
+
+            <i
+              [attr.data-lucide]="
+                isPackageSelectedInEnvironment(
+                  packageItem
+                )
+                  ? 'check'
+                  : 'package'
+              "
+            ></i>
+
+          </span>
+
+
+          <span class="exam-library-package-info">
+
+            <strong>
+              {{ packageItem.displayName }}
+            </strong>
+
+            <span>
+              NixOS :
+              {{ packageItem.nixName }}
+            </span>
+
+            <small>
+              {{ packageItem.description }}
+            </small>
+
+          </span>
+
+
+          <span
+            class="
+              exam-library-package-status
+              active
+            "
+            *ngIf="
+              packageItem.isActive
+            "
+          >
+            {{
+              isPackageSelectedInEnvironment(
+                packageItem
+              )
+                ? 'Sélectionné'
+                : 'Disponible'
+            }}
+          </span>
+
+
+          <span
+            class="
+              exam-library-package-status
+              inactive
+            "
+            *ngIf="
+              !packageItem.isActive
+            "
+          >
+            Indisponible
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <div
+        class="secureexam-custom-package-no-result"
+        *ngIf="packageLibraryItems.length === 0"
+      >
+
+        <i data-lucide="package-search"></i>
+
+        <div>
+
+          <strong>
+            Aucun paquet trouvé
+          </strong>
+
+          <span>
+            Modifiez votre recherche ou utilisez
+            « Ajouter un paquet » pour ouvrir le terminal Nixpkgs.
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- ==================================================
+           RESUME DES PAQUETS SELECTIONNES
+           ================================================== -->
+
+      <div
+        class="secureexam-package-terminal-empty"
+        *ngIf="newConfig.packages.length === 0"
+      >
+        <i data-lucide="package-open"></i>
+        <span>
+          Aucun paquet sélectionné. Cliquez sur
+          <strong>Ajouter un paquet</strong> pour ouvrir le terminal.
+        </span>
+      </div>
+
+
+      <div
+        class="secureexam-package-terminal-package-grid"
+        *ngIf="newConfig.packages.length > 0"
+      >
+
+        <div
+          class="secureexam-package-terminal-package"
+          *ngFor="let packageName of newConfig.packages"
+        >
+
+          <span class="secureexam-package-terminal-package-icon">
+            <i data-lucide="package-check"></i>
+          </span>
+
+          <div>
+            <strong>
+              {{ getCreateConfigPackageDisplayName(packageName) }}
+            </strong>
+            <span>
+              NixOS : {{ getCustomEnvironmentPackageNixName(packageName) }}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="secureexam-package-terminal-remove"
+            title="Retirer ce paquet"
+            (click)="removeCustomEnvironmentPackage(packageName)"
+          >
+            <i data-lucide="x"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- /SECUREEXAM_CUSTOM_PACKAGE_MANAGER_V2 -->
+
+    <div
+      class="exam-package-library-toolbar"
+      *ngIf="packageLibraryMode === 'catalog'"
+    >
+
+      <div class="exam-package-library-search">
+
+        <i data-lucide="search"></i>
+
+        <input
+          type="text"
+          [(ngModel)]="packageLibrarySearch"
+          placeholder="
+            Rechercher Python, GCC, PostgreSQL...
+          "
+        >
+
+      </div>
+
+
+      <button
+        type="button"
+        class="exam-library-add-real-package"
+        (click)="openPackageTerminalPopup('catalog')"
+      >
+        <i data-lucide="terminal-square"></i>
+        Ajouter un paquet
+      </button>
+
+
+      <span
+        class="exam-package-library-selected-count"
+      >
+        Catalogue SecureExam
+      </span>
+
+    </div>
+
+
+    <!-- L’ajout manuel est remplacé par le terminal Nixpkgs en popup. -->
+
+    <div
+      class="exam-package-library-body"
+      *ngIf="packageLibraryMode === 'catalog'"
+    >
+
+      <button
+        type="button"
+        class="exam-library-package"
+        *ngFor="
+          let packageItem
+          of packageLibraryItems
+        "
+        [class.selected]="false"
+        [class.inactive]="
+          !packageItem.isActive
+        "
+        [disabled]="
+          !packageItem.isActive
+        "
+        (click)="$event.stopPropagation()"
+      >
+
+        <span class="exam-library-package-check">
+
+          <i
+            [attr.data-lucide]="
+              isPackageSelectedInEnvironment(
+                packageItem
+              )
+                ? 'check'
+                : 'package'
+            "
+          ></i>
+
+        </span>
+
+
+        <span class="exam-library-package-info">
+
+          <strong>
+            {{
+              packageItem.displayName
+            }}
+          </strong>
+
+          <span>
+            NixOS :
+            {{ packageItem.nixName }}
+          </span>
+
+          <small>
+            {{ packageItem.description }}
+          </small>
+
+        </span>
+
+
+        <span
+          class="
+            exam-library-package-status
+            active
+          "
+          *ngIf="
+            packageItem.isActive
+          "
+        >
+          Disponible
+        </span>
+
+
+        <span
+          class="
+            exam-library-package-status
+            inactive
+          "
+          *ngIf="
+            !packageItem.isActive
+          "
+        >
+          Indisponible
+        </span>
+
+      </button>
+
+    </div>
+
+
+    
+
+    <!-- CUSTOM_ENVIRONMENT_MODAL_ERROR_V6 -->
+
+    <div
+      class="custom-environment-modal-error"
+      *ngIf="
+        customEnvironmentModalError
+      "
+    >
+      <i data-lucide="circle-alert"></i>
+
+      {{ customEnvironmentModalError }}
+    </div>
+
+
+<div class="exam-package-library-footer">
+
+      <!-- CATALOGUE GENERAL -->
+
+      <button
+        type="button"
+        class="exam-package-library-confirm"
+        *ngIf="
+          packageLibraryMode === 'catalog'
+        "
+        (click)="closePackageLibrary()"
+      >
+        <i data-lucide="check"></i>
+        Fermer la bibliothèque
+      </button>
+
+
+      <!-- CONFIGURATION PERSONNALISEE -->
+
+      <ng-container
+        *ngIf="
+          packageLibraryMode === 'custom'
+        "
+      >
+
+        <button
+          type="button"
+          class="exam-package-library-cancel"
+          (click)="closePackageLibrary()"
+        >
+          Annuler
+        </button>
+
+
+        <button
+          type="button"
+          class="exam-package-library-confirm"
+          [disabled]="
+            newConfig.packages.length === 0
+            || customEnvironmentSaving
+          "
+          (click)="
+            finishPackageLibrarySelection()
+          "
+        >
+          <i data-lucide="save"></i>
+
+          {{
+            customEnvironmentSaving
+              ? 'Enregistrement...'
+              : (
+                  customEnvironmentName.trim()
+                    ? 'Enregistrer l’environnement'
+                    : 'Valider'
+                )
+          }}
+        </button>
+
+      </ng-container>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     TERMINAL NIXPKGS - POPUP REUTILISABLE V2
+     ===================================================== -->
+
+<div
+  class="secureexam-terminal-popup-backdrop"
+  *ngIf="packageTerminalPopupOpen"
+  (click)="closePackageTerminalPopup()"
+>
+
+  <div
+    class="secureexam-terminal-popup-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="secureexam-terminal-popup-header">
+
+      <div class="secureexam-terminal-popup-heading">
+
+        <div class="secureexam-terminal-popup-icon">
+          <i data-lucide="terminal-square"></i>
+        </div>
+
+        <div>
+          <span>SECUREEXAM · NIXPKGS</span>
+          <h2>
+            {{
+              packageTerminalContext === 'custom'
+                ? 'Ajouter un paquet à l’environnement'
+                : 'Ajouter un paquet à la bibliothèque'
+            }}
+          </h2>
+          <p>
+            {{
+              packageTerminalContext === 'custom'
+                ? 'Le paquet vérifié sera ajouté uniquement à l’environnement en cours.'
+                : 'Le paquet vérifié sera ajouté au catalogue SecureExam.'
+            }}
+          </p>
+        </div>
+
+      </div>
+
+      <button
+        type="button"
+        class="secureexam-terminal-popup-close"
+        (click)="closePackageTerminalPopup()"
+      >
+        <i data-lucide="x"></i>
+      </button>
+
+    </div>
+
+
+    <div class="secureexam-package-terminal-editor">
+
+      <div class="secureexam-package-terminal-statusbar">
+
+        <div class="secureexam-package-terminal-title">
+
+          <span class="secureexam-package-terminal-title-icon">
+            <i data-lucide="terminal"></i>
+          </span>
+
+          <div>
+            <strong>SecureExam Package Terminal</strong>
+            <span>Résolution et vérification réelle dans Nixpkgs</span>
+          </div>
+
+        </div>
+
+        <span class="secureexam-package-terminal-online">
+          <span></span>
+          {{ packageTerminalChannel || 'unstable' }} · NIXPKGS
+        </span>
+
+      </div>
+
+
+      <div class="secureexam-package-terminal-screen">
+
+        <div
+          class="secureexam-package-terminal-line"
+          *ngFor="let line of packageTerminalHistory"
+          [class.command]="line.kind === 'command'"
+          [class.success]="line.kind === 'success'"
+          [class.error-line]="line.kind === 'error'"
+          [class.info-line]="line.kind === 'info'"
+        >
+
+          <span
+            class="secureexam-package-terminal-prompt"
+            *ngIf="line.kind === 'command'"
+          >
+            secureexam@nixpkgs:~$
+          </span>
+
+          <span
+            class="secureexam-package-terminal-symbol"
+            *ngIf="line.kind === 'success'"
+          >✓</span>
+
+          <span
+            class="secureexam-package-terminal-symbol"
+            *ngIf="line.kind === 'error'"
+          >✕</span>
+
+          <span
+            class="secureexam-package-terminal-symbol"
+            *ngIf="line.kind === 'info'"
+          >›</span>
+
+          <span class="secureexam-package-terminal-text">
+            {{ line.text }}
+          </span>
+
+        </div>
+
+        <div
+          class="secureexam-package-terminal-line info-line"
+          *ngIf="packageTerminalLoading"
+        >
+          <span class="secureexam-package-terminal-spinner"></span>
+          <span class="secureexam-package-terminal-text">
+            Recherche et vérification dans Nixpkgs...
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="secureexam-package-terminal-inputbar">
+
+        <span class="secureexam-package-terminal-input-prompt">
+          secureexam@nixpkgs:~$
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="packageTerminalCommand"
+          [disabled]="packageTerminalLoading"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="add python 3.12"
+          (keyup.enter)="executePackageTerminalCommand()"
+        >
+
+        <button
+          type="button"
+          class="secureexam-package-terminal-run"
+          [disabled]="packageTerminalLoading || !packageTerminalCommand.trim()"
+          (click)="executePackageTerminalCommand()"
+        >
+          <i data-lucide="corner-down-left"></i>
+          Exécuter
+        </button>
+
+      </div>
+
+
+      <div class="secureexam-package-terminal-examples">
+
+        <span>Exemples :</span>
+
+        <button type="button" (click)="setPackageTerminalCommand('add python 3.12')">
+          add python 3.12
+        </button>
+
+        <button type="button" (click)="setPackageTerminalCommand('add gcc')">
+          add gcc
+        </button>
+
+        <button type="button" (click)="setPackageTerminalCommand('add nodejs 22')">
+          add nodejs 22
+        </button>
+
+        <button type="button" (click)="setPackageTerminalCommand('help')">
+          help
+        </button>
+
+      </div>
+
+
+      <div
+        class="secureexam-package-terminal-selected"
+        *ngIf="packageTerminalContext === 'custom'"
+      >
+
+        <div class="secureexam-package-terminal-selected-header">
+          <div>
+            <span>ENVIRONNEMENT EN COURS</span>
+            <strong>Paquets sélectionnés</strong>
+          </div>
+          <span class="secureexam-package-terminal-count">
+            {{ newConfig.packages.length }} paquet(s)
+          </span>
+        </div>
+
+        <div
+          class="secureexam-package-terminal-empty"
+          *ngIf="newConfig.packages.length === 0"
+        >
+          <i data-lucide="package-open"></i>
+          <span>Tapez par exemple <code>add python 3.12</code>.</span>
+        </div>
+
+        <div
+          class="secureexam-package-terminal-package-grid"
+          *ngIf="newConfig.packages.length > 0"
+        >
+
+          <div
+            class="secureexam-package-terminal-package"
+            *ngFor="let packageName of newConfig.packages"
+          >
+            <span class="secureexam-package-terminal-package-icon">
+              <i data-lucide="package-check"></i>
+            </span>
+            <div>
+              <strong>{{ getCreateConfigPackageDisplayName(packageName) }}</strong>
+              <span>NixOS : {{ getCustomEnvironmentPackageNixName(packageName) }}</span>
+            </div>
+            <button
+              type="button"
+              class="secureexam-package-terminal-remove"
+              (click)="executePackageTerminalCommand('remove ' + packageName)"
+            >
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="secureexam-terminal-catalog-info"
+        *ngIf="packageTerminalContext === 'catalog'"
+      >
+        <i data-lucide="library"></i>
+        <div>
+          <strong>Ajout au catalogue SecureExam</strong>
+          <span>
+            Utilisez <code>add logiciel version</code>. Après validation Nixpkgs,
+            le paquet apparaîtra automatiquement dans la bibliothèque.
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- /TERMINAL NIXPKGS - POPUP REUTILISABLE V2 -->
+
+
+<div class="exam-options-header">
           <div class="package-manager-info">
             <strong>
               <i data-lucide="shield-check" class="inline-icon"></i>
@@ -478,17 +2120,19 @@
             newConfig.exam_id.length === 0 ||
             newConfig.exam_name.length === 0 ||
             newConfig.exam_date.length === 0 ||
-            newConfig.exam_time.length === 0
+            newConfig.exam_time.length === 0 ||
+            !hasValidStudentRoster
           "
           [title]="
             (
               newConfig.exam_id.length > 0 &&
               newConfig.exam_name.length > 0 &&
               newConfig.exam_date.length > 0 &&
-              newConfig.exam_time.length > 0
+              newConfig.exam_time.length > 0 &&
+              hasValidStudentRoster
             )
               ? 'Créer la configuration'
-              : 'Complétez les informations de l’examen'
+              : 'Complétez les informations et ajoutez le CSV des étudiants'
           "
         >
           <i data-lucide="plus" class="btn-icon"></i>
@@ -499,246 +2143,9 @@
 </section>
 
       
-<section class="panel generated-configs-panel">
 
-  <div class="generated-configs-title">
 
-    <div>
 
-      <h2>
-        <i
-          data-lucide="files"
-          class="title-icon"
-        ></i>
-
-        Configurations générées
-      </h2>
-
-      <p>
-        Retrouvez les examens configurés
-        et leurs paramètres associés.
-      </p>
-
-    </div>
-
-  </div>
-
-
-  <div
-    class="generated-configs-empty"
-    *ngIf="
-      !dashboard?.configs ||
-      dashboard!.configs.length === 0
-    "
-  >
-    <i data-lucide="file-plus-2"></i>
-
-    <strong>
-      Aucune configuration générée
-    </strong>
-
-    <span>
-      Les configurations créées apparaîtront ici.
-    </span>
-  </div>
-
-
-  <div
-    class="generated-configs-table-wrap"
-    *ngIf="
-      dashboard?.configs &&
-      dashboard!.configs.length > 0
-    "
-  >
-
-    <table class="generated-configs-table">
-
-      <thead>
-
-        <tr>
-
-          <th>
-            Examen
-          </th>
-
-          <th>
-            Prévu le
-          </th>
-
-          <th>
-            Créée le
-          </th>
-
-          <th>
-            Détail
-          </th>
-
-          <th>
-            Téléchargement
-          </th>
-
-          <th>
-            Action
-          </th>
-
-        </tr>
-
-      </thead>
-
-
-      <tbody>
-
-        <tr
-          *ngFor="
-            let config of dashboard!.configs
-          "
-        >
-
-          <!-- EXAMEN -->
-
-          <td>
-
-            <div class="generated-exam-cell">
-
-              <div class="generated-exam-icon">
-                <i data-lucide="file-check-2"></i>
-              </div>
-
-
-              <div class="generated-exam-info">
-
-                <strong>
-                  {{
-                    config.exam_name
-                    || config.exam_id
-                    || 'Examen'
-                  }}
-                </strong>
-
-                <span>
-                  {{
-                    config.exam_id
-                    || config.filename.replace('.json', '')
-                  }}
-                </span>
-
-              </div>
-
-            </div>
-
-          </td>
-
-
-          <!-- DATE EXAMEN -->
-
-          <td>
-
-            <div class="generated-date-cell">
-
-              <strong>
-                {{
-                  config.exam_date
-                  || 'Non renseignée'
-                }}
-              </strong>
-
-              <span
-                *ngIf="config.exam_time"
-              >
-                {{ config.exam_time }}
-              </span>
-
-            </div>
-
-          </td>
-
-
-          <!-- CRÉATION -->
-
-          <td>
-
-            <span class="generated-created-date">
-              {{
-                config.created_at
-                  ? (
-                      config.created_at
-                      | date:'dd/MM/yyyy HH:mm'
-                    )
-                  : '—'
-              }}
-            </span>
-
-          </td>
-
-
-          <!-- DETAIL -->
-
-          <td>
-
-            <button
-              type="button"
-              class="generated-action-detail"
-              (click)="viewConfig(config)"
-            >
-              <i
-                data-lucide="eye"
-                class="btn-icon"
-              ></i>
-
-              Voir détail
-            </button>
-
-          </td>
-
-
-          <!-- DOWNLOAD -->
-
-          <td>
-
-            <button
-              type="button"
-              class="generated-action-download"
-              (click)="downloadConfig(config)"
-            >
-              <i
-                data-lucide="download"
-                class="btn-icon"
-              ></i>
-
-              Télécharger
-            </button>
-
-          </td>
-
-
-          <!-- DELETE -->
-
-          <td>
-
-            <button
-              type="button"
-              class="danger generated-action-delete"
-              (click)="deleteConfig(config)"
-            >
-              <i
-                data-lucide="trash-2"
-                class="btn-icon"
-              ></i>
-
-              Supprimer
-            </button>
-
-          </td>
-
-        </tr>
-
-      </tbody>
-
-    </table>
-
-  </div>
-
-</section>
 
 
       
@@ -777,11 +2184,11 @@
       <div>
 
         <h2>
-          Détail de la configuration
+          Informations de la configuration
         </h2>
 
         <p>
-          Vérifiez les paramètres définis
+          Consultez tous les paramètres définis
           pour cet examen.
         </p>
 
@@ -1082,7 +2489,7 @@
         <div>
 
           <strong>
-            Paquets autorisés
+            Logiciels de l’environnement
           </strong>
 
           <span>
@@ -1243,6 +2650,16 @@
             Téléchargement
           </th>
 
+          <!-- SECUREEXAM_TEACHER_DELIVERY_COLUMN_V2 -->
+
+          <th>
+            Diffusion
+          </th>
+
+          <th>
+            Action
+          </th>
+
         </tr>
 
       </thead>
@@ -1339,11 +2756,30 @@
           </td>
 
 
-          <!-- VOIR -->
+          <!-- SECUREEXAM_NIXOS_INFO_BUTTON_V1 -->
+<!-- DETAIL -->
 
-          <td>
+<td>
 
-            <button
+  <div class="generated-nixos-detail-actions">
+
+    <button
+      type="button"
+      class="generated-nixos-info"
+      title="Voir toutes les informations de la configuration"
+      (click)="viewConfig(config)"
+    >
+
+      <i
+        data-lucide="info"
+        class="btn-icon"
+      ></i>
+
+      Infos
+
+    </button>
+
+<button
               type="button"
               class="generated-nixos-view"
               (click)="
@@ -1362,7 +2798,9 @@
 
             </button>
 
-          </td>
+  </div>
+
+</td>
 
 
           <!-- DOWNLOAD -->
@@ -1385,6 +2823,149 @@
               ></i>
 
               Télécharger .nix
+
+            </button>
+
+          </td>
+
+          <!-- SECUREEXAM_TEACHER_DELIVERY_CELL_V3 -->
+
+          <td>
+
+            <div class="teacher-delivery-cell">
+
+              <!-- STATUT -->
+
+              <span
+                class="teacher-delivery-status"
+                [class.sent]="
+                  isTeacherExamSent(config)
+                "
+                [class.ready]="
+                  !isTeacherExamSent(config)
+                "
+              >
+
+                {{
+                  isTeacherExamSent(config)
+                    ? 'ENVOY?'
+                    : '? ENVOYER'
+                }}
+
+              </span>
+
+
+              <!-- NOMBRE ETUDIANTS -->
+
+              <small
+                class="teacher-delivery-count"
+                *ngIf="
+                  config.roster_count
+                  && config.roster_count > 0
+                "
+              >
+
+                {{ config.roster_count }}
+                ?tudiant(s)
+
+              </small>
+
+
+              <!-- BOUTON -->
+
+              <button
+                type="button"
+                class="teacher-send-exam"
+                [class.sent]="
+                  isTeacherExamSent(config)
+                "
+                [disabled]="
+                  isTeacherExamSent(config)
+                  ||
+                  teacherDeliveryLoadingExamId
+                  === (
+                    config.exam_id
+                    || config.filename.replace(
+                      '.json',
+                      ''
+                    )
+                  )
+                "
+                (click)="
+                  sendExamToStudentsFromTeacher(
+                    config
+                  )
+                "
+              >
+
+                <i
+                  [attr.data-lucide]="
+                    isTeacherExamSent(config)
+                      ? 'circle-check'
+                      : 'send'
+                  "
+                  class="btn-icon"
+                ></i>
+
+
+                {{
+                  teacherDeliveryLoadingExamId
+                    === (
+                      config.exam_id
+                      || config.filename.replace(
+                        '.json',
+                        ''
+                      )
+                    )
+
+                    ? 'Envoi...'
+
+                    : (
+                        isTeacherExamSent(config)
+                          ? 'Envoy?'
+                          : 'Envoyer'
+                      )
+                }}
+
+              </button>
+
+
+              <!-- DATE ENVOI -->
+
+              <small
+                class="teacher-delivery-date"
+                *ngIf="
+                  isTeacherExamSent(config)
+                  && config.sent_at
+                "
+              >
+
+                {{ config.sent_at }}
+
+              </small>
+
+            </div>
+
+          </td>
+
+
+          <!-- SECUREEXAM_NIXOS_DELETE_ACTION_V25 -->
+
+          <td>
+
+            <button
+              type="button"
+              class="generated-nixos-delete"
+              title="Supprimer cette configuration"
+              (click)="deleteConfig(config)"
+            >
+
+              <i
+                data-lucide="trash-2"
+                class="btn-icon"
+              ></i>
+
+              Supprimer
 
             </button>
 
@@ -1895,6 +3476,84 @@
       </section>
 
 
+
+      <!-- SECUREEXAM_ROSTER_CONFIRMATION_V1 -->
+
+      <section class="create-config-review-section">
+
+        <div class="create-config-review-section-title">
+
+          <div>
+
+            <h3>
+              <i data-lucide="users-round"></i>
+              Étudiants inscrits
+            </h3>
+
+            <p>
+              Cette liste sera transmise à
+              l'administrateur avec la configuration.
+            </p>
+
+          </div>
+
+
+          <span class="create-config-review-count">
+            {{ studentRosterCount }}
+            étudiant(s)
+          </span>
+
+        </div>
+
+
+        <div class="create-config-review-roster">
+
+          <div class="create-config-review-roster-file">
+
+            <i data-lucide="file-spreadsheet"></i>
+
+            <div>
+
+              <span>
+                Fichier CSV
+              </span>
+
+              <strong>
+                {{
+                  studentRosterFilename
+                  || 'Aucun fichier'
+                }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="create-config-review-roster-list">
+
+            <div
+              *ngFor="
+                let student
+                of studentRosterPreview
+              "
+            >
+              <strong>
+                {{ student.student_number }}
+              </strong>
+
+              <span>
+                {{ student.full_name }}
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
       <!-- =============================================
            PARAMÈTRES
            ============================================= -->
@@ -2051,7 +3710,7 @@
           <div>
             <h3>
               <i data-lucide="package-check"></i>
-              Paquets autorisés
+              Logiciels de l’environnement
             </h3>
 
             <p>
@@ -2255,4 +3914,7 @@
 </div>
 
 <!-- /SECUREEXAM_NIXOS_PREVIEW_POPUP_V1 -->
+
+
+
 

@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY . .
 
-RUN mkdir -p database submissions profile
+RUN mkdir -p database
 
 EXPOSE 8000
 

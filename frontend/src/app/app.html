@@ -1,26 +1,62 @@
+<!-- GLOBAL NOTIFICATIONS START -->
+<app-global-notifications></app-global-notifications>
+<!-- GLOBAL NOTIFICATIONS END -->
+
 @if (secureExamSpace === 'dashboard') {
+
   <app-accueil
     (professorSelected)="openProfessorSpace()"
-    (supervisorSelected)="openSupervisorSpace()">
+    (adminSelected)="openAdminSpace()"
+    (studentSelected)="openStudentSpace()">
   </app-accueil>
+
 } @else if (secureExamSpace === 'support') {
+
   <app-support
     (backRequested)="backToMainDashboard()">
   </app-support>
-} @else if (secureExamSpace === 'supervisor') {
-  @if (!isSupervisorAuthenticated) {
-    <app-supervisor-authentication
-      (authenticated)="handleSupervisorAuthenticated()"
+
+} @else if (secureExamSpace === 'admin') {
+
+  @if (!isAdminAuthenticated) {
+
+    <app-admin-authentication
+      (authenticated)="handleAdminAuthenticated()"
       (backToDashboard)="backToMainDashboard()"
       (supportRequested)="openPublicSupportPage()">
-    </app-supervisor-authentication>
+    </app-admin-authentication>
+
   } @else {
-    <app-supervisor-space
+
+    <app-admin-space
       [publicSupportMode]="false"
       (backToDashboard)="backToMainDashboard()"
-      (logoutRequested)="logoutSupervisor()">
-    </app-supervisor-space>
+      (logoutRequested)="logoutAdmin()">
+    </app-admin-space>
+
   }
+
+} @else if (secureExamSpace === 'student') {
+
+  @if (!isStudentAuthenticated) {
+
+    <app-student-authentication
+      (authenticated)="handleStudentAuthenticated()"
+      (backToDashboard)="backToMainDashboard()">
+    </app-student-authentication>
+
+  } @else {
+
+    <app-student-space
+      (backToDashboard)="backToMainDashboard()"
+      (logoutRequested)="logoutStudent()">
+    </app-student-space>
+
+  }
+
 } @else {
-  <app-professeur-space></app-professeur-space>
+
+  <app-professeur-space>
+  </app-professeur-space>
+
 }

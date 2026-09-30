@@ -1,0 +1,739 @@
+<div class="student-page">
+
+  <!-- ==================================================
+       HEADER ETUDIANT
+       ================================================== -->
+
+  <header
+    class="
+      student-app-header
+      student-focus-header
+    "
+  >
+
+    <div class="student-header-left">
+
+      <img
+        src="/assets/secure_exam_logo.png"
+        alt="ISEN SecureExam"
+        class="student-header-logo"
+      >
+
+    </div>
+
+
+    <div class="student-focus-center">
+
+      <span>
+        SESSION D’EXAMEN
+      </span>
+
+      <strong>
+        {{
+          assignedExam?.exam_name
+          || 'SecureExam'
+        }}
+      </strong>
+
+    </div>
+
+
+    <div class="student-header-actions">
+
+      <div class="student-profile-button">
+
+        <span class="student-profile-avatar">
+          <i data-lucide="graduation-cap"></i>
+        </span>
+
+        <span class="student-profile-info">
+
+          <span class="student-profile-name">
+            {{ studentFullName }}
+          </span>
+
+          <span class="student-profile-role">
+            Étudiant
+          </span>
+
+        </span>
+
+      </div>
+
+
+      <button
+        class="student-logout-icon-button"
+        type="button"
+        (click)="logout()"
+        title="Quitter l'espace étudiant"
+        aria-label="Se déconnecter"
+      >
+        <i data-lucide="log-out"></i>
+      </button>
+
+    </div>
+
+  </header>
+
+
+
+  <main class="student-main">
+
+
+    <!-- ==================================================
+         ÉTUDIANT
+         ================================================== -->
+
+    
+
+
+    <!-- ==================================================
+         LOADING
+         ================================================== -->
+
+    <section
+      class="student-state-card"
+      *ngIf="loading"
+    >
+      Chargement de votre espace...
+    </section>
+
+
+    <section
+      class="student-state-card error"
+      *ngIf="error"
+    >
+      {{ error }}
+    </section>
+
+
+    <ng-container
+      *ngIf="
+        !loading
+        && dashboard
+      "
+    >
+
+
+      <!-- ==================================================
+           INTRO
+           ================================================== -->
+
+      <section id="student-instructions" class="student-intro">
+
+        <span class="student-kicker">
+          ESPACE ÉTUDIANT
+        </span>
+
+        <h1>
+          Votre examen SecureExam
+        </h1>
+
+        <p>
+          Vérifiez l’examen qui vous a été
+          attribué et sa configuration avant
+          de démarrer votre session.
+        </p>
+
+      </section>
+
+
+      <!-- ==================================================
+           AUCUN EXAMEN
+           ================================================== -->
+
+      <section
+        class="student-empty"
+        *ngIf="!assignedExam"
+      >
+
+        <div class="student-empty-icon">
+          !
+        </div>
+
+        <h2>
+          Aucun examen attribué
+        </h2>
+
+        <p>
+          Aucun examen ne vous a encore été
+          affecté. Contactez le administrateur
+          de votre salle.
+        </p>
+
+      </section>
+
+
+      <ng-container
+        *ngIf="
+          assignedExam
+          as exam
+        "
+      >
+
+
+        <!-- ==================================================
+             INSTRUCTIONS
+             ================================================== -->
+
+        <section class="student-steps">
+
+          <article class="student-step">
+
+            <div class="student-step-number">
+              1
+            </div>
+
+            <div>
+
+              <span>
+                Vérification
+              </span>
+
+              <strong>
+                Consultez votre examen
+              </strong>
+
+              <p>
+                Vérifiez le nom, la date et
+                l’heure de l’épreuve qui
+                vous a été attribuée.
+              </p>
+
+            </div>
+
+          </article>
+
+
+          <article class="student-step">
+
+            <div class="student-step-number">
+              2
+            </div>
+
+            <div>
+
+              <span>
+                Configuration
+              </span>
+
+              <strong>
+                Vérifiez l’environnement
+              </strong>
+
+              <p>
+                SecureExam a préparé les
+                logiciels et les accès
+                autorisés pour cette épreuve.
+              </p>
+
+            </div>
+
+          </article>
+
+
+          <article
+            class="
+              student-step
+              student-step-launch
+            "
+          >
+
+            <div class="student-step-number">
+              3
+            </div>
+
+            <div>
+
+              <span>
+                Démarrage
+              </span>
+
+              <strong>
+                Lancez votre examen
+              </strong>
+
+              <p>
+                Le chronomètre démarre au
+                lancement de votre session.
+              </p>
+
+            </div>
+
+          </article>
+
+        </section>
+
+
+        <!-- ==================================================
+             EXAMEN ATTRIBUÉ
+             ================================================== -->
+
+        <section id="student-exam" class="student-panel">
+
+          <div class="student-panel-head">
+
+            <div>
+
+              <span class="student-panel-kicker">
+                INSTRUCTION 1
+              </span>
+
+              <h2>
+                Examen attribué
+              </h2>
+
+            </div>
+
+
+            <span
+              class="student-status"
+              [class.running]="examRunning"
+              [class.paused]="examPaused"
+              [class.finished]="examFinished"
+            >
+              {{
+                examFinished
+                  ? 'TERMINÉ'
+                  : (
+                      examPaused
+                        ? 'EN PAUSE'
+                        : (
+                            examRunning
+                              ? 'EN COURS'
+                              : 'PRÊT'
+                          )
+                    )
+              }}
+            </span>
+
+          </div>
+
+
+          <div class="student-exam-main">
+
+            <div class="student-exam-title">
+
+              <span>
+                {{ exam.exam_id }}
+              </span>
+
+              <h3>
+                {{ exam.exam_name }}
+              </h3>
+
+            </div>
+
+
+            <div class="student-exam-info">
+
+              <div>
+
+                <span>
+                  Date
+                </span>
+
+                <strong>
+                  {{
+                    formatDate(
+                      exam.exam_date
+                    )
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Heure
+                </span>
+
+                <strong>
+                  {{
+                    exam.exam_time
+                    || 'Non renseignée'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span>
+                  Poste
+                </span>
+
+                <strong>
+                  {{
+                    exam.machine_id
+                    || 'Attribué au lancement'
+                  }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             CONFIGURATION
+             ================================================== -->
+
+        <section id="student-config" class="student-panel">
+
+          <div class="student-panel-head">
+
+            <div>
+
+              <span class="student-panel-kicker">
+                INSTRUCTION 2
+              </span>
+
+              <h2>
+                Configuration de l’examen
+              </h2>
+
+            </div>
+
+
+            <span
+              class="config-ready"
+              [class.unavailable]="
+                !exam.config_ready
+              "
+            >
+              {{
+                exam.config_ready
+                  ? 'CONFIGURATION PRÊTE'
+                  : 'EN ATTENTE'
+              }}
+            </span>
+
+          </div>
+
+
+          <ng-container
+            *ngIf="
+              exam.config_ready
+              && exam.config
+            "
+          >
+
+            <div class="student-config-grid">
+
+              <article>
+
+                <span>
+                  Logiciels autorisés
+                </span>
+
+                <strong>
+                  {{
+                    packagesText(
+                      exam
+                    )
+                  }}
+                </strong>
+
+              </article>
+
+
+              <article>
+
+                <span>
+                  Internet
+                </span>
+
+                <strong>
+                  {{
+                    exam.config.internet
+                      ? 'Autorisé'
+                      : 'Bloqué'
+                  }}
+                </strong>
+
+              </article>
+
+
+              <article>
+
+                <span>
+                  Accès EDUC
+                </span>
+
+                <strong>
+                  {{
+                    exam.config.educ_access
+                      ? 'Autorisé'
+                      : 'Bloqué'
+                  }}
+                </strong>
+
+              </article>
+
+
+              <article>
+
+                <span>
+                  Droits administrateur
+                </span>
+
+                <strong>
+                  {{
+                    exam.config.sudo
+                      ? 'Autorisé'
+                      : 'Bloqué'
+                  }}
+                </strong>
+
+              </article>
+
+            </div>
+
+
+            <div class="student-config-file">
+
+              <div class="student-file-icon">
+                NIX
+              </div>
+
+              <div>
+
+                <span>
+                  Configuration NixOS
+                </span>
+
+                <strong>
+                  {{
+                    exam.config.nix_filename
+                  }}
+                </strong>
+
+              </div>
+
+
+              <span class="student-file-ok">
+                Prête
+              </span>
+
+            </div>
+
+          </ng-container>
+
+
+          <div
+            class="student-config-warning"
+            *ngIf="
+              !exam.config_ready
+            "
+          >
+            La configuration de cette épreuve
+            n’est pas encore disponible.
+          </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             LANCEMENT / TIMER
+             ================================================== -->
+
+                <section
+          class="student-launch-panel"
+          [class.running]="examRunning"
+          [class.paused]="examPaused"
+          [class.finished]="examFinished"
+          [class.active-session]="examStarted"
+        >
+
+          <div class="student-launch-copy">
+
+            <span class="student-panel-kicker">
+              INSTRUCTION 3
+            </span>
+
+
+            <h2 *ngIf="!examStarted">
+              Prêt à commencer ?
+            </h2>
+
+            <h2 *ngIf="examRunning">
+              Session d’examen en cours
+            </h2>
+
+            <h2 *ngIf="examPaused">
+              Examen en pause
+            </h2>
+
+            <h2 *ngIf="examFinished">
+              Examen terminé
+            </h2>
+
+
+            <p *ngIf="!examStarted">
+              Lancez votre examen lorsque vous
+              êtes prêt. Le chronomètre démarre
+              immédiatement.
+            </p>
+
+
+            <p *ngIf="examRunning">
+              Restez concentré sur votre épreuve.
+              Vous pouvez mettre le chronomètre
+              en pause ou terminer votre session.
+            </p>
+
+
+            <p *ngIf="examPaused">
+              Le chronomètre est arrêté.
+              Reprenez votre session lorsque
+              vous êtes prêt.
+            </p>
+
+
+            <p *ngIf="examFinished">
+              Votre chronomètre est définitivement
+              arrêté pour cette session.
+            </p>
+
+          </div>
+
+
+          <div
+            class="student-session-control"
+            *ngIf="examStarted"
+          >
+
+            <div
+              class="student-timer"
+              [class.paused]="examPaused"
+              [class.finished]="examFinished"
+            >
+
+              <span>
+                {{
+                  examFinished
+                    ? 'TEMPS TOTAL'
+                    : (
+                        examPaused
+                          ? 'TEMPS EN PAUSE'
+                          : 'TEMPS ÉCOULÉ'
+                      )
+                }}
+              </span>
+
+              <strong>
+                {{ formatTimer() }}
+              </strong>
+
+            </div>
+
+
+            <div
+              class="student-session-state"
+              [class.paused]="examPaused"
+              [class.finished]="examFinished"
+            >
+
+              <span></span>
+
+              {{
+                examFinished
+                  ? 'Session terminée'
+                  : (
+                      examPaused
+                        ? 'Chronomètre en pause'
+                        : 'Session active'
+                    )
+              }}
+
+            </div>
+
+
+            <div
+              class="student-exam-controls"
+              *ngIf="!examFinished"
+            >
+
+              <button
+                type="button"
+                class="student-pause-button"
+                *ngIf="examRunning"
+                (click)="pauseExam()"
+              >
+                <i data-lucide="pause"></i>
+                Mettre en pause
+              </button>
+
+
+              <button
+                type="button"
+                class="student-resume-button"
+                *ngIf="examPaused"
+                (click)="resumeExam()"
+              >
+                <i data-lucide="play"></i>
+                Reprendre
+              </button>
+
+
+              <button
+                type="button"
+                class="student-finish-button"
+                (click)="finishExam()"
+              >
+                <i data-lucide="square"></i>
+                Terminer l’examen
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <button
+            type="button"
+            class="student-launch-button"
+            *ngIf="!examStarted"
+            [disabled]="
+              launchLoading
+              || !exam.config_ready
+            "
+            (click)="launchExam()"
+          >
+
+            <i data-lucide="play"></i>
+
+            {{
+              launchLoading
+                ? 'Démarrage...'
+                : 'Lancer l’examen'
+            }}
+
+          </button>
+
+        </section>
+
+
+        <div
+          class="student-launch-error"
+          *ngIf="launchError"
+        >
+          {{ launchError }}
+        </div>
+
+
+      </ng-container>
+
+    </ng-container>
+
+  </main>
+
+</div>
