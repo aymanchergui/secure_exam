@@ -616,6 +616,18 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   // SECUREEXAM_TEACHER_DELIVERY_STATE_V2
   teacherDeliveryLoadingId = 0;
 
+  // SECUREEXAM_TEACHER_ATTACHMENT_STATE_V1
+
+  teacherSendModalConfig:
+    ExamConfigFile | null = null;
+
+  teacherSendAttachments:
+    File[] = [];
+
+  teacherSendAttachmentError = '';
+
+
+
   error = '';
   success = '';
 
@@ -949,9 +961,105 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     sudo: false,
     internet: false,
     educ_access: true,
-    allowed_domains_text: 'educ.isen.fr',
+    allowed_domains_text: 'educ.isen-mediterranee.fr',
     workspace: '/home/exam/workspace'
   };
+
+  // ======================================================
+  // SECUREEXAM EDUC DOMAIN
+  // ======================================================
+
+  private readonly educDomain =
+    'educ.isen-mediterranee.fr';
+
+
+
+  private getEffectiveAllowedDomains():
+    string[] {
+
+    /*
+     * Les deux valeurs sont reconnues afin de
+     * nettoyer automatiquement les anciennes
+     * configurations contenant educ.isen.fr.
+     */
+
+    const educDomains =
+      new Set([
+        'educ.isen.fr',
+        this.educDomain
+      ]);
+
+
+    const domains =
+      String(
+        this.newConfig.allowed_domains_text
+        || ''
+      )
+        .split(/[\n,;]+/)
+        .map(
+          domain =>
+            domain
+              .trim()
+              .toLowerCase()
+        )
+        .filter(Boolean)
+        .filter(
+          domain =>
+            !educDomains.has(
+              domain
+            )
+        );
+
+
+    if (
+      this.newConfig.educ_access
+    ) {
+
+      domains.unshift(
+        this.educDomain
+      );
+    }
+
+
+    return Array.from(
+      new Set(
+        domains
+      )
+    );
+  }
+
+
+
+  onEducAccessChanged(
+    enabled: boolean
+  ): void {
+
+    this.newConfig.educ_access =
+      !!enabled;
+
+
+    /*
+     * EDUC ON
+     * -> ajoute automatiquement :
+     * educ.isen-mediterranee.fr
+     *
+     * EDUC OFF
+     * -> retire le domaine Educ
+     *
+     * Les autres domaines saisis par
+     * l'enseignant sont conserves.
+     */
+
+    this.newConfig.allowed_domains_text =
+      this
+        .getEffectiveAllowedDomains()
+        .join(', ');
+
+
+    this.refreshView();
+  }
+
+
 
   constructor(
     private http: HttpClient,
@@ -5342,16 +5450,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     formData.append(
       'allowed_domains_json',
       JSON.stringify(
-        this.newConfig.allowed_domains_text
-          .split(',')
-          .map(
-            domain =>
-              domain.trim()
-          )
-          .filter(
-            domain =>
-              domain.length > 0
-          )
+        this.getEffectiveAllowedDomains()
       )
     );
 
@@ -5736,6 +5835,62 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
   // TÉLÉCHARGER UNE SOUMISSION
   // ======================================================
 
+  // SECUREEXAM_BULK_SUBMISSIONS_V1_BEGIN
+  bulkSubmissionDownloads = new Set<string>();
+
+  downloadAllExamSubmissions(group: any): void {
+    const examId = String(group?.exam_id || '').trim();
+    if (!examId || this.bulkSubmissionDownloads.has(examId)) {
+      return;
+    }
+    this.error = '';
+    this.success = '';
+    this.bulkSubmissionDownloads.add(examId);
+    this.refreshView();
+    this.http.get(`${this.apiUrl}/submissions-bulk-download`, {
+      headers: this.getTeacherHeaders(),
+      params: { exam_id: examId },
+      responseType: 'blob',
+      observe: 'response'
+    }).subscribe({
+      next: (response) => {
+        try {
+          if (!response.body || response.body.size === 0) {
+            throw new Error('Archive vide.');
+          }
+          const disposition = response.headers.get('Content-Disposition') || '';
+          const suppliedName = /filename="([^"]+)"/.exec(disposition)?.[1];
+          const fallback = examId.replace(/[^A-Za-z0-9._-]+/g, '_') + '_tous_les_rendus.zip';
+          this.saveBlob(response.body, suppliedName || fallback);
+          this.success = `Téléchargement de tous les rendus de ${examId} lancé.`;
+        } catch {
+          this.error = "Impossible de télécharger l'archive de cet examen.";
+        } finally {
+          this.bulkSubmissionDownloads.delete(examId);
+          this.refreshView();
+        }
+      },
+      error: async (err: any) => {
+        let message = "Impossible de télécharger les rendus de cet examen.";
+        try {
+          const detail = err?.error instanceof Blob
+            ? JSON.parse(await err.error.text())?.detail
+            : err?.error?.detail;
+          if (typeof detail === 'string') {
+            message = detail;
+          }
+        } catch {
+          // Le message générique reste disponible si la réponse n'est pas du JSON.
+        }
+        this.error = message;
+        this.bulkSubmissionDownloads.delete(examId);
+        this.refreshView();
+      }
+    });
+  }
+  // SECUREEXAM_BULK_SUBMISSIONS_V1_END
+
+
   downloadSubmission(
     submission: any
   ): void {
@@ -5818,24 +5973,22 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
 
+  // SECUREEXAM_TEACHER_ATTACHMENT_SEND_V1
+
   sendExamToStudentsFromTeacher(
     config: ExamConfigFile
   ): void {
 
     this.error = '';
     this.success = '';
+    this.teacherSendAttachmentError = '';
 
 
-    // MEME REGLE QUE ADMIN
-    if (
-      !config.roster_count
-    ) {
+    if (!config.roster_count) {
 
       this.error =
-        (
-          'Aucune liste étudiants '
-          + 'associ?e ? cet examen.'
-        );
+        'Aucune liste \u00e9tudiants '
+        + 'associ\u00e9e \u00e0 cet examen.';
 
       this.refreshView();
 
@@ -5843,13 +5996,11 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     }
 
 
-    // MEME REGLE QUE ADMIN
     if (
       this.isTeacherExamSent(
         config
       )
     ) {
-
       return;
     }
 
@@ -5865,22 +6016,258 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
     }
 
 
-    const confirmed =
-      window.confirm(
-        (
-          `Envoyer "${
-            config.exam_name
-            || config.exam_id
-          }" `
-          + `aux ${
-              config.roster_count
-            } étudiant(s) `
-          + 'de la liste CSV ?'
-        )
+    /*
+     * Le clic Envoyer n'envoie plus immediatement.
+     * Il ouvre d'abord le popup des pieces.
+     */
+
+    this.teacherSendModalConfig =
+      config;
+
+    this.teacherSendAttachments =
+      [];
+
+    this.teacherSendAttachmentError =
+      '';
+
+    document.body.style.overflow =
+      'hidden';
+
+    this.refreshView();
+  }
+
+
+
+  closeTeacherSendModal(): void {
+
+    if (
+      this.teacherDeliveryLoadingId
+    ) {
+      return;
+    }
+
+
+    this.teacherSendModalConfig =
+      null;
+
+    this.teacherSendAttachments =
+      [];
+
+    this.teacherSendAttachmentError =
+      '';
+
+    document.body.style.overflow =
+      '';
+
+    this.refreshView();
+  }
+
+
+
+  onTeacherAttachmentSelected(
+    event: Event
+  ): void {
+
+    this.teacherSendAttachmentError =
+      '';
+
+
+    const input =
+      event.target as HTMLInputElement;
+
+
+    const selected =
+      Array.from(
+        input.files
+        || []
       );
 
 
-    if (!confirmed) {
+    if (!selected.length) {
+      return;
+    }
+
+
+    const next = [
+      ...this.teacherSendAttachments
+    ];
+
+
+    for (const file of selected) {
+
+      const isPdf =
+        (
+          file.name
+            .toLowerCase()
+            .endsWith('.pdf')
+        );
+
+
+      if (!isPdf) {
+
+        this.teacherSendAttachmentError =
+          'Seuls les fichiers PDF sont autoris\u00e9s.';
+
+        input.value = '';
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      if (
+        file.size
+        > 10 * 1024 * 1024
+      ) {
+
+        this.teacherSendAttachmentError =
+          (
+            `Le fichier ${file.name} `
+            + 'd\u00e9passe 10 Mo.'
+          );
+
+        input.value = '';
+
+        this.refreshView();
+
+        return;
+      }
+
+
+      const alreadyExists =
+        next.some(
+          current =>
+            (
+              current.name
+              === file.name
+              &&
+              current.size
+              === file.size
+            )
+        );
+
+
+      if (!alreadyExists) {
+
+        next.push(
+          file
+        );
+      }
+    }
+
+
+    if (next.length > 5) {
+
+      this.teacherSendAttachmentError =
+        'Maximum 5 fichiers PDF.';
+
+      input.value = '';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    this.teacherSendAttachments =
+      next;
+
+
+    input.value = '';
+
+    this.refreshView();
+  }
+
+
+
+  removeTeacherAttachment(
+    index: number
+  ): void {
+
+    if (
+      this.teacherDeliveryLoadingId
+    ) {
+      return;
+    }
+
+
+    this.teacherSendAttachments =
+      this.teacherSendAttachments
+        .filter(
+          (_file, currentIndex) =>
+            currentIndex !== index
+        );
+
+
+    this.teacherSendAttachmentError =
+      '';
+
+    this.refreshView();
+  }
+
+
+
+  formatTeacherAttachmentSize(
+    bytes: number
+  ): string {
+
+    const size =
+      Number(bytes || 0);
+
+
+    if (size < 1024) {
+      return `${size} o`;
+    }
+
+
+    if (
+      size
+      < 1024 * 1024
+    ) {
+
+      return (
+        `${(
+          size / 1024
+        ).toFixed(1)} Ko`
+      );
+    }
+
+
+    return (
+      `${(
+        size
+        / 1024
+        / 1024
+      ).toFixed(1)} Mo`
+    );
+  }
+
+
+
+  confirmTeacherExamSend(): void {
+
+    const config =
+      this.teacherSendModalConfig;
+
+
+    if (
+      !config
+      || !config.id
+    ) {
+
+      this.teacherSendAttachmentError =
+        'Configuration introuvable.';
+
+      this.refreshView();
+
+      return;
+    }
+
+
+    if (
+      this.teacherDeliveryLoadingId
+    ) {
       return;
     }
 
@@ -5889,8 +6276,106 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       config.id;
 
 
-    const headers =
-      this.getTeacherHeaders();
+    this.teacherSendAttachmentError =
+      '';
+
+
+    const formData =
+      new FormData();
+
+
+    this.teacherSendAttachments
+      .forEach(
+        file => {
+
+          formData.append(
+            'files',
+            file,
+            file.name
+          );
+        }
+      );
+
+
+    /*
+     * Etape 1 :
+     * enregistrer/remplacer les pieces en BLOB.
+     *
+     * Meme si aucun PDF n'est selectionne,
+     * on appelle la route avec un FormData vide :
+     * cela signifie "aucune piece".
+     */
+
+    this.http.post<any>(
+      (
+        `${this.apiUrl}`
+        + `/teacher/exam-delivery/`
+        + `${config.id}/attachments`
+      ),
+      formData,
+      {
+        headers:
+          this.getTeacherHeaders()
+      }
+    ).subscribe({
+
+      next: () => {
+
+        /*
+         * Etape 2 :
+         * uniquement si les pieces ont ete
+         * validees/enregistrees, diffuser l'examen.
+         */
+
+        this.executeTeacherExamSend(
+          config
+        );
+      },
+
+
+      error: error => {
+
+        this.teacherDeliveryLoadingId =
+          0;
+
+
+        const detail =
+          error?.error?.detail;
+
+
+        this.teacherSendAttachmentError =
+          (
+            typeof detail === 'string'
+              ? detail
+              : (
+                  detail?.message
+                  || (
+                    'Impossible d\u2019enregistrer '
+                    + 'les pi\u00e8ces compl\u00e9mentaires.'
+                  )
+                )
+          );
+
+
+        this.refreshView();
+      }
+
+    });
+  }
+
+
+
+  private executeTeacherExamSend(
+    config: ExamConfigFile
+  ): void {
+
+    if (!config.id) {
+
+      this.teacherDeliveryLoadingId =
+        0;
+
+      return;
+    }
 
 
     this.http.post<any>(
@@ -5901,11 +6386,12 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       ),
       {},
       {
-        headers
+        headers:
+          this.getTeacherHeaders()
       }
     ).subscribe({
 
-      next: (response) => {
+      next: response => {
 
         this.teacherDeliveryLoadingId =
           0;
@@ -5916,31 +6402,34 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
             response?.already_sent
 
               ? (
-                  `Examen déjà envoyé ? `
-                  + `${
-                      response.students_count
-                    } étudiant(s).`
+                  `Examen d\u00e9j\u00e0 envoy\u00e9 \u00e0 `
+                  + `${response.students_count} `
+                  + '\u00e9tudiant(s).'
                 )
 
               : (
                   response?.message
                   || (
-                    `Examen envoyé ? `
-                    + `${
-                        response.students_count
-                      } étudiant(s).`
+                    `Examen envoy\u00e9 \u00e0 `
+                    + `${response.students_count} `
+                    + '\u00e9tudiant(s).'
                   )
                 )
           );
 
 
-        /*
-         * IMPORTANT :
-         * on recharge /dashboard.
-         *
-         * Le statut vient donc de la DB,
-         * exactement comme pour l'Admin.
-         */
+        this.teacherSendModalConfig =
+          null;
+
+        this.teacherSendAttachments =
+          [];
+
+        this.teacherSendAttachmentError =
+          '';
+
+        document.body.style.overflow =
+          '';
+
 
         this.loadDashboard();
 
@@ -5948,7 +6437,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
       },
 
 
-      error: (error) => {
+      error: error => {
 
         this.teacherDeliveryLoadingId =
           0;
@@ -5974,7 +6463,7 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
               .join(', ');
 
 
-          this.error =
+          this.teacherSendAttachmentError =
             (
               `${detail.message} `
               + `Compte(s) introuvable(s) : `
@@ -5983,17 +6472,15 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
         } else {
 
-          this.error =
+          this.teacherSendAttachmentError =
             (
               typeof detail === 'string'
-
                 ? detail
-
                 : (
                     detail?.message
                     || (
-                      'Impossible d’envoyer '
-                      + 'l’examen.'
+                      'Impossible d\u2019envoyer '
+                      + 'l\u2019examen.'
                     )
                   )
             );
@@ -6008,7 +6495,6 @@ export class ProfesseurSpaceComponent implements OnInit, AfterViewInit {
 
 
 
-  // ======================================================
   // ======================================================
   // SECUREEXAM_TEACHER_ROSTER_METHODS_V1
   // ======================================================

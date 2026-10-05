@@ -2102,14 +2102,22 @@
           </label>
 
           <label>
-            <input type="checkbox" [(ngModel)]="newConfig.educ_access">
+            <input
+              type="checkbox"
+              [(ngModel)]="newConfig.educ_access"
+              (ngModelChange)="onEducAccessChanged($event)"
+            >
             Accès Educ autorisé
           </label>
         </div>
 
         <label class="full">
           Domaines autorisés
-          <input [(ngModel)]="newConfig.allowed_domains_text" type="text">
+          <input
+            [(ngModel)]="newConfig.allowed_domains_text"
+            type="text"
+            placeholder="Ex : educ.isen-mediterranee.fr, docs.python.org"
+          >
         </label>
 
         <button
@@ -2646,16 +2654,14 @@
             Détail
           </th>
 
-          <th>
-            Téléchargement
-          </th>
+          
 
           <!-- SECUREEXAM_TEACHER_DELIVERY_COLUMN_V2 -->
 
           <!-- SECUREEXAM_TEACHER_ROSTER_COLUMN_V1 -->
 
           <th>
-            Liste CSV
+            Liste &eacute;tudiants
           </th>
 
           <th>
@@ -2666,9 +2672,7 @@
             Envoi
           </th>
 
-          <th>
-            Action
-          </th>
+          <th class="generated-nixos-actions-head">Actions</th>
 
         </tr>
 
@@ -2766,77 +2770,82 @@
           </td>
 
 
-          <!-- SECUREEXAM_NIXOS_INFO_BUTTON_V1 -->
-<!-- DETAIL -->
+          <!-- SECUREEXAM_NIXOS_COMPACT_V2 -->
 
-<td>
-
-  <div class="generated-nixos-detail-actions">
-
-    <button
-      type="button"
-      class="generated-nixos-info"
-      title="Voir toutes les informations de la configuration"
-      (click)="viewConfig(config)"
-    >
-
-      <i
-        data-lucide="info"
-        class="btn-icon"
-      ></i>
-
-      Infos
-
-    </button>
-
-<button
-              type="button"
-              class="generated-nixos-view"
-              (click)="
-                viewNixosConfigFor(
-                  config
-                )
-              "
-            >
-
-              <i
-                data-lucide="eye"
-                class="btn-icon"
-              ></i>
-
-              Voir NixOS
-
-            </button>
-
-  </div>
-
-</td>
-
-
-          <!-- DOWNLOAD -->
+          <!-- DETAIL -->
 
           <td>
 
-            <button
-              type="button"
-              class="generated-nixos-download"
-              (click)="
-                downloadNixosConfigFor(
-                  config
-                )
-              "
-            >
+            <div class="generated-nixos-detail-modern">
 
-              <i
-                data-lucide="download"
-                class="btn-icon"
-              ></i>
+              <button
+                type="button"
+                class="
+                  generated-nixos-detail-btn
+                  info
+                "
+                title="Informations"
+                (click)="viewConfig(config)"
+              >
 
-              Télécharger .nix
+                <span
+                  class="
+                    generated-nixos-detail-icon
+                  "
+                >
+                  <i
+                    data-lucide="info"
+                  ></i>
+                </span>
 
-            </button>
+                <span>
+                  Infos
+                </span>
+
+              </button>
+
+
+              <span
+                class="
+                  generated-nixos-detail-separator
+                "
+              ></span>
+
+
+              <button
+                type="button"
+                class="
+                  generated-nixos-detail-btn
+                  nixos
+                "
+                title="Afficher la configuration NixOS"
+                (click)="
+                  viewNixosConfigFor(
+                    config
+                  )
+                "
+              >
+
+                <span
+                  class="
+                    generated-nixos-detail-icon
+                  "
+                >
+                  <i
+                    data-lucide="eye"
+                  ></i>
+                </span>
+
+                <span>
+                  NixOS
+                </span>
+
+              </button>
+
+            </div>
 
           </td>
+
 
           <!-- SECUREEXAM_TEACHER_ROSTER_CELL_V1 -->
 
@@ -2861,17 +2870,6 @@
               Voir liste
 
             </button>
-
-
-            <small
-              class="admin-roster-filename"
-
-              *ngIf="
-                config.roster_filename
-              "
-            >
-              {{ config.roster_filename }}
-            </small>
 
           </td>
 
@@ -2974,25 +2972,63 @@
           </td>
 
 
-          <!-- SECUREEXAM_NIXOS_DELETE_ACTION_V25 -->
+          <!-- SECUREEXAM_NIXOS_DELETE_ACTION_V26 -->
 
-          <td>
+          <td
+            class="
+              generated-nixos-actions-cell
+            "
+          >
 
-            <button
-              type="button"
-              class="generated-nixos-delete"
-              title="Supprimer cette configuration"
-              (click)="deleteConfig(config)"
+            <div
+              class="
+                generated-nixos-row-actions
+              "
             >
 
-              <i
-                data-lucide="trash-2"
-                class="btn-icon"
-              ></i>
+              <button
+                type="button"
+                class="
+                  generated-nixos-action-download
+                "
+                title="Telecharger le fichier NixOS"
+                (click)="
+                  downloadNixosConfigFor(
+                    config
+                  )
+                "
+              >
 
-              Supprimer
+                <i
+                  data-lucide="download"
+                ></i>
 
-            </button>
+                <span>
+                  .nix
+                </span>
+
+              </button>
+
+
+              <button
+                type="button"
+                class="
+                  generated-nixos-action-delete
+                "
+                title="Supprimer cette configuration"
+                aria-label="Supprimer cette configuration"
+                (click)="
+                  deleteConfig(config)
+                "
+              >
+
+                <i
+                  data-lucide="trash-2"
+                ></i>
+
+              </button>
+
+            </div>
 
           </td>
 
@@ -3007,7 +3043,268 @@
 </section>
 
 
-      <!-- SECUREEXAM_TEACHER_ROSTER_MODAL_V1 -->
+      <!-- =====================================================
+     SECUREEXAM_TEACHER_ATTACHMENT_MODAL_V1
+     ===================================================== -->
+
+<div
+  class="teacher-attachment-backdrop"
+  *ngIf="teacherSendModalConfig"
+  (click)="closeTeacherSendModal()"
+>
+
+  <div
+    class="teacher-attachment-modal"
+    (click)="$event.stopPropagation()"
+  >
+
+    <div class="teacher-attachment-header">
+
+      <div class="teacher-attachment-heading">
+
+        <div class="teacher-attachment-heading-icon">
+          <i data-lucide="send"></i>
+        </div>
+
+        <div>
+
+          <span>
+            DIFFUSION DE L&rsquo;EXAMEN
+          </span>
+
+          <h2>
+            {{
+              teacherSendModalConfig.exam_name
+              || teacherSendModalConfig.exam_id
+            }}
+          </h2>
+
+          <p>
+            {{
+              teacherSendModalConfig.roster_count
+            }}
+            &eacute;tudiant(s) recevront cette &eacute;preuve.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="teacher-attachment-close"
+        [disabled]="teacherDeliveryLoadingId !== 0"
+        (click)="closeTeacherSendModal()"
+        aria-label="Fermer"
+      >
+        <i data-lucide="x"></i>
+      </button>
+
+    </div>
+
+
+
+    <div class="teacher-attachment-body">
+
+      <div class="teacher-attachment-intro">
+
+        <div class="teacher-attachment-intro-icon">
+          <i data-lucide="paperclip"></i>
+        </div>
+
+        <div>
+
+          <strong>
+            Pi&egrave;ces compl&eacute;mentaires
+          </strong>
+
+          <p>
+            Vous pouvez joindre des fichiers PDF &agrave;
+            l&rsquo;&eacute;preuve. Cette &eacute;tape est facultative.
+          </p>
+
+        </div>
+
+      </div>
+
+
+
+      <label class="teacher-attachment-dropzone">
+
+        <input
+          type="file"
+          accept=".pdf,application/pdf"
+          multiple
+          [disabled]="teacherDeliveryLoadingId !== 0"
+          (change)="onTeacherAttachmentSelected($event)"
+        >
+
+        <span class="teacher-attachment-upload-icon">
+          <i data-lucide="file-up"></i>
+        </span>
+
+        <span class="teacher-attachment-upload-copy">
+
+          <strong>
+            Ajouter un ou plusieurs PDF
+          </strong>
+
+          <span>
+            Maximum 5 fichiers &middot; 10 Mo par fichier
+          </span>
+
+        </span>
+
+        <span class="teacher-attachment-upload-action">
+          Parcourir
+        </span>
+
+      </label>
+
+
+
+      <div
+        class="teacher-attachment-files"
+        *ngIf="teacherSendAttachments.length > 0"
+      >
+
+        <article
+          class="teacher-attachment-file"
+          *ngFor="
+            let file of teacherSendAttachments;
+            let i = index
+          "
+        >
+
+          <div class="teacher-attachment-file-icon">
+            <i data-lucide="file-text"></i>
+          </div>
+
+          <div class="teacher-attachment-file-info">
+
+            <strong>
+              {{ file.name }}
+            </strong>
+
+            <span>
+              {{ formatTeacherAttachmentSize(file.size) }}
+            </span>
+
+          </div>
+
+          <button
+            type="button"
+            class="teacher-attachment-remove"
+            [disabled]="teacherDeliveryLoadingId !== 0"
+            (click)="removeTeacherAttachment(i)"
+            title="Retirer"
+          >
+            <i data-lucide="trash-2"></i>
+          </button>
+
+        </article>
+
+      </div>
+
+
+
+      <div
+        class="teacher-attachment-empty"
+        *ngIf="teacherSendAttachments.length === 0"
+      >
+
+        <i data-lucide="file-minus-2"></i>
+
+        <span>
+          Aucune pi&egrave;ce s&eacute;lectionn&eacute;e.
+          L&rsquo;examen peut &ecirc;tre envoy&eacute; sans document.
+        </span>
+
+      </div>
+
+
+
+      <div class="teacher-attachment-security">
+
+        <i data-lucide="shield-check"></i>
+
+        <div>
+
+          <strong>
+            Acc&egrave;s prot&eacute;g&eacute;
+          </strong>
+
+          <span>
+            Les documents restent invisibles dans
+            l&rsquo;espace &eacute;tudiant jusqu&rsquo;&agrave; ce que
+            l&rsquo;&eacute;tudiant lance l&rsquo;examen et que la
+            configuration NixOS soit effectivement appliqu&eacute;e.
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      <div
+        class="teacher-attachment-error"
+        *ngIf="teacherSendAttachmentError"
+      >
+        <i data-lucide="circle-alert"></i>
+        {{ teacherSendAttachmentError }}
+      </div>
+
+    </div>
+
+
+
+    <div class="teacher-attachment-footer">
+
+      <button
+        type="button"
+        class="teacher-attachment-cancel"
+        [disabled]="teacherDeliveryLoadingId !== 0"
+        (click)="closeTeacherSendModal()"
+      >
+        Annuler
+      </button>
+
+
+      <button
+        type="button"
+        class="teacher-attachment-confirm"
+        [disabled]="teacherDeliveryLoadingId !== 0"
+        (click)="confirmTeacherExamSend()"
+      >
+
+        <i
+          [attr.data-lucide]="
+            teacherDeliveryLoadingId
+              ? 'loader-circle'
+              : 'send'
+          "
+        ></i>
+
+        {{
+          teacherDeliveryLoadingId
+            ? 'Envoi en cours...'
+            : 'Envoyer l\u2019examen'
+        }}
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- /SECUREEXAM_TEACHER_ATTACHMENT_MODAL_V1 -->
+
+
+<!-- SECUREEXAM_TEACHER_ROSTER_MODAL_V1 -->
 
 <div
   class="admin-roster-backdrop"
@@ -3327,9 +3624,24 @@
               <p>Date de l'examen : {{ formatDashboardDate(group.exam_created_at) }}</p>
             </div>
 
-            <span class="submission-count">
-              {{ group.submissions.length }} rendu(s)
-            </span>
+            <!-- SECUREEXAM_BULK_SUBMISSIONS_V1_BEGIN -->
+            <div class="submission-exam-download-actions">
+              <span class="submission-count">
+                {{ group.submissions.length }} rendu(s)
+              </span>
+              <button
+                type="button"
+                class="download-success submission-download-all"
+                title="Tous les rendus de cet examen, toutes dates confondues"
+                (click)="downloadAllExamSubmissions(group)"
+                [disabled]="bulkSubmissionDownloads.has(group.exam_id)"
+                [attr.aria-busy]="bulkSubmissionDownloads.has(group.exam_id)"
+              >
+                <i data-lucide="download" class="btn-icon"></i>
+                {{ bulkSubmissionDownloads.has(group.exam_id) ? 'Préparation du ZIP…' : 'Télécharger tous les rendus' }}
+              </button>
+            </div>
+            <!-- SECUREEXAM_BULK_SUBMISSIONS_V1_END -->
           </div>
 
           <div class="submission-table-wrapper">

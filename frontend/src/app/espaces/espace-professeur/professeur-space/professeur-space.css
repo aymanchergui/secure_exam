@@ -13515,3 +13515,1636 @@ td strong {
 /* /SECUREEXAM_TEACHER_ROSTER_STYLE_V1 */
 
 
+
+
+
+/* =========================================================
+   SECUREEXAM_TEACHER_ATTACHMENT_STYLE_V1
+   ========================================================= */
+
+.teacher-attachment-backdrop {
+
+  position: fixed;
+  inset: 0;
+  z-index: 15000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(2, 6, 23, .72);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+
+.teacher-attachment-modal {
+
+  width:
+    min(720px, 96vw);
+
+  max-height:
+    90vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255,255,255,.16);
+
+  border-radius:
+    24px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 36px 100px
+      rgba(0,0,0,.38),
+    0 12px 34px
+      rgba(196,0,36,.15);
+}
+
+
+.teacher-attachment-header {
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 22px;
+
+  padding:
+    23px 25px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #4c0a28 38%,
+      #87001f 68%,
+      #c40024 100%
+    );
+
+  color:
+    #ffffff;
+}
+
+
+.teacher-attachment-heading {
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+
+.teacher-attachment-heading-icon {
+
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 46px;
+
+  border-radius:
+    14px;
+
+  background:
+    rgba(255,255,255,.13);
+}
+
+
+.teacher-attachment-heading-icon svg,
+.teacher-attachment-heading-icon i {
+
+  width: 22px;
+  height: 22px;
+}
+
+
+.teacher-attachment-heading span {
+
+  display: block;
+
+  margin-bottom:
+    5px;
+
+  color:
+    rgba(255,255,255,.68);
+
+  font-size:
+    9px;
+
+  font-weight:
+    950;
+
+  letter-spacing:
+    .12em;
+}
+
+
+.teacher-attachment-heading h2 {
+
+  margin: 0;
+
+  color:
+    #ffffff;
+
+  font-size:
+    21px;
+
+  font-weight:
+    950;
+}
+
+
+.teacher-attachment-heading p {
+
+  margin:
+    5px 0 0;
+
+  color:
+    rgba(255,255,255,.80);
+
+  font-size:
+    11px;
+}
+
+
+.teacher-attachment-close {
+
+  width: 42px;
+  height: 42px;
+
+  flex:
+    0 0 42px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  border-radius:
+    12px;
+
+  background:
+    #0f172a;
+
+  color:
+    #ffffff;
+}
+
+
+.teacher-attachment-close svg,
+.teacher-attachment-close i {
+
+  width: 19px;
+  height: 19px;
+}
+
+
+.teacher-attachment-body {
+
+  flex:
+    1 1 auto;
+
+  min-height: 0;
+
+  overflow-y:
+    auto;
+
+  padding:
+    24px;
+}
+
+
+.teacher-attachment-intro {
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+
+  margin-bottom:
+    18px;
+}
+
+
+.teacher-attachment-intro-icon {
+
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  flex:
+    0 0 42px;
+
+  border-radius:
+    12px;
+
+  background:
+    #fff1f2;
+
+  color:
+    #c40024;
+}
+
+
+.teacher-attachment-intro strong {
+
+  display: block;
+
+  color:
+    #111827;
+
+  font-size:
+    15px;
+
+  font-weight:
+    950;
+}
+
+
+.teacher-attachment-intro p {
+
+  margin:
+    4px 0 0;
+
+  color:
+    #64748b;
+
+  font-size:
+    12px;
+
+  line-height:
+    1.55;
+}
+
+
+.teacher-attachment-dropzone {
+
+  min-height:
+    96px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding:
+    16px;
+
+  border:
+    1.5px dashed
+    rgba(196,0,36,.30);
+
+  border-radius:
+    16px;
+
+  background:
+    #fffafb;
+
+  cursor:
+    pointer;
+
+  transition:
+    .2s ease;
+}
+
+
+.teacher-attachment-dropzone:hover {
+
+  border-color:
+    #c40024;
+
+  background:
+    #fff5f6;
+}
+
+
+.teacher-attachment-dropzone input {
+
+  display: none;
+}
+
+
+.teacher-attachment-upload-icon {
+
+  width: 43px;
+  height: 43px;
+
+  display: grid;
+  place-items: center;
+
+  flex:
+    0 0 43px;
+
+  border-radius:
+    12px;
+
+  background:
+    #ffffff;
+
+  color:
+    #c40024;
+
+  box-shadow:
+    0 7px 18px
+    rgba(15,23,42,.08);
+}
+
+
+.teacher-attachment-upload-copy {
+
+  flex:
+    1 1 auto;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.teacher-attachment-upload-copy strong {
+
+  color:
+    #111827;
+
+  font-size:
+    13px;
+
+  font-weight:
+    900;
+}
+
+
+.teacher-attachment-upload-copy span {
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    650;
+}
+
+
+.teacher-attachment-upload-action {
+
+  padding:
+    8px 11px;
+
+  border-radius:
+    9px;
+
+  background:
+    #111827;
+
+  color:
+    #ffffff;
+
+  font-size:
+    10px;
+
+  font-weight:
+    900;
+}
+
+
+.teacher-attachment-files {
+
+  display: grid;
+
+  gap: 8px;
+
+  margin-top:
+    14px;
+}
+
+
+.teacher-attachment-file {
+
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr auto;
+
+  align-items:
+    center;
+
+  gap: 11px;
+
+  padding:
+    11px 12px;
+
+  border:
+    1px solid
+    #e5e7eb;
+
+  border-radius:
+    12px;
+
+  background:
+    #ffffff;
+}
+
+
+.teacher-attachment-file-icon {
+
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius:
+    10px;
+
+  background:
+    #fff1f2;
+
+  color:
+    #c40024;
+}
+
+
+.teacher-attachment-file-info {
+
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.teacher-attachment-file-info strong {
+
+  overflow: hidden;
+
+  color:
+    #111827;
+
+  font-size:
+    11px;
+
+  font-weight:
+    850;
+
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
+}
+
+
+.teacher-attachment-file-info span {
+
+  color:
+    #64748b;
+
+  font-size:
+    9px;
+}
+
+
+.teacher-attachment-remove {
+
+  width: 34px;
+  height: 34px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius:
+    9px;
+
+  background:
+    #fff1f2;
+
+  color:
+    #c40024;
+}
+
+
+.teacher-attachment-remove:hover:not(:disabled) {
+
+  background:
+    #c40024;
+
+  color:
+    #ffffff;
+}
+
+
+.teacher-attachment-empty {
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top:
+    13px;
+
+  padding:
+    11px 13px;
+
+  border-radius:
+    11px;
+
+  background:
+    #f8fafc;
+
+  color:
+    #64748b;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+}
+
+
+.teacher-attachment-empty svg {
+
+  width: 17px;
+  height: 17px;
+}
+
+
+.teacher-attachment-security {
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 11px;
+
+  margin-top:
+    17px;
+
+  padding:
+    13px 14px;
+
+  border:
+    1px solid
+    rgba(22,163,74,.18);
+
+  border-radius:
+    13px;
+
+  background:
+    #f0fdf4;
+
+  color:
+    #166534;
+}
+
+
+.teacher-attachment-security > svg,
+.teacher-attachment-security > i {
+
+  width: 20px;
+  height: 20px;
+
+  flex:
+    0 0 20px;
+
+  margin-top:
+    1px;
+}
+
+
+.teacher-attachment-security strong {
+
+  display: block;
+
+  font-size:
+    11px;
+
+  font-weight:
+    950;
+}
+
+
+.teacher-attachment-security span {
+
+  display: block;
+
+  margin-top:
+    3px;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.55;
+}
+
+
+.teacher-attachment-error {
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top:
+    14px;
+
+  padding:
+    11px 13px;
+
+  border-radius:
+    11px;
+
+  background:
+    #fff1f2;
+
+  color:
+    #be123c;
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+}
+
+
+.teacher-attachment-footer {
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  padding:
+    17px 24px;
+
+  border-top:
+    1px solid #e5e7eb;
+
+  background:
+    #f8fafc;
+}
+
+
+.teacher-attachment-cancel,
+.teacher-attachment-confirm {
+
+  min-height:
+    44px;
+
+  padding:
+    0 17px;
+
+  border: 0;
+
+  border-radius:
+    11px;
+
+  font-size:
+    11px;
+
+  font-weight:
+    950;
+}
+
+
+.teacher-attachment-cancel {
+
+  background:
+    #e5e7eb;
+
+  color:
+    #334155;
+}
+
+
+.teacher-attachment-confirm {
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #7c0025 48%,
+      #c40024 100%
+    );
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 10px 24px
+    rgba(196,0,36,.20);
+}
+
+
+.teacher-attachment-confirm svg {
+
+  width: 17px;
+  height: 17px;
+}
+
+
+@media (max-width:650px) {
+
+  .teacher-attachment-backdrop {
+
+    padding:
+      10px;
+  }
+
+
+  .teacher-attachment-modal {
+
+    width:
+      100%;
+
+    max-height:
+      95vh;
+  }
+
+
+  .teacher-attachment-header {
+
+    padding:
+      18px;
+  }
+
+
+  .teacher-attachment-body {
+
+    padding:
+      18px;
+  }
+
+
+  .teacher-attachment-footer {
+
+    flex-direction:
+      column-reverse;
+  }
+
+
+  .teacher-attachment-cancel,
+  .teacher-attachment-confirm {
+
+    width:
+      100%;
+  }
+
+}
+
+
+/* /SECUREEXAM_TEACHER_ATTACHMENT_STYLE_V1 */
+
+
+
+
+
+/* SECUREEXAM_NIXOS_COMPACT_V2_START */
+
+
+/* =========================================================
+   DETAIL : UN SEUL BLOC SEGMENTE
+   ========================================================= */
+
+.generated-nixos-detail-modern {
+
+  display:
+    inline-flex;
+
+  align-items:
+    stretch;
+
+  overflow:
+    hidden;
+
+  min-height:
+    46px;
+
+  border:
+    1px solid #dbe3ef;
+
+  border-radius:
+    14px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 8px 22px
+    rgba(15,23,42,.07);
+}
+
+
+.generated-nixos-detail-btn {
+
+  min-height:
+    46px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+
+  padding:
+    0 13px;
+
+  border:
+    0;
+
+  border-radius:
+    0;
+
+  white-space:
+    nowrap;
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+
+  cursor:
+    pointer;
+
+  transition:
+    background .18s ease,
+    color .18s ease;
+}
+
+
+.generated-nixos-detail-btn.info {
+
+  background:
+    #ffffff;
+
+  color:
+    #172033;
+}
+
+
+.generated-nixos-detail-btn.info:hover {
+
+  background:
+    #f8fafc;
+}
+
+
+.generated-nixos-detail-btn.nixos {
+
+  background:
+    linear-gradient(
+      135deg,
+      #111827 0%,
+      #18233d 100%
+    );
+
+  color:
+    #ffffff;
+}
+
+
+.generated-nixos-detail-btn.nixos:hover {
+
+  background:
+    #020617;
+}
+
+
+.generated-nixos-detail-icon {
+
+  width:
+    27px;
+
+  height:
+    27px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    8px;
+}
+
+
+.generated-nixos-detail-btn.info
+.generated-nixos-detail-icon {
+
+  background:
+    #f1f5f9;
+}
+
+
+.generated-nixos-detail-btn.nixos
+.generated-nixos-detail-icon {
+
+  background:
+    rgba(255,255,255,.11);
+}
+
+
+.generated-nixos-detail-icon svg,
+.generated-nixos-detail-icon i {
+
+  width:
+    15px;
+
+  height:
+    15px;
+}
+
+
+.generated-nixos-detail-separator {
+
+  width:
+    1px;
+
+  align-self:
+    stretch;
+
+  background:
+    #e5e7eb;
+}
+
+
+
+/* =========================================================
+   ACTIONS :
+   DOWNLOAD + POUBELLE
+   ========================================================= */
+
+.generated-nixos-actions-head {
+
+  width:
+    145px;
+
+  min-width:
+    145px;
+
+  text-align:
+    center;
+}
+
+
+.generated-nixos-actions-cell {
+
+  width:
+    145px;
+
+  min-width:
+    145px;
+}
+
+
+.generated-nixos-row-actions {
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+
+  padding:
+    5px;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    14px;
+
+  background:
+    #f8fafc;
+}
+
+
+.generated-nixos-action-download,
+.generated-nixos-action-delete {
+
+  height:
+    40px;
+
+  border:
+    0;
+
+  border-radius:
+    10px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  cursor:
+    pointer;
+
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    background .16s ease;
+}
+
+
+.generated-nixos-action-download {
+
+  min-width:
+    72px;
+
+  gap:
+    7px;
+
+  padding:
+    0 12px;
+
+  background:
+    #16a34a;
+
+  color:
+    #ffffff;
+
+  font-size:
+    11px;
+
+  font-weight:
+    900;
+
+  box-shadow:
+    0 6px 15px
+    rgba(22,163,74,.18);
+}
+
+
+.generated-nixos-action-download:hover {
+
+  transform:
+    translateY(-1px);
+
+  background:
+    #15803d;
+}
+
+
+.generated-nixos-action-delete {
+
+  width:
+    40px;
+
+  min-width:
+    40px;
+
+  padding:
+    0;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f31242 0%,
+      #d6002c 100%
+    );
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 6px 15px
+    rgba(214,0,44,.20);
+}
+
+
+.generated-nixos-action-delete:hover {
+
+  transform:
+    translateY(-1px);
+
+  background:
+    #bd0026;
+}
+
+
+.generated-nixos-action-download svg,
+.generated-nixos-action-download i,
+.generated-nixos-action-delete svg,
+.generated-nixos-action-delete i {
+
+  width:
+    16px;
+
+  height:
+    16px;
+}
+
+
+
+/* =========================================================
+   TABLE : GAGNER UN PEU DE LARGEUR
+   ========================================================= */
+
+.generated-nixos-table th,
+.generated-nixos-table td {
+
+  padding-left:
+    12px;
+
+  padding-right:
+    12px;
+}
+
+
+.generated-nixos-table
+th:nth-child(4),
+.generated-nixos-table
+td:nth-child(4) {
+
+  min-width:
+    165px;
+}
+
+
+.generated-nixos-table
+th:last-child,
+.generated-nixos-table
+td:last-child {
+
+  padding-left:
+    8px;
+
+  padding-right:
+    8px;
+}
+
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width:1250px) {
+
+  .generated-nixos-detail-modern {
+
+    flex-direction:
+      column;
+  }
+
+
+  .generated-nixos-detail-separator {
+
+    width:
+      100%;
+
+    height:
+      1px;
+  }
+
+}
+
+
+/* SECUREEXAM_NIXOS_COMPACT_V2_END */
+
+
+
+
+
+/* SECUREEXAM_DETAIL_COMPACT_FIX_V1 START */
+
+
+/* =========================================================
+   DETAIL - BLOC COMPACT INFOS | NIXOS
+   ========================================================= */
+
+.generated-nixos-detail-modern {
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  width:
+    auto !important;
+
+  min-width:
+    0 !important;
+
+  min-height:
+    40px !important;
+
+  height:
+    40px !important;
+
+  overflow:
+    hidden !important;
+
+  border:
+    1px solid #dbe3ef !important;
+
+  border-radius:
+    12px !important;
+
+  background:
+    #ffffff !important;
+
+  box-shadow:
+    0 4px 12px
+    rgba(15,23,42,.06) !important;
+}
+
+
+/* ---------------------------------------------------------
+   BOUTONS
+   --------------------------------------------------------- */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn {
+
+  width:
+    auto !important;
+
+  min-width:
+    auto !important;
+
+  min-height:
+    40px !important;
+
+  height:
+    40px !important;
+
+  padding:
+    0 12px !important;
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  flex-direction:
+    row !important;
+
+  gap:
+    7px !important;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  margin:
+    0 !important;
+
+  font-size:
+    11px !important;
+
+  font-weight:
+    850 !important;
+
+  line-height:
+    1 !important;
+
+  white-space:
+    nowrap !important;
+
+  box-shadow:
+    none !important;
+
+  transform:
+    none !important;
+}
+
+
+/* INFOS */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.info {
+
+  background:
+    #ffffff !important;
+
+  color:
+    #172033 !important;
+}
+
+
+/* NIXOS */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos {
+
+  background:
+    #111827 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* ---------------------------------------------------------
+   ICONES : SUPPRIMER LES GROS CARRES
+   --------------------------------------------------------- */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-icon {
+
+  width:
+    auto !important;
+
+  height:
+    auto !important;
+
+  min-width:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  display:
+    inline-flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
+
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-icon svg,
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-icon i {
+
+  width:
+    16px !important;
+
+  height:
+    16px !important;
+
+  margin:
+    0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   SEPARATION
+   --------------------------------------------------------- */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-separator {
+
+  width:
+    1px !important;
+
+  height:
+    22px !important;
+
+  align-self:
+    center !important;
+
+  background:
+    #e5e7eb !important;
+}
+
+
+/*
+ * Le bouton NixOS commence directement apres
+ * la separation : pas de gros espace blanc.
+ */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos {
+
+  margin-left:
+    0 !important;
+}
+
+
+/* ---------------------------------------------------------
+   HOVER
+   --------------------------------------------------------- */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.info:hover {
+
+  background:
+    #f8fafc !important;
+}
+
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos:hover {
+
+  background:
+    #020617 !important;
+}
+
+
+/* ---------------------------------------------------------
+   CELLULE DETAIL
+   --------------------------------------------------------- */
+
+.generated-nixos-table
+th:nth-child(4),
+
+.generated-nixos-table
+td:nth-child(4) {
+
+  min-width:
+    150px !important;
+
+  width:
+    150px !important;
+
+  padding-left:
+    10px !important;
+
+  padding-right:
+    10px !important;
+}
+
+
+/* SECUREEXAM_DETAIL_COMPACT_FIX_V1 END */
+
+
+
+
+
+/* SECUREEXAM_NIXOS_BORDEAUX_V1 START */
+
+
+/*
+ * Bouton NixOS dans le bloc Infos | NixOS
+ */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos {
+
+  background:
+    linear-gradient(
+      135deg,
+      #3f0a22 0%,
+      #650b32 45%,
+      #8a103d 100%
+    ) !important;
+
+  color:
+    #ffffff !important;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255,255,255,.05) !important;
+}
+
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos:hover {
+
+  background:
+    linear-gradient(
+      135deg,
+      #310619 0%,
+      #500724 45%,
+      #700b31 100%
+    ) !important;
+}
+
+
+/*
+ * Petite pastille de l'icone.
+ */
+
+.generated-nixos-detail-modern
+.generated-nixos-detail-btn.nixos
+.generated-nixos-detail-icon {
+
+  background:
+    rgba(255,255,255,.11) !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* SECUREEXAM_NIXOS_BORDEAUX_V1 END */
+
+/* SECUREEXAM_BULK_SUBMISSIONS_V1_BEGIN */
+.submission-exam-download-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.submission-download-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.submission-download-all:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+@media (max-width: 700px) {
+  .submission-exam-header {
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .submission-exam-download-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+/* SECUREEXAM_BULK_SUBMISSIONS_V1_END */
+
+
+button.download-success.submission-download-all {
+  background: #800020 !important;
+  border-color: #800020 !important;
+  color: #fff !important;
+}
+
+button.download-success.submission-download-all:hover:not(:disabled) {
+  background: #650019 !important;
+  border-color: #650019 !important;
+}
+
+button.download-success.submission-download-all:focus-visible {
+  outline: 3px solid #d99aaa;
+  outline-offset: 3px;
+}

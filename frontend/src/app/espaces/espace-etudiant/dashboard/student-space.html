@@ -542,6 +542,159 @@
 
 
         <!-- ==================================================
+             SECUREEXAM_STUDENT_ATTACHMENTS_V1
+             PIECES COMPLEMENTAIRES
+             ================================================== -->
+
+        <section
+          class="
+            student-panel
+            student-attachments-panel
+          "
+          *ngIf="
+            studentAttachmentsVisible(exam)
+          "
+        >
+
+          <div class="student-panel-head">
+
+            <div>
+
+              <span class="student-panel-kicker">
+                DOCUMENTS DE L&rsquo;&Eacute;PREUVE
+              </span>
+
+              <h2>
+                Pi&egrave;ces compl&eacute;mentaires
+              </h2>
+
+            </div>
+
+
+            <span class="student-attachments-unlocked">
+
+              <i data-lucide="unlock-keyhole"></i>
+
+              D&Eacute;BLOQU&Eacute;ES
+
+            </span>
+
+          </div>
+
+
+
+          <div class="student-attachments-intro">
+
+            <i data-lucide="shield-check"></i>
+
+            <p>
+              Votre environnement SecureExam est actif.
+              Les documents fournis par l&rsquo;enseignant
+              sont maintenant accessibles.
+            </p>
+
+          </div>
+
+
+
+          <div class="student-attachments-list">
+
+            <article
+              class="student-attachment-card"
+              *ngFor="
+                let attachment
+                of exam.attachments
+              "
+            >
+
+              <div class="student-attachment-icon">
+
+                <i data-lucide="file-text"></i>
+
+              </div>
+
+
+              <div class="student-attachment-info">
+
+                <strong>
+                  {{ attachment.filename }}
+                </strong>
+
+                <span>
+                  PDF
+                  &middot;
+                  {{
+                    formatStudentAttachmentSize(
+                      attachment.size_bytes
+                    )
+                  }}
+                </span>
+
+              </div>
+
+
+              <div class="student-attachment-actions">
+
+                <button
+                  type="button"
+                  class="student-attachment-open"
+                  (click)="
+                    openExamAttachment(
+                      exam,
+                      attachment
+                    )
+                  "
+                >
+
+                  <i data-lucide="external-link"></i>
+
+                  Ouvrir
+
+                </button>
+
+
+                <button
+                  type="button"
+                  class="student-attachment-download"
+                  (click)="
+                    downloadExamAttachment(
+                      exam,
+                      attachment
+                    )
+                  "
+                >
+
+                  <i data-lucide="download"></i>
+
+                  T&eacute;l&eacute;charger
+
+                </button>
+
+              </div>
+
+            </article>
+
+          </div>
+
+
+
+          <div
+            class="student-attachment-error"
+            *ngIf="attachmentError"
+          >
+
+            <i data-lucide="circle-alert"></i>
+
+            {{ attachmentError }}
+
+          </div>
+
+        </section>
+
+        <!-- /SECUREEXAM_STUDENT_ATTACHMENTS_V1 -->
+
+
+<!-- ==================================================
              LANCEMENT / TIMER
              ================================================== -->
 

@@ -32,6 +32,24 @@ interface StudentExamConfig {
 }
 
 
+interface StudentExamAttachment {
+
+  id: number;
+
+  filename: string;
+
+  content_type: string;
+
+  size_bytes: number;
+
+  size_kb: number;
+
+  created_at: string;
+
+}
+
+
+
 interface StudentExam {
   assignment_id: number;
   exam_id: string;
@@ -44,6 +62,8 @@ interface StudentExam {
   started_at: string | null;
   config_ready: boolean;
   config: StudentExamConfig | null;
+
+  attachments: StudentExamAttachment[];
 }
 
 
@@ -71,6 +91,24 @@ interface StartExamResponse {
   started_at: string | null;
   configuration_applied: boolean;
 }
+
+
+interface FinishExamResponse {
+
+  success: boolean;
+
+  assignment_id: number;
+
+  exam_id: string;
+
+  status: string;
+
+  agent_command_id?: number | null;
+
+  machine_id?: string;
+
+}
+
 
 
 type StudentSessionState =
@@ -129,8 +167,14 @@ implements OnInit, AfterViewInit, OnDestroy {
   loading = false;
   launchLoading = false;
 
+  finishLoading = false;
+
   error = '';
   launchError = '';
+
+  finishError = '';
+
+  attachmentError = '';
 
   elapsedSeconds = 0;
 
@@ -150,6 +194,20 @@ implements OnInit, AfterViewInit, OnDestroy {
   private launchStatusHandle:
     ReturnType<typeof setInterval>
     | null = null;
+
+
+  private finishStatusHandle:
+
+    ReturnType<typeof setInterval>
+
+    | null = null;
+
+
+
+  private finishAssignmentId:
+
+    number | null = null;
+
 
 
   private readonly apiUrl =
@@ -256,6 +314,8 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     this.stopTimer();
     this.stopExamStatusPolling();
+
+    this.stopFinishStatusPolling();
   }
 
 
@@ -352,6 +412,22 @@ implements OnInit, AfterViewInit, OnDestroy {
 
 
 
+  get examFinalizing():
+
+    boolean {
+
+    return (
+      String(
+        this.assignedExam?.status
+        || ''
+      ).toUpperCase()
+      === 'FINALIZING'
+    );
+
+  }
+
+
+
   get examPreparing():
     boolean {
 
@@ -411,6 +487,36 @@ implements OnInit, AfterViewInit, OnDestroy {
           );
 
           this.syncTimer();
+
+          // SECUREEXAM_END_EXAM_DASHBOARD
+
+          const finalizingExam =
+            data.exams.find(
+              item =>
+                String(
+                  item.status
+                  || ''
+                ).toUpperCase()
+                === 'FINALIZING'
+            )
+            || null;
+
+
+          if (finalizingExam) {
+
+            this.finishAssignmentId =
+              finalizingExam.assignment_id;
+
+            this.finishLoading =
+              true;
+
+            this.startFinishStatusPolling();
+
+          } else {
+
+            this.stopFinishStatusPolling();
+
+          }
 
           if (this.examPreparing) {
 
@@ -820,9 +926,109 @@ implements OnInit, AfterViewInit, OnDestroy {
     }
 
 
+    const backendStatus =
+      String(
+        exam.status
+        || ''
+      ).toUpperCase();
+
+
     const stored =
       this.readSessionTimer();
 
+
+    const storedSeconds =
+      Math.max(
+        0,
+        Number(
+          stored?.elapsedSeconds
+          || 0
+        )
+      );
+
+
+    // =====================================================
+    // BACKEND = SOURCE DE VERITE
+    // =====================================================
+
+    if (
+      backendStatus === 'TERMINE'
+      || backendStatus === 'TERMINEE'
+      || backendStatus === 'CLOTURE'
+      || backendStatus === 'CLOTUREE'
+    ) {
+
+      this.sessionState =
+        'finished';
+
+      this.elapsedSeconds =
+        storedSeconds;
+
+      this.timerBaseSeconds =
+        this.elapsedSeconds;
+
+      this.timerRunningSinceMs =
+        null;
+
+      this.finishLoading =
+        false;
+
+      return;
+    }
+
+
+    if (
+      backendStatus === 'FINALIZING'
+    ) {
+
+      this.sessionState =
+        'paused';
+
+      this.elapsedSeconds =
+        storedSeconds;
+
+      this.timerBaseSeconds =
+        this.elapsedSeconds;
+
+      this.timerRunningSinceMs =
+        null;
+
+      this.finishLoading =
+        true;
+
+      this.finishAssignmentId =
+        exam.assignment_id;
+
+      return;
+    }
+
+
+    if (
+      backendStatus === 'END_ERROR'
+    ) {
+
+      this.sessionState =
+        'paused';
+
+      this.elapsedSeconds =
+        storedSeconds;
+
+      this.timerBaseSeconds =
+        this.elapsedSeconds;
+
+      this.timerRunningSinceMs =
+        null;
+
+      this.finishLoading =
+        false;
+
+      return;
+    }
+
+
+    // =====================================================
+    // ETAT LOCAL NORMAL
+    // =====================================================
 
     if (stored) {
 
@@ -835,13 +1041,7 @@ implements OnInit, AfterViewInit, OnDestroy {
           'finished';
 
         this.elapsedSeconds =
-          Math.max(
-            0,
-            Number(
-              stored.elapsedSeconds
-              || 0
-            )
-          );
+          storedSeconds;
 
         this.timerBaseSeconds =
           this.elapsedSeconds;
@@ -862,13 +1062,7 @@ implements OnInit, AfterViewInit, OnDestroy {
           'paused';
 
         this.elapsedSeconds =
-          Math.max(
-            0,
-            Number(
-              stored.elapsedSeconds
-              || 0
-            )
-          );
+          storedSeconds;
 
         this.timerBaseSeconds =
           this.elapsedSeconds;
@@ -886,13 +1080,7 @@ implements OnInit, AfterViewInit, OnDestroy {
       ) {
 
         this.startRunningTimer(
-          Math.max(
-            0,
-            Number(
-              stored.elapsedSeconds
-              || 0
-            )
-          ),
+          storedSeconds,
 
           Number(
             stored.runningSinceMs
@@ -902,14 +1090,12 @@ implements OnInit, AfterViewInit, OnDestroy {
 
         return;
       }
+
     }
 
 
     if (
-      String(
-        exam.status
-        || ''
-      ).toUpperCase()
+      backendStatus
       === 'EN_COURS'
     ) {
 
@@ -932,6 +1118,7 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     this.timerRunningSinceMs =
       null;
+
   }
 
 
@@ -1230,10 +1417,35 @@ implements OnInit, AfterViewInit, OnDestroy {
 
   finishExam(): void {
 
+    const exam =
+      this.assignedExam;
+
+
     if (
-      !this.examStarted
+      !exam
       || this.examFinished
+      || this.finishLoading
     ) {
+
+      return;
+    }
+
+
+    const status =
+      String(
+        exam.status
+        || ''
+      ).toUpperCase();
+
+
+    if (
+      status !== 'EN_COURS'
+      && status !== 'END_ERROR'
+    ) {
+
+      this.launchError =
+        'Cet examen ne peut pas ?tre termin? maintenant.';
+
       return;
     }
 
@@ -1242,51 +1454,395 @@ implements OnInit, AfterViewInit, OnDestroy {
       window.confirm(
         (
           'Voulez-vous vraiment terminer '
-          + 'l’examen ?\n\n'
-          + 'Le chronomètre sera '
-          + 'définitivement arrêté.'
+          + 'l?examen ?\\n\\n'
+          + 'Votre travail sera collect? '
+          + 'et envoy? ? l?enseignant. '
+          + 'La machine sera ensuite '
+          + 'r?initialis?e.'
         )
       );
 
 
     if (!confirmed) {
+
       return;
     }
 
 
+    this.finishLoading =
+      true;
+
+    this.finishError =
+      '';
+
+    this.launchError =
+      '';
+
+
+    this.http
+      .post<FinishExamResponse>(
+        (
+          `${this.apiUrl}`
+          + `/student/exams/`
+          + `${exam.assignment_id}`
+          + `/finish`
+        ),
+        {},
+        {
+          headers:
+            this.getHeaders()
+        }
+      )
+      .pipe(
+        timeout(8000)
+      )
+      .subscribe({
+
+        next: response => {
+
+          const nextStatus =
+            String(
+              response.status
+              || ''
+            ).toUpperCase();
+
+
+          exam.status =
+            nextStatus;
+
+
+          if (
+            nextStatus
+            === 'TERMINE'
+          ) {
+
+            this.completeFinishedSession();
+
+            return;
+          }
+
+
+          // ---------------------------------------------
+          // Backend a accept? END_EXAM.
+          // Maintenant seulement on fige le chrono.
+          // ---------------------------------------------
+
+          if (
+            this.examRunning
+            && this.timerRunningSinceMs
+            !== null
+          ) {
+
+            const additional =
+              Math.max(
+                0,
+                Math.floor(
+                  (
+                    Date.now()
+                    - this.timerRunningSinceMs
+                  )
+                  / 1000
+                )
+              );
+
+
+            this.elapsedSeconds =
+              this.timerBaseSeconds
+              + additional;
+
+          }
+
+
+          this.stopTimer();
+
+
+          this.sessionState =
+            'paused';
+
+
+          this.timerBaseSeconds =
+            this.elapsedSeconds;
+
+
+          this.timerRunningSinceMs =
+            null;
+
+
+          this.persistSessionTimer();
+
+
+          this.finishAssignmentId =
+            exam.assignment_id;
+
+
+          this.startFinishStatusPolling();
+
+          this.refreshStudentIcons();
+
+          this.cdr.detectChanges();
+
+        },
+
+
+        error: error => {
+
+          this.finishLoading =
+            false;
+
+
+          this.finishError =
+            (
+              error?.error?.detail
+              || (
+                'Impossible de lancer '
+                + 'la collecte du rendu.'
+              )
+            );
+
+
+          this.launchError =
+            this.finishError;
+
+
+          this.cdr.detectChanges();
+
+        }
+
+      });
+
+  }
+
+
+
+  private startFinishStatusPolling():
+
+    void {
+
     if (
-      this.examRunning
-      && this.timerRunningSinceMs
+      this.finishStatusHandle
       !== null
     ) {
 
-      const additional =
-        Math.max(
-          0,
-          Math.floor(
-            (
-              Date.now()
-              - this.timerRunningSinceMs
-            )
-            / 1000
-          )
-        );
-
-
-      this.elapsedSeconds =
-        this.timerBaseSeconds
-        + additional;
+      return;
     }
 
 
+    this.finishLoading =
+      true;
+
+
+    const poll = () => {
+
+      this.http
+        .get<StudentDashboard>(
+          `${this.apiUrl}/student/dashboard`,
+          {
+            headers:
+              this.getHeaders()
+          }
+        )
+        .pipe(
+          timeout(8000)
+        )
+        .subscribe({
+
+          next: data => {
+
+            this.dashboard =
+              data;
+
+
+            let targetExam:
+              StudentExam | undefined;
+
+
+            if (
+              this.finishAssignmentId
+              !== null
+            ) {
+
+              targetExam =
+                data.exams.find(
+                  item =>
+                    item.assignment_id
+                    === this.finishAssignmentId
+                );
+
+            }
+
+
+            if (!targetExam) {
+
+              targetExam =
+                data.exams.find(
+                  item =>
+                    String(
+                      item.status
+                      || ''
+                    ).toUpperCase()
+                    === 'FINALIZING'
+                );
+
+            }
+
+
+            if (!targetExam) {
+
+              this.stopFinishStatusPolling();
+
+              this.finishLoading =
+                false;
+
+              this.loadDashboard();
+
+              return;
+            }
+
+
+            this.finishAssignmentId =
+              targetExam.assignment_id;
+
+
+            const status =
+              String(
+                targetExam.status
+                || ''
+              ).toUpperCase();
+
+
+            if (
+              status === 'TERMINE'
+              || status === 'TERMINEE'
+              || status === 'CLOTURE'
+              || status === 'CLOTUREE'
+            ) {
+
+              this.completeFinishedSession();
+
+              return;
+            }
+
+
+            if (
+              status === 'END_ERROR'
+            ) {
+
+              this.stopFinishStatusPolling();
+
+
+              this.finishLoading =
+                false;
+
+
+              this.finishError =
+                (
+                  'La collecte du rendu a ?chou?. '
+                  + 'Votre travail a ?t? conserv?. '
+                  + 'Vous pouvez r?essayer.'
+                );
+
+
+              this.launchError =
+                this.finishError;
+
+
+              this.sessionState =
+                'paused';
+
+
+              this.persistSessionTimer();
+
+              this.refreshStudentIcons();
+
+              this.cdr.detectChanges();
+
+              return;
+            }
+
+
+            this.cdr.detectChanges();
+
+          },
+
+
+          error: () => {
+
+            /*
+             * Erreur r?seau temporaire :
+             * nouveau poll dans 1 seconde.
+             */
+
+          }
+
+        });
+
+    };
+
+
+    poll();
+
+
+    this.finishStatusHandle =
+      setInterval(
+        poll,
+        1000
+      );
+
+  }
+
+
+
+  private stopFinishStatusPolling():
+
+    void {
+
+    if (
+      this.finishStatusHandle
+      !== null
+    ) {
+
+      clearInterval(
+        this.finishStatusHandle
+      );
+
+
+      this.finishStatusHandle =
+        null;
+
+    }
+
+  }
+
+
+
+  private completeFinishedSession():
+
+    void {
+
     this.stopTimer();
+
+    this.stopFinishStatusPolling();
+
+
+    this.finishLoading =
+      false;
+
+
+    this.finishError =
+      '';
+
+
+    this.launchError =
+      '';
 
 
     this.sessionState =
       'finished';
 
+
     this.timerBaseSeconds =
       this.elapsedSeconds;
+
 
     this.timerRunningSinceMs =
       null;
@@ -1294,9 +1850,15 @@ implements OnInit, AfterViewInit, OnDestroy {
 
     this.persistSessionTimer();
 
+
+    this.finishAssignmentId =
+      null;
+
+
     this.refreshStudentIcons();
 
     this.cdr.detectChanges();
+
   }
 
 
@@ -1355,6 +1917,222 @@ implements OnInit, AfterViewInit, OnDestroy {
       )
       .join(':');
   }
+
+
+  // SECUREEXAM_STUDENT_ATTACHMENTS_V1
+
+  studentAttachmentsVisible(
+    exam: StudentExam
+  ): boolean {
+
+    return (
+      String(
+        exam.status
+        || ''
+      ).toUpperCase()
+      === 'EN_COURS'
+
+      && Array.isArray(
+        exam.attachments
+      )
+
+      && exam.attachments.length > 0
+    );
+  }
+
+
+
+  formatStudentAttachmentSize(
+    bytes: number
+  ): string {
+
+    const size =
+      Number(bytes || 0);
+
+
+    if (size < 1024) {
+
+      return `${size} o`;
+    }
+
+
+    if (
+      size
+      < 1024 * 1024
+    ) {
+
+      return (
+        `${(
+          size / 1024
+        ).toFixed(1)} Ko`
+      );
+    }
+
+
+    return (
+      `${(
+        size
+        / 1024
+        / 1024
+      ).toFixed(1)} Mo`
+    );
+  }
+
+
+
+  openExamAttachment(
+    exam: StudentExam,
+    attachment: StudentExamAttachment
+  ): void {
+
+    this.attachmentError =
+      '';
+
+
+    this.http.get(
+      (
+        `${this.apiUrl}`
+        + `/student/exams/`
+        + `${exam.assignment_id}`
+        + `/attachments/`
+        + `${attachment.id}`
+        + `/download`
+      ),
+      {
+        headers:
+          this.getHeaders(),
+
+        responseType:
+          'blob'
+      }
+    ).subscribe({
+
+      next: blob => {
+
+        const url =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        window.open(
+          url,
+          '_blank'
+        );
+
+
+        setTimeout(
+          () => {
+            URL.revokeObjectURL(
+              url
+            );
+          },
+          60000
+        );
+      },
+
+
+      error: error => {
+
+        this.attachmentError =
+          (
+            error?.error?.detail
+            || (
+              'Impossible d\u2019ouvrir '
+              + 'ce document.'
+            )
+          );
+
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
+
+
+
+  downloadExamAttachment(
+    exam: StudentExam,
+    attachment: StudentExamAttachment
+  ): void {
+
+    this.attachmentError =
+      '';
+
+
+    this.http.get(
+      (
+        `${this.apiUrl}`
+        + `/student/exams/`
+        + `${exam.assignment_id}`
+        + `/attachments/`
+        + `${attachment.id}`
+        + `/download`
+      ),
+      {
+        headers:
+          this.getHeaders(),
+
+        responseType:
+          'blob'
+      }
+    ).subscribe({
+
+      next: blob => {
+
+        const url =
+          URL.createObjectURL(
+            blob
+          );
+
+
+        const link =
+          document.createElement(
+            'a'
+          );
+
+
+        link.href =
+          url;
+
+        link.download =
+          attachment.filename;
+
+
+        document.body.appendChild(
+          link
+        );
+
+
+        link.click();
+        link.remove();
+
+
+        URL.revokeObjectURL(
+          url
+        );
+      },
+
+
+      error: error => {
+
+        this.attachmentError =
+          (
+            error?.error?.detail
+            || (
+              'Impossible de t\u00e9l\u00e9charger '
+              + 'ce document.'
+            )
+          );
+
+
+        this.cdr.detectChanges();
+      }
+
+    });
+  }
+
 
 
   packagesText(

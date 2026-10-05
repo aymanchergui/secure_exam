@@ -18,7 +18,7 @@ from typing import List, Optional
 import jwt
 from dotenv import load_dotenv
 from database.database import init_database, get_connection
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Header
 from fastapi import BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
@@ -1599,6 +1599,42 @@ def _secureexam_finalize_nix_v4(
     return nix_text
 
 
+def _secureexam_platform_domain() -> str:
+    # SECUREEXAM PLATFORM ACCESS v1 : adresse configurable dans le .env du backend.
+    from urllib.parse import urlsplit
+
+    load_dotenv(dotenv_path=Path(__file__).resolve().with_name(".env"))
+    raw_url = os.getenv("SECUREEXAM_PLATFORM_URL", "").strip()
+    error = (
+        "SECUREEXAM_PLATFORM_URL doit contenir une URL HTTPS de plateforme "
+        "avec un domaine valide, sans identifiants, chemin, ni port autre que 443."
+    )
+    try:
+        if not raw_url or any(ord(char) <= 32 for char in raw_url) or "\\" in raw_url:
+            raise ValueError(error)
+        parsed = urlsplit(raw_url)
+        domain = (parsed.hostname or "").lower().rstrip(".")
+        if (
+            parsed.scheme != "https"
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.port not in (None, 443)
+            or parsed.path not in ("", "/")
+            or parsed.query
+            or parsed.fragment
+            or not domain
+            or len(domain) > 253
+            or not all(
+                re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+                for label in domain.split(".")
+            )
+        ):
+            raise ValueError(error)
+    except ValueError as exc:
+        raise HTTPException(status_code=500, detail=error) from exc
+    return domain
+
+
 def generate_nixos_config_preview(config_data: dict) -> str:
     exam_id = str(
         config_data.get("exam_id")
@@ -1724,8 +1760,12 @@ def generate_nixos_config_preview(config_data: dict) -> str:
     ]
     if educ_access:
         allowed_domains.append(
-            "educ.isen.fr"
+            "educ.isen-mediterranee.fr"
         )
+    # La plateforme reste accessible même lorsque Internet et EDUC sont désactivés.
+    platform_domain = _secureexam_platform_domain()
+    if platform_domain not in allowed_domains:
+        allowed_domains.append(platform_domain)
     lines = []
     lines.append(
         "# SecureExam STRICT POLICY v4"
@@ -4950,8 +4990,14 @@ async def upload_submission(
     exam_id: str = Form(...),
     student_id: str = Form(...),
     machine_id: str = Form(...),
-    archive: UploadFile = File(...)
+    archive: UploadFile = File(...),
+    x_secureexam_agent_token:
+        str | None
+        = Header(default=None)
 ):
+    _secureexam_agent_require_token(
+        x_secureexam_agent_token
+    )
     exam_id = (
         exam_id
         or ""
@@ -5118,6 +5164,111 @@ def list_submissions(
         "submissions": files
     }
 
+
+# SECUREEXAM_BULK_SUBMISSIONS_V1_BEGIN
+def _secureexam_bulk_name(value, fallback):
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", str(value or ""))
+    safe = safe.strip("._-")[:80] or fallback
+    if safe.split(".", 1)[0].upper() in {
+        "CON", "PRN", "AUX", "NUL", *(f"COM{i}" for i in range(1, 10)),
+        *(f"LPT{i}" for i in range(1, 10)),
+    }:
+        safe = "_" + safe
+    return safe
+
+
+@app.get("/submissions-bulk-download")
+def secureexam_download_all_submissions(
+    exam_id: str,
+    current_teacher: dict = Depends(get_current_teacher),
+):
+    from itertools import chain
+    from tempfile import NamedTemporaryFile
+    from zipfile import ZipFile, ZIP_STORED
+    from starlette.background import BackgroundTask
+    from starlette.responses import FileResponse
+
+    exam_id = exam_id.strip()
+    if not exam_id or len(exam_id) > 255:
+        raise HTTPException(status_code=400, detail="Identifiant d'examen invalide.")
+    connection = get_connection()
+    temporary_path = None
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            SELECT s.rowid AS submission_id, s.student_id, s.machine_id,
+                   s.filename, s.created_at, s.file_data
+            FROM submissions s
+            WHERE s.exam_id = ?
+              AND EXISTS (
+                  SELECT 1 FROM exam_configs c
+                  WHERE c.exam_id = s.exam_id AND c.teacher_id = ?
+              )
+            ORDER BY s.student_id, s.created_at, s.rowid
+        """, (exam_id, current_teacher["id"]))
+        first = cursor.fetchone()
+        if first is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Aucun rendu disponible pour cet examen.",
+            )
+        with NamedTemporaryFile(prefix="secureexam-rendus-", suffix=".zip", delete=False) as temporary:
+            temporary_path = Path(temporary.name)
+        exam_folder = _secureexam_bulk_name(exam_id, "examen")
+        manifest = {"exam_id": exam_id, "count": 0, "submissions": []}
+        student_folders = {}
+        used_student_folders = set()
+        # Une archive étudiante à la fois ; les ZIP existants restent intacts.
+        with ZipFile(temporary_path, "w", compression=ZIP_STORED, allowZip64=True) as archive:
+            for row in chain((first,), cursor):
+                if row["file_data"] is None or len(row["file_data"]) == 0:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="Un rendu ne contient pas son archive. Le téléchargement global a été annulé.",
+                    )
+                student_key = str(row["student_id"] or "")
+                if student_key not in student_folders:
+                    candidate = _secureexam_bulk_name(student_key, "etudiant")
+                    if candidate.casefold() in used_student_folders:
+                        candidate += f"-groupe-{row['submission_id']}"
+                    student_folders[student_key] = candidate
+                    used_student_folders.add(candidate.casefold())
+                student_folder = student_folders[student_key]
+                original_leaf = str(row["filename"] or "rendu.zip").replace("\\", "/").rsplit("/", 1)[-1]
+                leaf = _secureexam_bulk_name(original_leaf, "rendu.zip")
+                if not leaf.lower().endswith(".zip"):
+                    leaf += ".zip"
+                entry = f"{exam_folder}/{student_folder}/rendu-{row['submission_id']}-{leaf}"
+                archive.writestr(entry, row["file_data"])
+                manifest["submissions"].append({
+                    "student_id": row["student_id"],
+                    "machine_id": row["machine_id"],
+                    "filename": row["filename"],
+                    "created_at": row["created_at"],
+                    "archive_entry": entry,
+                })
+                manifest["count"] += 1
+            archive.writestr(
+                f"{exam_folder}/manifest.json",
+                json.dumps(manifest, ensure_ascii=False, indent=2).encode("utf-8"),
+            )
+        return FileResponse(
+            str(temporary_path),
+            filename=f"{exam_folder}_tous_les_rendus.zip",
+            media_type="application/zip",
+            headers={
+                "Cache-Control": "no-store",
+                "X-SecureExam-Submission-Count": str(manifest["count"]),
+            },
+            background=BackgroundTask(temporary_path.unlink, missing_ok=True),
+        )
+    except BaseException:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+        raise
+    finally:
+        connection.close()
+# SECUREEXAM_BULK_SUBMISSIONS_V1_END
 
 @app.get(
     "/submissions/{filename}/download"
@@ -7194,6 +7345,653 @@ def _student_ensure_assignment_runtime_columns():
     connection.close()
 
 
+
+# =========================================================
+# SECUREEXAM_EXAM_ATTACHMENTS_V1
+#
+# Pieces complementaires associees a une configuration.
+#
+# - stockage SQLite BLOB
+# - PDF uniquement
+# - 5 fichiers maximum
+# - 10 Mo maximum par fichier
+# - invisibles avant EN_COURS
+# =========================================================
+
+
+SECUREEXAM_ATTACHMENT_MAX_FILES = 5
+
+SECUREEXAM_ATTACHMENT_MAX_BYTES = (
+    10
+    * 1024
+    * 1024
+)
+
+
+def _secureexam_exam_attachments_init():
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS
+        exam_attachments (
+
+            id INTEGER PRIMARY KEY
+                AUTOINCREMENT,
+
+            exam_config_id INTEGER
+                NOT NULL,
+
+            original_filename TEXT
+                NOT NULL,
+
+            content_type TEXT
+                NOT NULL,
+
+            size_bytes INTEGER
+                NOT NULL,
+
+            file_data BLOB
+                NOT NULL,
+
+            created_at TEXT
+                NOT NULL,
+
+            updated_at TEXT
+                NOT NULL,
+
+            FOREIGN KEY(exam_config_id)
+                REFERENCES exam_configs(id)
+                ON DELETE CASCADE
+        )
+    """)
+
+
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS
+        idx_exam_attachments_config
+
+        ON exam_attachments (
+            exam_config_id,
+            id
+        )
+    """)
+
+
+    connection.commit()
+    connection.close()
+
+
+
+def _secureexam_student_visible_attachments(
+    cursor,
+    assignment_status,
+    config_id
+):
+
+    status = str(
+        assignment_status
+        or ""
+    ).strip().upper()
+
+
+    # IMPORTANT :
+    # rien n'est meme revele avant
+    # l'application effective de NixOS.
+    if (
+        status != "EN_COURS"
+        or config_id is None
+    ):
+        return []
+
+
+    cursor.execute("""
+        SELECT
+            id,
+            original_filename,
+            content_type,
+            size_bytes,
+            created_at
+
+        FROM exam_attachments
+
+        WHERE exam_config_id = ?
+
+        ORDER BY
+            id ASC
+    """, (
+        int(config_id),
+    ))
+
+
+    rows = cursor.fetchall()
+
+
+    return [
+        {
+            "id":
+                int(row["id"]),
+
+            "filename":
+                row["original_filename"],
+
+            "content_type":
+                row["content_type"],
+
+            "size_bytes":
+                int(
+                    row["size_bytes"]
+                    or 0
+                ),
+
+            "size_kb":
+                round(
+                    int(
+                        row["size_bytes"]
+                        or 0
+                    )
+                    / 1024,
+                    1
+                ),
+
+            "created_at":
+                row["created_at"],
+        }
+
+        for row in rows
+    ]
+
+
+
+@app.post(
+    "/teacher/exam-delivery/"
+    "{config_id}/attachments"
+)
+async def teacher_replace_exam_attachments(
+    config_id: int,
+
+    files:
+        Optional[
+            List[UploadFile]
+        ]
+        = File(
+            default=None
+        ),
+
+    current_teacher:
+        dict = Depends(
+            get_current_teacher
+        )
+):
+
+    _secureexam_exam_attachments_init()
+    _roster_init_tables()
+
+
+    teacher_id = int(
+        current_teacher["id"]
+    )
+
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+
+    cursor.execute("""
+        SELECT
+            ec.id,
+            ec.exam_id,
+            er.status AS roster_status
+
+        FROM exam_configs ec
+
+        LEFT JOIN exam_rosters er
+            ON er.exam_config_id = ec.id
+
+        WHERE
+            ec.id = ?
+            AND ec.teacher_id = ?
+
+        LIMIT 1
+    """, (
+        config_id,
+        teacher_id,
+    ))
+
+
+    exam = cursor.fetchone()
+
+
+    if exam is None:
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Configuration introuvable "
+                "ou non autorisee."
+            )
+        )
+
+
+    roster_status = str(
+        exam["roster_status"]
+        or ""
+    ).upper()
+
+
+    if roster_status == "SENT":
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Cet examen a deja "
+                "ete envoye."
+            )
+        )
+
+
+    uploads = list(
+        files
+        or []
+    )
+
+
+    if (
+        len(uploads)
+        >
+        SECUREEXAM_ATTACHMENT_MAX_FILES
+    ):
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Maximum 5 fichiers PDF."
+            )
+        )
+
+
+    prepared = []
+
+
+    for upload in uploads:
+
+        original_name = Path(
+            upload.filename
+            or "document.pdf"
+        ).name
+
+
+        if (
+            Path(original_name)
+            .suffix
+            .lower()
+            != ".pdf"
+        ):
+
+            connection.close()
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    "Seuls les fichiers PDF "
+                    "sont autorises."
+                )
+            )
+
+
+        data = await upload.read()
+
+
+        if not data:
+
+            connection.close()
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Le fichier "
+                    f"{original_name} "
+                    "est vide."
+                )
+            )
+
+
+        if (
+            len(data)
+            >
+            SECUREEXAM_ATTACHMENT_MAX_BYTES
+        ):
+
+            connection.close()
+
+            raise HTTPException(
+                status_code=413,
+                detail=(
+                    f"Le fichier "
+                    f"{original_name} "
+                    "depasse 10 Mo."
+                )
+            )
+
+
+        # Verification signature PDF.
+        if not data.startswith(
+            b"%PDF-"
+        ):
+
+            connection.close()
+
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"{original_name} "
+                    "n'est pas un PDF valide."
+                )
+            )
+
+
+        prepared.append({
+            "filename":
+                original_name,
+
+            "content_type":
+                "application/pdf",
+
+            "data":
+                data,
+
+            "size":
+                len(data),
+        })
+
+
+    current_time = now_iso()
+
+
+    try:
+
+        connection.execute(
+            "BEGIN"
+        )
+
+
+        # Le contenu du popup remplace
+        # la selection precedente.
+        cursor.execute("""
+            DELETE FROM exam_attachments
+
+            WHERE exam_config_id = ?
+        """, (
+            config_id,
+        ))
+
+
+        for item in prepared:
+
+            cursor.execute("""
+                INSERT INTO exam_attachments (
+                    exam_config_id,
+                    original_filename,
+                    content_type,
+                    size_bytes,
+                    file_data,
+                    created_at,
+                    updated_at
+                )
+
+                VALUES (
+                    ?, ?, ?, ?, ?, ?, ?
+                )
+            """, (
+                config_id,
+                item["filename"],
+                item["content_type"],
+                item["size"],
+                item["data"],
+                current_time,
+                current_time,
+            ))
+
+
+        connection.commit()
+
+
+    except Exception:
+
+        connection.rollback()
+        connection.close()
+        raise
+
+
+    connection.close()
+
+
+    return {
+        "success":
+            True,
+
+        "exam_id":
+            exam["exam_id"],
+
+        "attachments_count":
+            len(prepared),
+
+        "attachments": [
+            {
+                "filename":
+                    item["filename"],
+
+                "size_bytes":
+                    item["size"],
+            }
+
+            for item in prepared
+        ],
+    }
+
+
+
+@app.get(
+    "/student/exams/"
+    "{assignment_id}/attachments/"
+    "{attachment_id}/download"
+)
+def student_download_exam_attachment(
+    assignment_id: int,
+    attachment_id: int,
+
+    current_student:
+        dict
+        = _StudentDepends(
+            _get_current_student
+        )
+):
+
+    _student_init_tables()
+    _secureexam_exam_attachments_init()
+
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+
+    cursor.execute("""
+        SELECT
+            id,
+            exam_id,
+            status
+
+        FROM student_exam_assignments
+
+        WHERE
+            id = ?
+            AND student_id = ?
+
+        LIMIT 1
+    """, (
+        assignment_id,
+        current_student["id"],
+    ))
+
+
+    assignment = cursor.fetchone()
+
+
+    if assignment is None:
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Affectation etudiante "
+                "introuvable."
+            )
+        )
+
+
+    status = str(
+        assignment["status"]
+        or ""
+    ).upper()
+
+
+    # SECURITE BACKEND :
+    # meme avec l'URL exacte,
+    # aucun document avant EN_COURS.
+    if status != "EN_COURS":
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Les pieces complementaires "
+                "ne sont accessibles qu'apres "
+                "le demarrage effectif "
+                "de l'examen."
+            )
+        )
+
+
+    cursor.execute("""
+        SELECT id
+
+        FROM exam_configs
+
+        WHERE exam_id = ?
+
+        ORDER BY
+            updated_at DESC,
+            id DESC
+
+        LIMIT 1
+    """, (
+        assignment["exam_id"],
+    ))
+
+
+    config = cursor.fetchone()
+
+
+    if config is None:
+
+        connection.close()
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Configuration d'examen "
+                "introuvable."
+            )
+        )
+
+
+    cursor.execute("""
+        SELECT
+            id,
+            original_filename,
+            content_type,
+            file_data
+
+        FROM exam_attachments
+
+        WHERE
+            id = ?
+            AND exam_config_id = ?
+
+        LIMIT 1
+    """, (
+        attachment_id,
+        config["id"],
+    ))
+
+
+    attachment = cursor.fetchone()
+
+    connection.close()
+
+
+    if attachment is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Piece complementaire "
+                "introuvable."
+            )
+        )
+
+
+    from urllib.parse import quote
+
+
+    filename = str(
+        attachment[
+            "original_filename"
+        ]
+        or "document.pdf"
+    )
+
+
+    encoded_name = quote(
+        filename
+    )
+
+
+    return Response(
+        content=
+            attachment["file_data"],
+
+        media_type=
+            attachment["content_type"]
+            or "application/pdf",
+
+        headers={
+            "Content-Disposition":
+                (
+                    "inline; "
+                    "filename*=UTF-8''"
+                    + encoded_name
+                )
+        }
+    )
+
+
+
+_secureexam_exam_attachments_init()
+
+
+# /SECUREEXAM_EXAM_ATTACHMENTS_V1
+
+
 @app.get(
     "/student/dashboard"
 )
@@ -7209,6 +8007,7 @@ def student_dashboard(
 ):
     _student_init_tables()
     _student_ensure_assignment_runtime_columns()
+    _secureexam_exam_attachments_init()
     connection = get_connection()
     cursor = connection.cursor()
     cursor.execute("""
@@ -7335,6 +8134,18 @@ def student_dashboard(
                         + "_exam-configuration.nix"
                     )
             }
+        attachments = (
+            _secureexam_student_visible_attachments(
+                cursor,
+                assignment["status"],
+                (
+                    int(config_row["id"])
+                    if config_row is not None
+                    else None
+                )
+            )
+        )
+
         exams.append({
             "assignment_id":
                 assignment["id"],
@@ -7366,6 +8177,10 @@ def student_dashboard(
                 ],
             "config_ready":
                 config_ready,
+
+            "attachments":
+                attachments,
+
             "config":
                 config
         })
@@ -7669,6 +8484,102 @@ def _secureexam_agent_enqueue_start(
     return int(
         cursor.lastrowid
     )
+
+
+
+def _secureexam_agent_enqueue_end(
+    cursor,
+    machine_id: str,
+    exam_id: str,
+    assignment_id: int,
+    student_number: str
+) -> int:
+
+    cursor.execute("""
+        SELECT id
+        FROM secureexam_agent_commands
+
+        WHERE
+            assignment_id = ?
+
+        AND
+            command_type = 'END_EXAM'
+
+        AND
+            status IN (
+                'PENDING',
+                'CLAIMED',
+                'DONE'
+            )
+
+        ORDER BY id DESC
+        LIMIT 1
+    """, (
+        assignment_id,
+    ))
+
+    existing = cursor.fetchone()
+
+    if existing is not None:
+        return int(
+            existing["id"]
+        )
+
+    current_time = now_iso()
+
+    payload = json.dumps(
+        {
+            "exam_id":
+                exam_id,
+
+            "student_number":
+                student_number,
+
+            "machine_id":
+                machine_id,
+
+            "workspace":
+                "/home/exam/workspace"
+        },
+        ensure_ascii=False
+    )
+
+    cursor.execute("""
+        INSERT INTO
+            secureexam_agent_commands (
+                machine_id,
+                command_type,
+                exam_id,
+                assignment_id,
+                student_number,
+                payload,
+                status,
+                created_at
+            )
+
+        VALUES (
+            ?,
+            'END_EXAM',
+            ?,
+            ?,
+            ?,
+            ?,
+            'PENDING',
+            ?
+        )
+    """, (
+        machine_id,
+        exam_id,
+        assignment_id,
+        student_number,
+        payload,
+        current_time
+    ))
+
+    return int(
+        cursor.lastrowid
+    )
+
 
 
 @app.post("/agent/register")
@@ -8001,11 +8912,13 @@ def secureexam_agent_complete_command(
     _secureexam_agent_require_token(
         x_secureexam_agent_token
     )
+
     status = (
         payload.status
         .strip()
         .upper()
     )
+
     if status not in {
         "DONE",
         "ERROR"
@@ -8017,14 +8930,21 @@ def secureexam_agent_complete_command(
                 "DONE ou ERROR."
             )
         )
+
     machine_id = (
         payload.machine_id
         .strip()
     )
+
     current_time = now_iso()
+
     connection = get_connection()
     cursor = connection.cursor()
+
+    started_at = None
+
     try:
+
         cursor.execute("""
             SELECT
                 id,
@@ -8046,7 +8966,9 @@ def secureexam_agent_complete_command(
             command_id,
             machine_id
         ))
+
         command = cursor.fetchone()
+
         if command is None:
             raise HTTPException(
                 status_code=404,
@@ -8055,110 +8977,197 @@ def secureexam_agent_complete_command(
                     "introuvable."
                 )
             )
-        if (
+
+        command_type = str(
             command["command_type"]
-            != "START_EXAM"
-        ):
+            or ""
+        ).upper()
+
+        if command_type not in {
+            "START_EXAM",
+            "END_EXAM"
+        }:
             raise HTTPException(
                 status_code=409,
                 detail=(
-                    "Type de commande "
-                    "invalide."
+                    "Type de commande invalide."
                 )
             )
-        started_at = None
-        if status == "DONE":
 
-            # -----------------------------------------
-            # LE CHRONO DEMARRE ICI.
-            # -----------------------------------------
-            cursor.execute("""
-                UPDATE
-                    student_exam_assignments
 
-                SET
-                    status = 'EN_COURS',
+        # ==================================================
+        # START_EXAM
+        # ==================================================
 
-                    started_at =
-                        COALESCE(
-                            started_at,
-                            ?
-                        ),
+        if command_type == "START_EXAM":
 
-                    updated_at = ?
+            if status == "DONE":
 
-                WHERE
-                    id = ?
-                AND
-                    machine_id = ?
-                AND
-                    status IN (
-                        'PREPARING',
-                        'EN_COURS'
+                cursor.execute("""
+                    UPDATE student_exam_assignments
+
+                    SET
+                        status = 'EN_COURS',
+
+                        started_at =
+                            COALESCE(
+                                started_at,
+                                ?
+                            ),
+
+                        updated_at = ?
+
+                    WHERE
+                        id = ?
+
+                    AND
+                        machine_id = ?
+
+                    AND
+                        status IN (
+                            'PREPARING',
+                            'EN_COURS'
+                        )
+                """, (
+                    current_time,
+                    current_time,
+                    command["assignment_id"],
+                    machine_id
+                ))
+
+                if cursor.rowcount != 1:
+                    raise HTTPException(
+                        status_code=409,
+                        detail=(
+                            "Affectation incompatible "
+                            "avec START_EXAM."
+                        )
                     )
-            """, (
-                current_time,
-                current_time,
-                command["assignment_id"],
-                machine_id
-            ))
-            if cursor.rowcount != 1:
-                raise HTTPException(
-                    status_code=409,
-                    detail=(
-                        "Affectation etudiante "
-                        "incompatible avec "
-                        "la commande agent."
-                    )
+
+                cursor.execute("""
+                    SELECT started_at
+
+                    FROM student_exam_assignments
+
+                    WHERE id = ?
+
+                    LIMIT 1
+                """, (
+                    command["assignment_id"],
+                ))
+
+                assignment = cursor.fetchone()
+
+                started_at = (
+                    assignment["started_at"]
+                    if assignment
+                    else current_time
                 )
-            cursor.execute("""
-                SELECT
-                    started_at
 
-                FROM student_exam_assignments
+                machine_state = "READY"
+                assignment_status = "EN_COURS"
 
-                WHERE id = ?
+            else:
 
-                LIMIT 1
-            """, (
-                command[
-                    "assignment_id"
-                ],
-            ))
-            assignment = (
-                cursor.fetchone()
-            )
-            started_at = (
-                assignment["started_at"]
-                if assignment
-                else current_time
-            )
-            machine_state = "READY"
+                cursor.execute("""
+                    UPDATE student_exam_assignments
+
+                    SET
+                        status = 'START_ERROR',
+                        started_at = NULL,
+                        updated_at = ?
+
+                    WHERE
+                        id = ?
+
+                    AND
+                        machine_id = ?
+
+                    AND
+                        status = 'PREPARING'
+                """, (
+                    current_time,
+                    command["assignment_id"],
+                    machine_id
+                ))
+
+                machine_state = "ERROR"
+                assignment_status = "START_ERROR"
+
+
+        # ==================================================
+        # END_EXAM
+        # ==================================================
+
         else:
-            cursor.execute("""
-                UPDATE
-                    student_exam_assignments
 
-                SET
-                    status = 'START_ERROR',
-                    started_at = NULL,
-                    updated_at = ?
+            if status == "DONE":
 
-                WHERE
-                    id = ?
-                AND
-                    machine_id = ?
-                AND
-                    status = 'PREPARING'
-            """, (
-                current_time,
-                command["assignment_id"],
-                machine_id
-            ))
-            machine_state = "ERROR"
+                cursor.execute("""
+                    UPDATE student_exam_assignments
+
+                    SET
+                        status = 'TERMINE',
+                        updated_at = ?
+
+                    WHERE
+                        id = ?
+
+                    AND
+                        machine_id = ?
+
+                    AND
+                        status IN (
+                            'FINALIZING',
+                            'TERMINE'
+                        )
+                """, (
+                    current_time,
+                    command["assignment_id"],
+                    machine_id
+                ))
+
+                if cursor.rowcount != 1:
+                    raise HTTPException(
+                        status_code=409,
+                        detail=(
+                            "Affectation incompatible "
+                            "avec END_EXAM."
+                        )
+                    )
+
+                machine_state = "IDLE"
+                assignment_status = "TERMINE"
+
+            else:
+
+                cursor.execute("""
+                    UPDATE student_exam_assignments
+
+                    SET
+                        status = 'END_ERROR',
+                        updated_at = ?
+
+                    WHERE
+                        id = ?
+
+                    AND
+                        machine_id = ?
+
+                    AND
+                        status = 'FINALIZING'
+                """, (
+                    current_time,
+                    command["assignment_id"],
+                    machine_id
+                ))
+
+                machine_state = "ERROR"
+                assignment_status = "END_ERROR"
+
+
         cursor.execute("""
-            UPDATE
-                secureexam_agent_commands
+            UPDATE secureexam_agent_commands
 
             SET
                 status = ?,
@@ -8167,6 +9176,7 @@ def secureexam_agent_complete_command(
 
             WHERE
                 id = ?
+
             AND
                 machine_id = ?
         """, (
@@ -8176,47 +9186,62 @@ def secureexam_agent_complete_command(
             command_id,
             machine_id
         ))
+
+
         cursor.execute("""
-            UPDATE
-                secureexam_agent_machines
+            UPDATE secureexam_agent_machines
 
             SET
                 state = ?,
                 last_seen = ?,
                 updated_at = ?
 
-            WHERE
-                machine_id = ?
+            WHERE machine_id = ?
         """, (
             machine_state,
             current_time,
             current_time,
             machine_id
         ))
+
+
         connection.commit()
+
+
     except Exception:
+
         connection.rollback()
         raise
+
+
     finally:
+
         connection.close()
+
+
     return {
         "success":
             True,
+
         "command_id":
             command_id,
+
+        "command_type":
+            command_type,
+
         "status":
             status,
+
         "machine_state":
             machine_state,
+
         "assignment_status":
-            (
-                "EN_COURS"
-                if status == "DONE"
-                else "START_ERROR"
-            ),
+            assignment_status,
+
         "started_at":
             started_at
     }
+
 
 
 @app.get("/agent/machines")
@@ -8470,6 +9495,257 @@ def student_start_exam(
         "agent_status":
             "PENDING"
     }
+
+
+@app.post(
+    "/student/exams/{assignment_id}/finish"
+)
+def student_finish_exam(
+    assignment_id: int,
+
+    current_student:
+        dict
+        = _StudentDepends(
+            _get_current_student
+        )
+):
+    _student_init_tables()
+    _student_ensure_assignment_runtime_columns()
+    _secureexam_agent_init_tables()
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+
+        cursor.execute("""
+            SELECT
+                id,
+                exam_id,
+                student_id,
+                machine_id,
+                status,
+                started_at
+
+            FROM student_exam_assignments
+
+            WHERE
+                id = ?
+
+            AND
+                student_id = ?
+
+            LIMIT 1
+        """, (
+            assignment_id,
+            current_student["id"]
+        ))
+
+        assignment = cursor.fetchone()
+
+        if assignment is None:
+
+            raise _StudentHTTPException(
+                status_code=404,
+                detail=(
+                    "Examen affecte "
+                    "introuvable."
+                )
+            )
+
+
+        current_status = str(
+            assignment["status"]
+            or ""
+        ).upper()
+
+
+        if current_status in {
+            "TERMINE",
+            "TERMINEE",
+            "CLOTURE",
+            "CLOTUREE"
+        }:
+
+            return {
+                "success":
+                    True,
+
+                "assignment_id":
+                    assignment_id,
+
+                "exam_id":
+                    assignment["exam_id"],
+
+                "status":
+                    "TERMINE",
+
+                "agent_command_id":
+                    None,
+
+                "machine_id":
+                    assignment["machine_id"]
+                    or ""
+            }
+
+
+        if current_status == "FINALIZING":
+
+            cursor.execute("""
+                SELECT id
+
+                FROM secureexam_agent_commands
+
+                WHERE
+                    assignment_id = ?
+
+                AND
+                    command_type = 'END_EXAM'
+
+                AND
+                    status IN (
+                        'PENDING',
+                        'CLAIMED',
+                        'DONE'
+                    )
+
+                ORDER BY id DESC
+
+                LIMIT 1
+            """, (
+                assignment_id,
+            ))
+
+            command = cursor.fetchone()
+
+            return {
+                "success":
+                    True,
+
+                "assignment_id":
+                    assignment_id,
+
+                "exam_id":
+                    assignment["exam_id"],
+
+                "status":
+                    "FINALIZING",
+
+                "agent_command_id":
+                    (
+                        int(command["id"])
+                        if command
+                        else None
+                    ),
+
+                "machine_id":
+                    assignment["machine_id"]
+                    or ""
+            }
+
+
+        if current_status not in {
+            "EN_COURS",
+            "END_ERROR"
+        }:
+
+            raise _StudentHTTPException(
+                status_code=409,
+                detail=(
+                    "L'examen ne peut pas "
+                    "etre termine dans son "
+                    "etat actuel."
+                )
+            )
+
+
+        machine_id = (
+            _secureexam_agent_resolve_target(
+                cursor,
+
+                assignment["machine_id"]
+                or ""
+            )
+        )
+
+
+        command_id = (
+            _secureexam_agent_enqueue_end(
+                cursor=cursor,
+
+                machine_id=
+                    machine_id,
+
+                exam_id=
+                    assignment["exam_id"],
+
+                assignment_id=
+                    assignment_id,
+
+                student_number=
+                    current_student[
+                        "student_number"
+                    ]
+            )
+        )
+
+
+        cursor.execute("""
+            UPDATE student_exam_assignments
+
+            SET
+                status = 'FINALIZING',
+                machine_id = ?,
+                updated_at = ?
+
+            WHERE
+                id = ?
+
+            AND
+                student_id = ?
+        """, (
+            machine_id,
+            now_iso(),
+            assignment_id,
+            current_student["id"]
+        ))
+
+
+        connection.commit()
+
+
+        return {
+            "success":
+                True,
+
+            "assignment_id":
+                assignment_id,
+
+            "exam_id":
+                assignment["exam_id"],
+
+            "status":
+                "FINALIZING",
+
+            "agent_command_id":
+                command_id,
+
+            "machine_id":
+                machine_id
+        }
+
+
+    except Exception:
+
+        connection.rollback()
+        raise
+
+
+    finally:
+
+        connection.close()
+
+
 
 _student_init_tables()
 
