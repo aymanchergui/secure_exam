@@ -8,7 +8,7 @@ L’enseignant prépare l’épreuve depuis une interface web Angular, le backen
 **Auteur :** Ayman CHERGUI  
 **Référent / client :** Willy DUQUENOY  
 **Version projet :** v1.0.9  
-**Version de l’agent observée lors des derniers essais :** 0.4.1
+**Version de l’agent SecureExam Agent:** 0.4.1
 
 ---
 
